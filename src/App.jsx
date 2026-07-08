@@ -1,33 +1,37 @@
 // WOODSHED — daily reps for technical interviews
-// Single-file React artifact. Progress persists via window.storage.
+// v2: green room theme, desktop layout, 30-day plan, spaced review, timer.
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Flame, Sun, Map, Mic, Lightbulb, Radar, Code2, ListChecks,
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
-  ChevronRight, RotateCcw, Clock, Target, ArrowLeftRight
+  ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
+  CalendarDays, Play, Pause, TimerReset
 } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
 
 const T = {
-  ink: "#171310",
-  surface: "#211B16",
-  surfaceUp: "#2A231C",
-  edge: "#3A3128",
-  ivory: "#F0E9DC",
-  muted: "#A69883",
-  faint: "#7A6E5D",
-  brass: "#D9A54A",
-  brassSoft: "rgba(217,165,74,0.14)",
-  sage: "#8FAE7E",
-  rust: "#C0574E",
+  ink: "#101410",
+  surface: "#171D17",
+  surfaceUp: "#1E261E",
+  edge: "#2B372B",
+  ivory: "#EDF1E4",
+  muted: "#A2AF9B",
+  faint: "#71806C",
+  accent: "#8CC084",
+  accentSoft: "rgba(140,192,132,0.14)",
+  mint: "#79C9A5",
+  gold: "#D2B457",
+  rust: "#CB6B5B",
+  onAccent: "#0E140D",
+  codeBg: "#0C100C",
 };
 
 const DIFF = {
-  Easy: { color: T.sage, bg: "rgba(143,174,126,0.14)" },
-  Medium: { color: T.brass, bg: "rgba(217,165,74,0.14)" },
-  Hard: { color: T.rust, bg: "rgba(192,87,78,0.16)" },
+  Easy: { color: T.mint, bg: "rgba(121,201,165,0.13)" },
+  Medium: { color: T.gold, bg: "rgba(210,180,87,0.13)" },
+  Hard: { color: T.rust, bg: "rgba(203,107,91,0.15)" },
 };
 
 const lc = (slug) => "https://leetcode.com/problems/" + slug + "/";
@@ -915,6 +919,63 @@ const ROUTINE = [
   { name: "Wrap", time: "5 min", desc: "Say the approach back in one sentence, state the complexity, and mark it solved here. The one-sentence summary is what makes it stick." },
 ];
 
+// ---------------------------------------------------------------- 30-day plan
+
+const PLAN = [
+  { day: 1, focus: "Big O and arrays", read: ["big-o", "arrays-strings"], solve: ["concatenation-of-array", "remove-duplicates-from-sorted-array"] },
+  { day: 2, focus: "Arrays", solve: ["best-time-to-buy-and-sell-stock", "rotate-array", "product-of-array-except-self"] },
+  { day: 3, focus: "Hash maps", read: ["hash-maps"], solve: ["contains-duplicate", "valid-anagram", "two-sum"] },
+  { day: 4, focus: "Hash maps", solve: ["group-anagrams", "top-k-frequent-elements"] },
+  { day: 5, focus: "Two pointers", read: ["two-pointers"], solve: ["valid-palindrome", "move-zeroes", "squares-of-a-sorted-array"] },
+  { day: 6, focus: "Two pointers", solve: ["two-sum-ii-input-array-is-sorted", "container-with-most-water"] },
+  { day: 7, focus: "Review and the first boss", solve: ["3sum"], extra: [
+    { id: "d7-review", label: "Re-solve 3 problems from the review queue, cold" },
+    { id: "d7-skills", label: "Read the whole Skills tab once, out loud where it says to" },
+  ] },
+  { day: 8, focus: "Sliding window", read: ["sliding-window"], solve: ["maximum-average-subarray-i", "longest-substring-without-repeating-characters"] },
+  { day: 9, focus: "Window, then prefix sums", read: ["prefix-sums"], solve: ["longest-repeating-character-replacement", "running-sum-of-1d-array"] },
+  { day: 10, focus: "Prefix sums", solve: ["find-pivot-index", "range-sum-query-immutable", "subarray-sum-equals-k"] },
+  { day: 11, focus: "Binary search", read: ["binary-search"], solve: ["binary-search", "search-insert-position", "first-bad-version"] },
+  { day: 12, focus: "Binary search", solve: ["search-in-rotated-sorted-array", "koko-eating-bananas"] },
+  { day: 13, focus: "Stacks and queues", read: ["stacks-queues"], solve: ["valid-parentheses", "implement-queue-using-stacks", "min-stack"] },
+  { day: 14, focus: "Mock, week two", solve: ["daily-temperatures"], extra: [
+    { id: "d14-mock", label: "Treat Daily Temperatures as a mock: 40-minute timer, narrate the whole time" },
+    { id: "d14-review", label: "Re-solve 3 problems from the review queue" },
+  ] },
+  { day: 15, focus: "Linked lists", read: ["linked-lists"], solve: ["evaluate-reverse-polish-notation", "reverse-linked-list", "merge-two-sorted-lists"] },
+  { day: 16, focus: "Linked lists", solve: ["linked-list-cycle", "middle-of-the-linked-list", "remove-nth-node-from-end-of-list"] },
+  { day: 17, focus: "Lists, then trees", read: ["trees"], solve: ["reorder-list", "maximum-depth-of-binary-tree", "invert-binary-tree"] },
+  { day: 18, focus: "Trees", solve: ["same-tree", "diameter-of-binary-tree", "binary-tree-level-order-traversal"] },
+  { day: 19, focus: "Trees, then graphs", read: ["graphs"], solve: ["validate-binary-search-tree", "flood-fill"] },
+  { day: 20, focus: "Graphs", solve: ["number-of-islands", "max-area-of-island"] },
+  { day: 21, focus: "Mock, week three", solve: ["rotting-oranges"], extra: [
+    { id: "d21-mock", label: "Rotting Oranges as a mock: 40-minute timer, out loud" },
+    { id: "d21-review", label: "Re-solve 3 problems from the review queue" },
+  ] },
+  { day: 22, focus: "Graphs, then heaps", read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
+  { day: 23, focus: "Heaps, then backtracking", read: ["backtracking"], solve: ["k-closest-points-to-origin", "subsets"] },
+  { day: 24, focus: "Backtracking", solve: ["permutations", "combination-sum"] },
+  { day: 25, focus: "Backtracking, then DP", read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
+  { day: 26, focus: "DP under the clock", solve: ["climbing-stairs", "min-cost-climbing-stairs", "house-robber"], extra: [
+    { id: "d26-mock", label: "First two problems back to back, 25 minutes each, timed" },
+  ] },
+  { day: 27, focus: "DP", solve: ["unique-paths", "coin-change"] },
+  { day: 28, focus: "DP, then greedy", read: ["greedy"], solve: ["longest-increasing-subsequence", "maximum-subarray", "jump-game"] },
+  { day: 29, focus: "Greedy, then intervals", read: ["intervals"], solve: ["gas-station", "merge-intervals"], extra: [
+    { id: "d29-review", label: "Re-solve 3 problems from the review queue" },
+  ] },
+  { day: 30, focus: "Finish line", solve: ["insert-interval", "non-overlapping-intervals", "minimum-number-of-arrows-to-burst-balloons"], stretch: ["minimum-window-substring", "find-median-from-data-stream"], extra: [
+    { id: "d30-mock", label: "One full 45-minute mock on Pramp or with a friend, camera on" },
+  ] },
+];
+
+const WEEKS = [
+  { name: "Week one", sub: "Foundations and core patterns", days: [1, 7] },
+  { name: "Week two", sub: "Patterns under your fingers", days: [8, 14] },
+  { name: "Week three", sub: "Pointers, trees, and graphs", days: [15, 21] },
+  { name: "Week four and the finish", sub: "Advanced patterns and mocks", days: [22, 30] },
+];
+
 // ---------------------------------------------------------------- ordering and helpers
 
 const ORDERED_CONCEPTS = PHASES.flatMap((ph) => CONCEPTS.filter((c) => c.phase === ph.id));
@@ -924,6 +985,7 @@ const ORDERED_PROBLEMS = ORDERED_CONCEPTS.flatMap((c) =>
 );
 
 const conceptById = (id) => CONCEPTS.find((c) => c.id === id);
+const problemBySlug = (slug) => ORDERED_PROBLEMS.find((p) => p.slug === slug);
 
 function ymd(d) {
   const p = (n) => String(n).padStart(2, "0");
@@ -933,6 +995,13 @@ function yesterdayYmd() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
   return ymd(d);
+}
+function parseYmd(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d, 12);
+}
+function daysBetween(a, b) {
+  return Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
 }
 
 const STORE_KEY = "woodshed-v1";
@@ -966,12 +1035,64 @@ async function clearProgress() {
   }
 }
 
-const FRESH = { solved: {}, read: {}, streak: { count: 0, last: null } };
+const FRESH = {
+  solved: {},
+  read: {},
+  streak: { count: 0, last: null },
+  reviewed: {},
+  tasks: {},
+  planStart: null,
+};
+
+function mergeSaved(saved) {
+  return {
+    solved: saved.solved || {},
+    read: saved.read || {},
+    streak: { count: 0, last: null, ...(saved.streak || {}) },
+    reviewed: saved.reviewed || {},
+    tasks: saved.tasks || {},
+    planStart: saved.planStart || null,
+  };
+}
+
+function reviewDueList(progress) {
+  const today = ymd(new Date());
+  const out = [];
+  for (const p of ORDERED_PROBLEMS) {
+    const solvedOn = progress.solved[p.slug];
+    if (!solvedOn) continue;
+    const revs = (progress.reviewed && progress.reviewed[p.slug]) || [];
+    if (revs.length >= 2) continue;
+    const anchor = revs.length ? revs[revs.length - 1] : solvedOn;
+    const wait = revs.length ? 7 : 3;
+    if (daysBetween(anchor, today) >= wait) out.push({ ...p, stage: revs.length + 1 });
+  }
+  return out;
+}
+
+function dayStats(day, progress) {
+  const reads = day.read || [];
+  const solves = day.solve || [];
+  const extras = day.extra || [];
+  const done =
+    reads.filter((id) => progress.read[id]).length +
+    solves.filter((s) => progress.solved[s]).length +
+    extras.filter((e) => progress.tasks[e.id]).length;
+  const total = reads.length + solves.length + extras.length;
+  return { done, total, complete: done === total && total > 0 };
+}
+
+function currentPlanDay(progress) {
+  if (!progress.planStart) return null;
+  return daysBetween(progress.planStart, ymd(new Date())) + 1;
+}
 
 // ---------------------------------------------------------------- shared pieces
 
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+const HAIRLINE = "1px solid rgba(237,241,228,0.06)";
+
 function KeyStrip() {
-  // the signature: the edge of a piano keyboard as a divider
   return (
     <div
       aria-hidden="true"
@@ -990,7 +1111,7 @@ function Eyebrow({ children }) {
   return (
     <div
       className="text-xs uppercase"
-      style={{ color: T.brass, letterSpacing: "0.22em", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}
+      style={{ color: T.accent, letterSpacing: "0.22em", fontFamily: MONO }}
     >
       {children}
     </div>
@@ -1002,7 +1123,7 @@ function DiffBadge({ diff }) {
   return (
     <span
       className="text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
-      style={{ color: d.color, backgroundColor: d.bg, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}
+      style={{ color: d.color, backgroundColor: d.bg, fontFamily: MONO }}
     >
       {diff}
     </span>
@@ -1025,10 +1146,10 @@ function CodeBlock({ code }) {
     <pre
       className="text-xs sm:text-sm rounded-xl p-4 overflow-x-auto leading-relaxed"
       style={{
-        backgroundColor: "#120E0B",
+        backgroundColor: T.codeBg,
         border: "1px solid " + T.edge,
         color: T.ivory,
-        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        fontFamily: MONO,
       }}
     >
       <code>{code}</code>
@@ -1039,22 +1160,19 @@ function CodeBlock({ code }) {
 function Bar({ value, max }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
-    <div className="h-1.5 rounded-full w-full" style={{ backgroundColor: "rgba(240,233,220,0.08)" }}>
+    <div className="h-1.5 rounded-full w-full" style={{ backgroundColor: "rgba(237,241,228,0.08)" }}>
       <div
         className="h-1.5 rounded-full"
-        style={{ width: pct + "%", backgroundColor: T.brass, transition: "width 300ms ease" }}
+        style={{ width: pct + "%", backgroundColor: T.accent, transition: "width 300ms ease" }}
       />
     </div>
   );
 }
 
-const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-const HAIRLINE = "1px solid rgba(240,233,220,0.06)";
-
 function SectionHead({ icon: Icon, children }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <Icon size={15} color={T.brass} />
+      <Icon size={15} color={T.accent} />
       <h2
         className="text-xs font-semibold uppercase"
         style={{ letterSpacing: "0.14em", color: T.muted }}
@@ -1065,7 +1183,7 @@ function SectionHead({ icon: Icon, children }) {
   );
 }
 
-function ProblemRow({ p, solved, onToggle }) {
+function ProblemRow({ p, solved, onToggle, tag }) {
   return (
     <div className="flex items-center gap-3 py-3" style={{ borderBottom: HAIRLINE }}>
       <button
@@ -1074,13 +1192,13 @@ function ProblemRow({ p, solved, onToggle }) {
         className="shrink-0"
       >
         {solved ? (
-          <CheckCircle2 size={20} color={T.brass} />
+          <CheckCircle2 size={20} color={T.accent} />
         ) : (
           <Circle size={20} color={T.faint} />
         )}
       </button>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-2 flex-wrap">
           <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
             {p.num}
           </span>
@@ -1093,6 +1211,11 @@ function ProblemRow({ p, solved, onToggle }) {
           >
             {p.title}
           </span>
+          {tag && (
+            <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+              {tag}
+            </span>
+          )}
         </div>
         <div className="text-xs mt-0.5" style={{ color: T.faint }}>
           {p.why}
@@ -1109,6 +1232,155 @@ function ProblemRow({ p, solved, onToggle }) {
         <ExternalLink size={15} color={T.muted} />
       </a>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- widgets
+
+function RepTimer() {
+  const TOTAL = 35 * 60;
+  const [left, setLeft] = useState(TOTAL);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const t = setInterval(() => setLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [running]);
+
+  useEffect(() => {
+    if (left === 0) setRunning(false);
+  }, [left]);
+
+  const mm = String(Math.floor(left / 60)).padStart(2, "0");
+  const ss = String(left % 60).padStart(2, "0");
+
+  return (
+    <Card>
+      <Eyebrow>Rep timer</Eyebrow>
+      <div className="flex items-center justify-between mt-2">
+        <span
+          className="ws-display text-4xl font-bold"
+          style={{ color: left === 0 ? T.rust : running ? T.accent : T.ivory, fontVariantNumeric: "tabular-nums" }}
+        >
+          {mm}:{ss}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => left > 0 && setRunning(!running)}
+            aria-label={running ? "Pause timer" : "Start timer"}
+            className="p-2.5 rounded-xl"
+            style={{ backgroundColor: T.accent, color: T.onAccent }}
+          >
+            {running ? <Pause size={16} /> : <Play size={16} />}
+          </button>
+          <button
+            onClick={() => {
+              setRunning(false);
+              setLeft(TOTAL);
+            }}
+            aria-label="Reset timer"
+            className="p-2.5 rounded-xl"
+            style={{ border: "1px solid " + T.edge, color: T.muted }}
+          >
+            <TimerReset size={16} />
+          </button>
+        </div>
+      </div>
+      <p className="text-xs mt-3 leading-relaxed" style={{ color: left === 0 ? T.rust : T.faint }}>
+        {left === 0
+          ? "Time. Read the top solution, understand it, close it, and re-code it from memory."
+          : "35 minutes per problem. When it rings, studying the solution is the next rep, not a defeat."}
+      </p>
+    </Card>
+  );
+}
+
+function Heatmap({ progress }) {
+  const counts = {};
+  for (const d of Object.values(progress.solved)) counts[d] = (counts[d] || 0) + 1;
+  for (const arr of Object.values(progress.reviewed || {}))
+    for (const d of arr) counts[d] = (counts[d] || 0) + 1;
+  const days = [];
+  for (let i = 27; i >= 0; i--) {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - i);
+    days.push(ymd(dt));
+  }
+  const shade = (c) =>
+    c === 0
+      ? "rgba(237,241,228,0.06)"
+      : c === 1
+      ? "rgba(140,192,132,0.35)"
+      : c === 2
+      ? "rgba(140,192,132,0.65)"
+      : T.accent;
+  return (
+    <Card>
+      <Eyebrow>Last four weeks</Eyebrow>
+      <div className="grid grid-cols-7 gap-1.5 mt-3">
+        {days.map((d) => (
+          <div
+            key={d}
+            title={d + ": " + (counts[d] || 0) + " reps"}
+            className="aspect-square rounded-md"
+            style={{ backgroundColor: shade(counts[d] || 0) }}
+          />
+        ))}
+      </div>
+      <p className="text-xs mt-3" style={{ color: T.faint }}>
+        Every square is a day. Fill the month.
+      </p>
+    </Card>
+  );
+}
+
+function ReviewSection({ progress, onMarkReviewed }) {
+  const due = reviewDueList(progress);
+  if (due.length === 0) return null;
+  const show = due.slice(0, 5);
+  return (
+    <Card>
+      <SectionHead icon={RotateCcw}>{"Review due (" + due.length + ")"}</SectionHead>
+      <p className="text-xs mb-2 leading-relaxed" style={{ color: T.faint }}>
+        Solved a few days ago, due for a cold re-solve. If it flows, it is yours. No peeking first.
+      </p>
+      <div>
+        {show.map((p) => (
+          <div key={p.slug} className="flex items-center gap-3 py-3" style={{ borderBottom: HAIRLINE }}>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                  {p.num}
+                </span>
+                <span className="text-sm font-medium" style={{ color: T.ivory }}>
+                  {p.title}
+                </span>
+                <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                  {p.stage === 1 ? "3-day" : "7-day"}
+                </span>
+              </div>
+            </div>
+            <a
+              href={lc(p.slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={"Open " + p.title + " on LeetCode"}
+              className="shrink-0 p-1"
+            >
+              <ExternalLink size={15} color={T.muted} />
+            </a>
+            <button
+              onClick={() => onMarkReviewed(p.slug)}
+              className="shrink-0 text-xs px-3 py-1.5 rounded-full"
+              style={{ border: "1px solid " + T.edge, color: T.accent }}
+            >
+              Re-solved
+            </button>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -1138,11 +1410,7 @@ function SyncPanel({ progress, onImport }) {
     try {
       const data = JSON.parse(decodeURIComponent(escape(atob(text.trim()))));
       if (!data || typeof data !== "object" || !data.solved) throw new Error("bad code");
-      onImport({
-        solved: data.solved || {},
-        read: data.read || {},
-        streak: { count: 0, last: null, ...(data.streak || {}) },
-      });
+      onImport(mergeSaved(data));
       setMsg("Progress loaded on this device.");
     } catch (e) {
       setMsg("That code did not check out. Paste the complete code and try again.");
@@ -1175,7 +1443,7 @@ function SyncPanel({ progress, onImport }) {
             placeholder="Your sync code appears here, or paste one from another device."
             className="w-full mt-3 rounded-xl p-3 text-xs"
             style={{
-              backgroundColor: "#120E0B",
+              backgroundColor: T.codeBg,
               border: "1px solid " + T.edge,
               color: T.ivory,
               fontFamily: MONO,
@@ -1192,7 +1460,7 @@ function SyncPanel({ progress, onImport }) {
             <button
               onClick={loadCode}
               className="px-3 py-2 rounded-xl text-xs font-medium"
-              style={{ backgroundColor: T.brass, color: "#1A1510" }}
+              style={{ backgroundColor: T.accent, color: T.onAccent }}
             >
               Load pasted code
             </button>
@@ -1208,9 +1476,175 @@ function SyncPanel({ progress, onImport }) {
   );
 }
 
+// ---------------------------------------------------------------- plan pieces
+
+function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept }) {
+  const reads = day.read || [];
+  const solves = day.solve || [];
+  const stretch = day.stretch || [];
+  const extras = day.extra || [];
+  return (
+    <div>
+      {reads.map((id) => {
+        const c = conceptById(id);
+        const done = !!progress.read[id];
+        return (
+          <button
+            key={id}
+            onClick={() => onOpenConcept(id)}
+            className="w-full flex items-center gap-3 py-3 text-left"
+            style={{ borderBottom: HAIRLINE }}
+          >
+            {done ? (
+              <CheckCircle2 size={20} color={T.accent} className="shrink-0" />
+            ) : (
+              <BookOpen size={20} color={T.faint} className="shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <span
+                className="text-sm font-medium"
+                style={{ color: done ? T.faint : T.ivory, textDecoration: done ? "line-through" : "none" }}
+              >
+                Read: {c.title}
+              </span>
+              <div className="text-xs mt-0.5" style={{ color: T.faint }}>
+                {c.tagline}
+              </div>
+            </div>
+            <ChevronRight size={15} color={T.faint} className="shrink-0" />
+          </button>
+        );
+      })}
+      {solves.map((slug) => {
+        const p = problemBySlug(slug);
+        return <ProblemRow key={slug} p={p} solved={!!progress.solved[slug]} onToggle={onToggleSolved} />;
+      })}
+      {stretch.map((slug) => {
+        const p = problemBySlug(slug);
+        return (
+          <ProblemRow
+            key={slug}
+            p={p}
+            solved={!!progress.solved[slug]}
+            onToggle={onToggleSolved}
+            tag="stretch, optional"
+          />
+        );
+      })}
+      {extras.map((e) => {
+        const done = !!progress.tasks[e.id];
+        return (
+          <button
+            key={e.id}
+            onClick={() => onToggleTask(e.id)}
+            className="w-full flex items-center gap-3 py-3 text-left"
+            style={{ borderBottom: HAIRLINE }}
+          >
+            {done ? (
+              <CheckCircle2 size={20} color={T.accent} className="shrink-0" />
+            ) : (
+              <Circle size={20} color={T.faint} className="shrink-0" />
+            )}
+            <span
+              className="text-sm"
+              style={{ color: done ? T.faint : T.ivory, textDecoration: done ? "line-through" : "none" }}
+            >
+              {e.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StartPlanCard({ onStartPlan }) {
+  return (
+    <Card style={{ borderLeft: "3px solid " + T.accent }}>
+      <div className="flex items-center gap-2">
+        <CalendarDays size={16} color={T.accent} />
+        <Eyebrow>The 30-day plan</Eyebrow>
+      </div>
+      <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
+        One month, every problem here, aimed at big-tech loops.
+      </h2>
+      <p className="text-sm mt-2 leading-relaxed" style={{ color: T.muted }}>
+        New patterns most days, review days and timed mocks built in, hard problems saved
+        for the end. Two to three problems a day, 45 to 75 minutes. Start it and the Today
+        tab becomes your daily assignment.
+      </p>
+      <button
+        onClick={onStartPlan}
+        className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+        style={{ backgroundColor: T.accent, color: T.onAccent }}
+      >
+        Start day one today <ChevronRight size={15} />
+      </button>
+    </Card>
+  );
+}
+
+function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept }) {
+  const n = currentPlanDay(progress);
+  const behind = PLAN.filter((d) => d.day < Math.min(n, 31) && !dayStats(d, progress).complete).length;
+
+  if (n > 30) {
+    const allDone = PLAN.every((d) => dayStats(d, progress).complete);
+    return (
+      <Card style={{ borderLeft: "3px solid " + T.accent }}>
+        <Eyebrow>{"Day " + n + " — past the finish line"}</Eyebrow>
+        <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
+          {allDone ? "The month is done. You did the thing." : "The month is over, the work is not."}
+        </h2>
+        <p className="text-sm mt-2 leading-relaxed" style={{ color: T.muted }}>
+          {allDone
+            ? "From here: keep the review queue empty, do timed mocks weekly, and book the real loops. You are more ready than you feel."
+            : "Open the Plan tab and close out the remaining days. Then it is mocks, review, and booking the real thing."}
+        </p>
+      </Card>
+    );
+  }
+
+  const day = PLAN[n - 1];
+  const stats = dayStats(day, progress);
+  return (
+    <Card style={{ borderLeft: "3px solid " + T.accent }}>
+      <div className="flex items-center justify-between gap-3">
+        <Eyebrow>{"Day " + n + " of 30 — " + day.focus}</Eyebrow>
+        <span className="text-xs shrink-0" style={{ color: stats.complete ? T.accent : T.faint, fontFamily: MONO }}>
+          {stats.done}/{stats.total}
+        </span>
+      </div>
+      {behind > 0 && (
+        <p className="text-xs mt-2" style={{ color: T.gold }}>
+          {behind === 1 ? "One earlier day is still open" : behind + " earlier days are still open"} — the
+          Plan tab shows what is left. No drama, just reps.
+        </p>
+      )}
+      <div className="mt-2">
+        <DayTasks
+          day={day}
+          progress={progress}
+          onToggleSolved={onToggleSolved}
+          onToggleTask={onToggleTask}
+          onOpenConcept={onOpenConcept}
+        />
+      </div>
+      {stats.complete && (
+        <p className="text-sm mt-3" style={{ color: T.accent }}>
+          Day {n} wrapped. Rest, or raid the review queue.
+        </p>
+      )}
+    </Card>
+  );
+}
+
 // ---------------------------------------------------------------- today
 
-function TodayView({ progress, nextUp, onShuffle, onToggleSolved, onOpenConcept, resetArmed, onReset, onImport }) {
+function TodayView({
+  progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
+  resetArmed, onReset, onImport, onToggleTask, onStartPlan, onMarkReviewed,
+}) {
   const solvedCount = Object.keys(progress.solved).length;
   const total = ORDERED_PROBLEMS.length;
   const today = ymd(new Date());
@@ -1218,7 +1652,8 @@ function TodayView({ progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
   const streak = streakAlive ? progress.streak.count : 0;
   const doneToday = progress.streak.last === today;
   const firstUnread = ORDERED_CONCEPTS.find((c) => !progress.read[c.id]);
-  const brandNew = solvedCount === 0 && Object.keys(progress.read).length === 0;
+  const brandNew = solvedCount === 0 && Object.keys(progress.read).length === 0 && !progress.planStart;
+  const planActive = !!progress.planStart;
 
   const diffStats = ["Easy", "Medium", "Hard"].map((d) => {
     const all = ORDERED_PROBLEMS.filter((p) => p.diff === d);
@@ -1227,182 +1662,294 @@ function TodayView({ progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
   });
 
   return (
-    <div className="space-y-4">
-      {brandNew && (
-        <Card>
-          <Eyebrow>How this works</Eyebrow>
-          <p className="text-sm leading-relaxed mt-2" style={{ color: T.ivory }}>
-            The Roadmap teaches you to recognize patterns, each one explained like you have
-            never seen it before, because pattern recognition is the entire game. The Skills
-            tab is the other half: how to run the interview itself. Do one rep a day. The
-            streak keeps score.
-          </p>
-          <button
-            onClick={() => firstUnread && onOpenConcept(firstUnread.id)}
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium"
-            style={{ color: T.brass }}
-          >
-            Start with Big O notation <ChevronRight size={15} />
-          </button>
-        </Card>
-      )}
-
-      {nextUp ? (
-        <Card style={{ borderLeft: "3px solid " + T.brass }}>
-          <div className="flex items-center justify-between gap-3">
-            <Eyebrow>{"Today's rep - LC " + nextUp.num}</Eyebrow>
-            <DiffBadge diff={nextUp.diff} />
-          </div>
-          <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
-            {nextUp.title}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: T.muted }}>
-            {nextUp.why}
-          </p>
-          <button
-            onClick={() => onOpenConcept(nextUp.conceptId)}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
-            style={{ color: T.brass }}
-          >
-            <BookOpen size={13} /> {nextUp.conceptTitle}: read the concept first
-            <ChevronRight size={13} />
-          </button>
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <a
-              href={lc(nextUp.slug)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: T.brass, color: "#1A1510" }}
-            >
-              Open on LeetCode <ExternalLink size={15} />
-            </a>
-            <button
-              onClick={() => onToggleSolved(nextUp.slug)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-              style={{ border: "1px solid " + T.edge, color: T.ivory }}
-            >
-              <CheckCircle2 size={15} color={T.sage} /> Mark solved
-            </button>
-            <button
-              onClick={onShuffle}
-              className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
-              style={{ color: T.faint }}
-            >
-              <Shuffle size={13} /> Different rep
-            </button>
-          </div>
-          {doneToday && (
-            <p className="text-xs mt-3" style={{ color: T.sage }}>
-              Rep logged for today. Anything more is extra credit.
+    <div className="lg:grid lg:grid-cols-5 lg:gap-5">
+      <div className="lg:col-span-3 space-y-4">
+        {brandNew && (
+          <Card>
+            <Eyebrow>How this works</Eyebrow>
+            <p className="text-sm leading-relaxed mt-2" style={{ color: T.ivory }}>
+              The Roadmap teaches you to recognize patterns, each explained like you have
+              never seen it before, because pattern recognition is the entire game. The
+              Plan turns all of it into one scheduled month. The Skills tab is the other
+              half: how to run the interview itself. Start the plan below, then do day one.
             </p>
-          )}
-        </Card>
-      ) : (
-        <Card style={{ borderLeft: "3px solid " + T.brass }}>
-          <div className="flex items-center gap-2">
-            <Target size={18} color={T.brass} />
-            <h1 className="ws-display text-xl font-semibold" style={{ color: T.ivory }}>
-              Every rep in the book is done.
+          </Card>
+        )}
+
+        {planActive ? (
+          <PlanTodayCard
+            progress={progress}
+            onToggleSolved={onToggleSolved}
+            onToggleTask={onToggleTask}
+            onOpenConcept={onOpenConcept}
+          />
+        ) : (
+          <StartPlanCard onStartPlan={onStartPlan} />
+        )}
+
+        {!planActive && nextUp && (
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <Eyebrow>{"Or freestyle a rep - LC " + nextUp.num}</Eyebrow>
+              <DiffBadge diff={nextUp.diff} />
+            </div>
+            <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
+              {nextUp.title}
             </h1>
-          </div>
-          <p className="text-sm mt-2 leading-relaxed" style={{ color: T.muted }}>
-            All {total} problems solved. Next move: timed mock interviews and re-solving
-            old problems cold. Ask Claude to add a fresh problem set whenever you want one.
-          </p>
-        </Card>
-      )}
+            <p className="text-sm mt-1" style={{ color: T.muted }}>
+              {nextUp.why}
+            </p>
+            <button
+              onClick={() => onOpenConcept(nextUp.conceptId)}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
+              style={{ color: T.accent }}
+            >
+              <BookOpen size={13} /> {nextUp.conceptTitle}: read the concept first
+              <ChevronRight size={13} />
+            </button>
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <a
+                href={lc(nextUp.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ backgroundColor: T.accent, color: T.onAccent }}
+              >
+                Open on LeetCode <ExternalLink size={15} />
+              </a>
+              <button
+                onClick={() => onToggleSolved(nextUp.slug)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                style={{ border: "1px solid " + T.edge, color: T.ivory }}
+              >
+                <CheckCircle2 size={15} color={T.mint} /> Mark solved
+              </button>
+              <button
+                onClick={onShuffle}
+                className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
+                style={{ color: T.faint }}
+              >
+                <Shuffle size={13} /> Different rep
+              </button>
+            </div>
+          </Card>
+        )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <Eyebrow>Streak</Eyebrow>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="ws-display text-4xl font-bold" style={{ color: streak > 0 ? T.brass : T.faint }}>
-              {streak}
-            </span>
-            <span className="text-xs" style={{ color: T.faint }}>
-              {streak === 1 ? "day" : "days"}
-            </span>
-            <Flame size={18} color={streak > 0 ? T.brass : T.faint} />
-          </div>
-          <p className="text-xs mt-2" style={{ color: T.faint }}>
-            {doneToday
-              ? "You showed up today."
-              : streak > 0
-              ? "One rep keeps it alive."
-              : "One rep starts it."}
-          </p>
-        </Card>
-        <Card>
-          <Eyebrow>Progress</Eyebrow>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="ws-display text-4xl font-bold" style={{ color: T.ivory }}>
-              {solvedCount}
-            </span>
-            <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
-              / {total}
-            </span>
-          </div>
-          <div className="mt-3">
-            <Bar value={solvedCount} max={total} />
-          </div>
-        </Card>
-      </div>
+        <ReviewSection progress={progress} onMarkReviewed={onMarkReviewed} />
 
-      <Card>
-        <Eyebrow>By difficulty</Eyebrow>
-        <div className="mt-3 space-y-3">
-          {diffStats.map((s) => (
-            <div key={s.d} className="flex items-center gap-3">
-              <span className="text-xs w-16 shrink-0" style={{ color: DIFF[s.d].color, fontFamily: MONO }}>
-                {s.d}
-              </span>
-              <div className="flex-1">
-                <Bar value={s.done} max={s.total} />
+        {!brandNew && firstUnread && (
+          <button
+            onClick={() => onOpenConcept(firstUnread.id)}
+            className="w-full text-left rounded-2xl p-5 flex items-center gap-4"
+            style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
+          >
+            <BookOpen size={18} color={T.accent} className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <Eyebrow>Keep reading</Eyebrow>
+              <div className="ws-display text-base font-semibold mt-1" style={{ color: T.ivory }}>
+                {firstUnread.title}
               </div>
-              <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
-                {s.done}/{s.total}
+              <div className="text-xs mt-0.5" style={{ color: T.faint }}>
+                {firstUnread.tagline}
+              </div>
+            </div>
+            <ChevronRight size={16} color={T.faint} className="shrink-0" />
+          </button>
+        )}
+      </div>
+
+      <div className="lg:col-span-2 space-y-4 mt-4 lg:mt-0">
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <Eyebrow>Streak</Eyebrow>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="ws-display text-4xl font-bold" style={{ color: streak > 0 ? T.accent : T.faint }}>
+                {streak}
+              </span>
+              <span className="text-xs" style={{ color: T.faint }}>
+                {streak === 1 ? "day" : "days"}
+              </span>
+              <Flame size={18} color={streak > 0 ? T.accent : T.faint} />
+            </div>
+            <p className="text-xs mt-2" style={{ color: T.faint }}>
+              {doneToday ? "You showed up today." : streak > 0 ? "One rep keeps it alive." : "One rep starts it."}
+            </p>
+          </Card>
+          <Card>
+            <Eyebrow>Progress</Eyebrow>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="ws-display text-4xl font-bold" style={{ color: T.ivory }}>
+                {solvedCount}
+              </span>
+              <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                / {total}
               </span>
             </div>
-          ))}
+            <div className="mt-3">
+              <Bar value={solvedCount} max={total} />
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      {!brandNew && firstUnread && (
-        <button
-          onClick={() => onOpenConcept(firstUnread.id)}
-          className="w-full text-left rounded-2xl p-5 flex items-center gap-4"
-          style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
-        >
-          <BookOpen size={18} color={T.brass} className="shrink-0" />
-          <div className="min-w-0 flex-1">
-            <Eyebrow>Keep reading</Eyebrow>
-            <div className="ws-display text-base font-semibold mt-1" style={{ color: T.ivory }}>
-              {firstUnread.title}
-            </div>
-            <div className="text-xs mt-0.5" style={{ color: T.faint }}>
-              {firstUnread.tagline}
-            </div>
+        <RepTimer />
+        <Heatmap progress={progress} />
+
+        <Card>
+          <Eyebrow>By difficulty</Eyebrow>
+          <div className="mt-3 space-y-3">
+            {diffStats.map((s) => (
+              <div key={s.d} className="flex items-center gap-3">
+                <span className="text-xs w-16 shrink-0" style={{ color: DIFF[s.d].color, fontFamily: MONO }}>
+                  {s.d}
+                </span>
+                <div className="flex-1">
+                  <Bar value={s.done} max={s.total} />
+                </div>
+                <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                  {s.done}/{s.total}
+                </span>
+              </div>
+            ))}
           </div>
-          <ChevronRight size={16} color={T.faint} className="shrink-0" />
-        </button>
+        </Card>
+
+        <div className="pt-2 text-center">
+          <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+            The woodshed is where jazz musicians go to practice. Nobody performs in the
+            shed. You build the hands that perform.
+          </p>
+          <SyncPanel progress={progress} onImport={onImport} />
+          <button
+            onClick={onReset}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs"
+            style={{ color: resetArmed ? T.rust : T.faint }}
+          >
+            <RotateCcw size={12} />
+            {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- plan view
+
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed }) {
+  const n = currentPlanDay(progress);
+  const [openDay, setOpenDay] = useState(n && n <= 30 ? n : null);
+  const doneDays = PLAN.filter((d) => dayStats(d, progress).complete).length;
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <div>
+        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+          The 30-day plan
+        </h1>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          Every problem in Woodshed, scheduled into one month aimed at big-tech coding
+          rounds: new patterns most days, review days and timed mocks built in, the two
+          hard problems saved as stretch goals at the end. Honest framing: a month from a
+          cold start is a sprint. It gets you fluent on mediums, which is the actual bar.
+          Book real loops for the very end of the month or just after, and burn a
+          warm-up interview somewhere lower-stakes first if you can.
+        </p>
+      </div>
+
+      {!progress.planStart ? (
+        <StartPlanCard onStartPlan={onStartPlan} />
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm" style={{ color: T.muted }}>
+            Started {progress.planStart} · {n <= 30 ? "Day " + n : "Day 30 passed"} ·{" "}
+            <span style={{ color: T.accent, fontFamily: MONO }}>{doneDays}/30 days closed</span>
+          </div>
+          <button
+            onClick={onRestartPlan}
+            className="shrink-0 text-xs px-3 py-1.5 rounded-full"
+            style={{ border: "1px solid " + T.edge, color: restartArmed ? T.rust : T.faint }}
+          >
+            {restartArmed ? "Tap again: today becomes day 1" : "Restart the clock"}
+          </button>
+        </div>
       )}
 
-      <div className="pt-4 text-center">
-        <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
-          The woodshed is where jazz musicians go to practice. Nobody performs in the shed.
-          You build the hands that perform.
-        </p>
-        <SyncPanel progress={progress} onImport={onImport} />
-        <button
-          onClick={onReset}
-          className="mt-3 inline-flex items-center gap-1.5 text-xs"
-          style={{ color: resetArmed ? T.rust : T.faint }}
-        >
-          <RotateCcw size={12} />
-          {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
-        </button>
-      </div>
+      {WEEKS.map((w) => (
+        <div key={w.name}>
+          <div className="flex items-baseline gap-3 mb-3">
+            <div
+              className="text-xs font-semibold uppercase"
+              style={{ letterSpacing: "0.14em", color: T.ivory }}
+            >
+              {w.name}
+            </div>
+            <div className="text-xs" style={{ color: T.faint }}>
+              {w.sub}
+            </div>
+          </div>
+          <div className="space-y-2">
+            {PLAN.filter((d) => d.day >= w.days[0] && d.day <= w.days[1]).map((d) => {
+              const stats = dayStats(d, progress);
+              const isToday = n === d.day;
+              const open = openDay === d.day;
+              return (
+                <div
+                  key={d.day}
+                  className="rounded-2xl"
+                  style={{
+                    backgroundColor: T.surface,
+                    border: "1px solid " + (isToday ? T.accent : T.edge),
+                  }}
+                >
+                  <button
+                    onClick={() => setOpenDay(open ? null : d.day)}
+                    className="w-full flex items-center gap-3 p-4 text-left"
+                  >
+                    <span
+                      className="text-xs w-8 shrink-0"
+                      style={{ color: isToday ? T.accent : T.faint, fontFamily: MONO }}
+                    >
+                      {String(d.day).padStart(2, "0")}
+                    </span>
+                    <span className="text-sm font-medium min-w-0 flex-1" style={{ color: T.ivory }}>
+                      {d.focus}
+                      {isToday && (
+                        <span className="ml-2 text-xs" style={{ color: T.accent, fontFamily: MONO }}>
+                          today
+                        </span>
+                      )}
+                    </span>
+                    {stats.complete ? (
+                      <CheckCircle2 size={17} color={T.accent} className="shrink-0" />
+                    ) : (
+                      <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                        {stats.done}/{stats.total}
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={16}
+                      color={T.faint}
+                      className="shrink-0"
+                      style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 150ms" }}
+                    />
+                  </button>
+                  {open && (
+                    <div className="px-4 pb-4">
+                      <DayTasks
+                        day={d}
+                        progress={progress}
+                        onToggleSolved={onToggleSolved}
+                        onToggleTask={onToggleTask}
+                        onOpenConcept={onOpenConcept}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1412,7 +1959,7 @@ function TodayView({ progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
 function RoadmapView({ progress, onOpenConcept }) {
   return (
     <div className="space-y-7">
-      <p className="text-sm leading-relaxed" style={{ color: T.muted }}>
+      <p className="text-sm leading-relaxed max-w-3xl" style={{ color: T.muted }}>
         Work top to bottom. Read a concept, then do its problems in order. Patterns first,
         grinding second: that is the difference between practicing and flailing.
       </p>
@@ -1421,7 +1968,7 @@ function RoadmapView({ progress, onOpenConcept }) {
         return (
           <div key={ph.id}>
             <div className="flex items-baseline gap-3 mb-3">
-              <span className="text-xs" style={{ color: T.brass, fontFamily: MONO }}>
+              <span className="text-xs" style={{ color: T.accent, fontFamily: MONO }}>
                 {"0" + (phIdx + 1)}
               </span>
               <div>
@@ -1436,7 +1983,7 @@ function RoadmapView({ progress, onOpenConcept }) {
                 </div>
               </div>
             </div>
-            <div className="space-y-2.5">
+            <div className="grid gap-3 sm:grid-cols-2">
               {concepts.map((c) => {
                 const done = c.problems.filter((p) => progress.solved[p.slug]).length;
                 const len = c.problems.length;
@@ -1445,7 +1992,7 @@ function RoadmapView({ progress, onOpenConcept }) {
                   <button
                     key={c.id}
                     onClick={() => onOpenConcept(c.id)}
-                    className="w-full text-left rounded-2xl p-4 flex items-center gap-4"
+                    className="text-left rounded-2xl p-4 flex items-center gap-4"
                     style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
                   >
                     <div className="min-w-0 flex-1">
@@ -1453,7 +2000,7 @@ function RoadmapView({ progress, onOpenConcept }) {
                         <span className="ws-display text-base font-semibold" style={{ color: T.ivory }}>
                           {c.title}
                         </span>
-                        {read && <BookOpen size={13} color={T.brass} />}
+                        {read && <BookOpen size={13} color={T.accent} />}
                       </div>
                       <div className="text-xs mt-0.5" style={{ color: T.faint }}>
                         {c.tagline}
@@ -1465,7 +2012,7 @@ function RoadmapView({ progress, onOpenConcept }) {
                           </div>
                           <span
                             className="text-xs shrink-0"
-                            style={{ color: done === len ? T.brass : T.faint, fontFamily: MONO }}
+                            style={{ color: done === len ? T.accent : T.faint, fontFamily: MONO }}
                           >
                             {done}/{len}
                           </span>
@@ -1518,7 +2065,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
             className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full mt-1"
             style={
               read
-                ? { color: T.brass, backgroundColor: T.brassSoft, border: "1px solid transparent" }
+                ? { color: T.accent, backgroundColor: T.accentSoft, border: "1px solid transparent" }
                 : { color: T.muted, border: "1px solid " + T.edge }
             }
           >
@@ -1531,76 +2078,84 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
         </p>
       </div>
 
-      <Card>
-        <SectionHead icon={Lightbulb}>The idea</SectionHead>
-        <div className="space-y-3">
-          {concept.eli5.map((para, i) => (
-            <p key={i} className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-              {para}
+      <div className="lg:grid lg:grid-cols-5 lg:gap-5 space-y-5 lg:space-y-0">
+        <div className="lg:col-span-3 space-y-5">
+          <Card>
+            <SectionHead icon={Lightbulb}>ELI5 — the idea</SectionHead>
+            <div className="space-y-3">
+              {concept.eli5.map((para, i) => (
+                <p key={i} className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                  {para}
+                </p>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <SectionHead icon={Radar}>Spot it when</SectionHead>
+            <ul className="space-y-2.5">
+              {concept.spotIt.map((s, i) => (
+                <li key={i} className="flex gap-2.5">
+                  <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
+                  <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {s}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card>
+            <SectionHead icon={Code2}>{"Worked example: " + ex.title}</SectionHead>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: T.muted }}>
+              {ex.prompt}
             </p>
-          ))}
+            <ol className="space-y-2.5 mb-4">
+              {ex.steps.map((s, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="shrink-0 text-xs mt-1" style={{ color: T.accent, fontFamily: MONO }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {s}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <CodeBlock code={ex.code} />
+            <div className="flex items-start gap-2 mt-3">
+              <Clock size={13} color={T.accent} className="shrink-0 mt-0.5" />
+              <span className="text-xs leading-relaxed" style={{ color: T.muted }}>
+                {ex.complexity}
+              </span>
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      <Card>
-        <SectionHead icon={Radar}>Spot it when</SectionHead>
-        <ul className="space-y-2.5">
-          {concept.spotIt.map((s, i) => (
-            <li key={i} className="flex gap-2.5">
-              <ChevronRight size={14} color={T.brass} className="shrink-0 mt-1" />
-              <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                {s}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      <Card>
-        <SectionHead icon={Code2}>{"Worked example: " + ex.title}</SectionHead>
-        <p className="text-sm leading-relaxed mb-4" style={{ color: T.muted }}>
-          {ex.prompt}
-        </p>
-        <ol className="space-y-2.5 mb-4">
-          {ex.steps.map((s, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="shrink-0 text-xs mt-1" style={{ color: T.brass, fontFamily: MONO }}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                {s}
-              </span>
-            </li>
-          ))}
-        </ol>
-        <CodeBlock code={ex.code} />
-        <div className="flex items-start gap-2 mt-3">
-          <Clock size={13} color={T.brass} className="shrink-0 mt-0.5" />
-          <span className="text-xs leading-relaxed" style={{ color: T.muted }}>
-            {ex.complexity}
-          </span>
-        </div>
-      </Card>
-
-      {concept.problems.length > 0 && (
-        <Card>
-          <SectionHead icon={ListChecks}>Practice, in this order</SectionHead>
-          <div>
-            {concept.problems.map((p) => (
-              <ProblemRow
-                key={p.slug}
-                p={p}
-                solved={!!progress.solved[p.slug]}
-                onToggle={onToggleSolved}
-              />
-            ))}
+        <div className="lg:col-span-2">
+          <div className="lg:sticky lg:top-6 space-y-5">
+            {concept.problems.length > 0 && (
+              <Card>
+                <SectionHead icon={ListChecks}>Practice, in this order</SectionHead>
+                <div>
+                  {concept.problems.map((p) => (
+                    <ProblemRow
+                      key={p.slug}
+                      p={p}
+                      solved={!!progress.solved[p.slug]}
+                      onToggle={onToggleSolved}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs mt-4 leading-relaxed" style={{ color: T.faint }}>
+                  Stuck past 35 minutes? Read the top solution, understand it, close it,
+                  and re-code it from memory. Then re-solve it cold in three days.
+                </p>
+              </Card>
+            )}
           </div>
-          <p className="text-xs mt-4 leading-relaxed" style={{ color: T.faint }}>
-            Stuck past 35 minutes? Read the top solution, understand it, close it, and
-            re-code it from memory. Then re-solve it cold in three days.
-          </p>
-        </Card>
-      )}
+        </div>
+      </div>
 
       <div className="flex items-center justify-between gap-3 pt-1">
         <button
@@ -1616,7 +2171,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium"
             style={{ border: "1px solid " + T.edge, color: T.ivory }}
           >
-            Next: {next.title} <ChevronRight size={15} color={T.brass} />
+            Next: {next.title} <ChevronRight size={15} color={T.accent} />
           </button>
         )}
       </div>
@@ -1626,10 +2181,18 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
 
 // ---------------------------------------------------------------- interview skills
 
+const BIGTECH = [
+  "The loop: a 45-minute phone screen with one problem, then 3 to 5 onsite rounds. For a senior candidate that is usually 2 to 3 coding rounds, a behavioral round, and a system design round. Woodshed is the coding half; system design is its own prep track, so budget separate time for it before senior loops.",
+  "The coding bar: one medium in about 30 minutes, narrated, tested, complexity stated without being asked. Two clean mediums beat one heroic hard. Nobody at these companies is impressed by silent brilliance.",
+  "Flavors: Google leans generalist DSA with follow-ups that scale the problem, so always be ready for 'what if n is a billion'. Microsoft leans practical coding with real behavioral weight. X and similar move fast, often two mediums in a single round.",
+  "Behavioral is not filler. Prepare five stories in a situation-action-result shape: a conflict, a failure, leading without authority, navigating ambiguity, and measurable impact. Years of real delivery are the raw material; mine them and rehearse out loud.",
+  "Do at least three live mocks before a real loop. Solo practice does not simulate another human watching you think.",
+];
+
 function SkillsView() {
   return (
     <div className="space-y-5">
-      <div>
+      <div className="max-w-3xl">
         <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
           Interview skills
         </h1>
@@ -1642,12 +2205,12 @@ function SkillsView() {
 
       <div>
         <SectionHead icon={Mic}>The routine, every problem, every time</SectionHead>
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2">
           {FRAMEWORK.map((f) => (
             <Card key={f.n}>
               <div className="flex items-baseline justify-between gap-3 mb-2">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-xs" style={{ color: T.brass, fontFamily: MONO }}>
+                  <span className="text-xs" style={{ color: T.accent, fontFamily: MONO }}>
                     {f.n}
                   </span>
                   <span className="ws-display text-lg font-semibold" style={{ color: T.ivory }}>
@@ -1666,7 +2229,7 @@ function SkillsView() {
               </p>
               <div
                 className="mt-3 pl-3 text-sm italic leading-relaxed"
-                style={{ borderLeft: "2px solid " + T.brass, color: T.brass }}
+                style={{ borderLeft: "2px solid " + T.accent, color: T.accent }}
               >
                 {'"' + f.say + '"'}
               </div>
@@ -1675,56 +2238,58 @@ function SkillsView() {
         </div>
       </div>
 
-      <div>
-        <SectionHead icon={Radar}>The pattern menu</SectionHead>
-        <Card>
-          <p className="text-xs mb-3 leading-relaxed" style={{ color: T.faint }}>
-            When a problem lands, walk this list out loud. Matching is a checklist, not a
-            lightning bolt.
-          </p>
-          <div>
-            {PATTERN_MENU.map((m, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between gap-3 py-2.5"
-                style={{ borderBottom: i < PATTERN_MENU.length - 1 ? HAIRLINE : "none" }}
-              >
-                <span className="text-sm min-w-0" style={{ color: T.muted }}>
-                  {m.cue}
-                </span>
-                <span className="text-sm font-medium text-right shrink-0" style={{ color: T.ivory }}>
-                  {m.pattern}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+      <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
+        <div>
+          <SectionHead icon={Radar}>The pattern menu</SectionHead>
+          <Card>
+            <p className="text-xs mb-3 leading-relaxed" style={{ color: T.faint }}>
+              When a problem lands, walk this list out loud. Matching is a checklist, not a
+              lightning bolt.
+            </p>
+            <div>
+              {PATTERN_MENU.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3 py-2.5"
+                  style={{ borderBottom: i < PATTERN_MENU.length - 1 ? HAIRLINE : "none" }}
+                >
+                  <span className="text-sm min-w-0" style={{ color: T.muted }}>
+                    {m.cue}
+                  </span>
+                  <span className="text-sm font-medium text-right shrink-0" style={{ color: T.ivory }}>
+                    {m.pattern}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
 
-      <div>
-        <SectionHead icon={Target}>When you are stuck, in this order</SectionHead>
-        <Card>
-          <ol className="space-y-3">
-            {STUCK.map((s, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="shrink-0 text-xs mt-1" style={{ color: T.brass, fontFamily: MONO }}>
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                  {s}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </Card>
+        <div>
+          <SectionHead icon={Target}>When you are stuck, in this order</SectionHead>
+          <Card>
+            <ol className="space-y-3">
+              {STUCK.map((s, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="shrink-0 text-xs mt-1" style={{ color: T.accent, fontFamily: MONO }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {s}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        </div>
       </div>
 
       <div>
         <SectionHead icon={ListChecks}>What they are actually grading</SectionHead>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {RUBRIC.map((r) => (
             <Card key={r.name}>
-              <div className="text-sm font-semibold" style={{ color: T.brass }}>
+              <div className="text-sm font-semibold" style={{ color: T.accent }}>
                 {r.name}
               </div>
               <p className="text-sm leading-relaxed mt-1.5" style={{ color: T.muted }}>
@@ -1739,62 +2304,100 @@ function SkillsView() {
       </div>
 
       <div>
-        <SectionHead icon={BookOpen}>LeetCode, for someone starting cold</SectionHead>
+        <SectionHead icon={Flame}>Big tech, specifically</SectionHead>
         <Card>
-          <ul className="space-y-2.5">
-            {QUICKSTART.map((q, i) => (
+          <ul className="space-y-3">
+            {BIGTECH.map((b, i) => (
               <li key={i} className="flex gap-2.5">
-                <ChevronRight size={14} color={T.brass} className="shrink-0 mt-1" />
+                <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
                 <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                  {q}
+                  {b}
                 </span>
               </li>
             ))}
           </ul>
-          <a
-            href="https://neetcode.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium"
-            style={{ color: T.brass }}
-          >
-            Open NeetCode <ExternalLink size={14} />
-          </a>
+          <div className="flex flex-wrap gap-4 mt-4">
+            <a
+              href="https://www.pramp.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: T.accent }}
+            >
+              Pramp, free peer mocks <ExternalLink size={14} />
+            </a>
+            <a
+              href="https://interviewing.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: T.accent }}
+            >
+              interviewing.io, paid and realistic <ExternalLink size={14} />
+            </a>
+          </div>
         </Card>
       </div>
 
-      <div>
-        <SectionHead icon={Clock}>The daily rep, 25 to 45 minutes</SectionHead>
-        <Card>
-          {ROUTINE.map((r, i) => (
-            <div
-              key={r.name}
-              className="flex gap-3 py-3"
-              style={{ borderBottom: i < ROUTINE.length - 1 ? HAIRLINE : "none" }}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
+        <div>
+          <SectionHead icon={BookOpen}>LeetCode, for someone starting cold</SectionHead>
+          <Card>
+            <ul className="space-y-2.5">
+              {QUICKSTART.map((q, i) => (
+                <li key={i} className="flex gap-2.5">
+                  <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
+                  <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {q}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href="https://neetcode.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: T.accent }}
             >
-              <span className="shrink-0 text-xs mt-0.5" style={{ color: T.brass, fontFamily: MONO }}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-sm font-semibold" style={{ color: T.ivory }}>
-                    {r.name}
-                  </span>
-                  <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
-                    {r.time}
-                  </span>
+              Open NeetCode <ExternalLink size={14} />
+            </a>
+          </Card>
+        </div>
+
+        <div>
+          <SectionHead icon={Clock}>The daily rep, 25 to 45 minutes</SectionHead>
+          <Card>
+            {ROUTINE.map((r, i) => (
+              <div
+                key={r.name}
+                className="flex gap-3 py-3"
+                style={{ borderBottom: i < ROUTINE.length - 1 ? HAIRLINE : "none" }}
+              >
+                <span className="shrink-0 text-xs mt-0.5" style={{ color: T.accent, fontFamily: MONO }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-semibold" style={{ color: T.ivory }}>
+                      {r.name}
+                    </span>
+                    <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                      {r.time}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed mt-1" style={{ color: T.muted }}>
+                    {r.desc}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed mt-1" style={{ color: T.muted }}>
-                  {r.desc}
-                </p>
               </div>
-            </div>
-          ))}
-          <p className="text-xs mt-4 leading-relaxed" style={{ color: T.faint }}>
-            One rep a day beats seven on Sunday. This is scales practice: consistency is
-            the instrument. Re-run anything you needed the solution for after three days.
-          </p>
-        </Card>
+            ))}
+            <p className="text-xs mt-4 leading-relaxed" style={{ color: T.faint }}>
+              One rep a day beats seven on Sunday. This is scales practice: consistency is
+              the instrument. Re-run anything you needed the solution for after three days.
+            </p>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -1804,6 +2407,7 @@ function SkillsView() {
 
 const TABS = [
   { id: "today", label: "Today", icon: Sun },
+  { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "roadmap", label: "Roadmap", icon: Map },
   { id: "skills", label: "Skills", icon: Mic },
 ];
@@ -1813,13 +2417,81 @@ function GlobalStyle() {
     <style>{`
       .ws-display { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
       .ws-root { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-      .ws-root ::selection { background: rgba(217,165,74,0.35); }
+      .ws-root ::selection { background: rgba(140,192,132,0.35); }
       .ws-fade { animation: wsfade 240ms ease both; }
       @keyframes wsfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
       @media (prefers-reduced-motion: reduce) { .ws-fade { animation: none; } }
-      .ws-root button:focus-visible, .ws-root a:focus-visible { outline: 2px solid #D9A54A; outline-offset: 2px; border-radius: 6px; }
+      .ws-root button:focus-visible, .ws-root a:focus-visible { outline: 2px solid #8CC084; outline-offset: 2px; border-radius: 6px; }
       .ws-root button { cursor: pointer; }
     `}</style>
+  );
+}
+
+function SideNav({ activeTab, setView, headerStreak, solvedCount, total }) {
+  return (
+    <aside
+      className="hidden lg:flex lg:flex-col fixed left-0 top-0 bottom-0 w-60 p-6"
+      style={{ backgroundColor: T.surface, borderRight: "1px solid " + T.edge }}
+    >
+      <div>
+        <div className="ws-display text-2xl font-bold" style={{ letterSpacing: "0.03em", color: T.ivory }}>
+          Woodshed
+        </div>
+        <div
+          className="text-xs mt-1 uppercase leading-relaxed"
+          style={{ color: T.faint, fontFamily: MONO, letterSpacing: "0.14em" }}
+        >
+          Daily reps for technical interviews
+        </div>
+        <div className="mt-4">
+          <KeyStrip />
+        </div>
+      </div>
+
+      <nav className="mt-6 space-y-1">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setView({ name: t.id })}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left"
+            style={
+              activeTab === t.id
+                ? { backgroundColor: T.surfaceUp, color: T.accent }
+                : { color: T.muted }
+            }
+          >
+            <t.icon size={16} />
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="mt-auto space-y-4">
+        <div className="flex items-center gap-2">
+          <Flame size={15} color={headerStreak > 0 ? T.accent : T.faint} />
+          <span
+            className="text-sm"
+            style={{ color: headerStreak > 0 ? T.accent : T.faint, fontFamily: MONO }}
+          >
+            {headerStreak} day streak
+          </span>
+        </div>
+        <div>
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="text-xs" style={{ color: T.faint }}>
+              Solved
+            </span>
+            <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+              {solvedCount}/{total}
+            </span>
+          </div>
+          <Bar value={solvedCount} max={total} />
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+          Nobody performs in the shed.
+        </p>
+      </div>
+    </aside>
   );
 }
 
@@ -1829,18 +2501,13 @@ export default function WoodshedApp() {
   const [view, setView] = useState({ name: "today" });
   const [pickSlug, setPickSlug] = useState(null);
   const [resetArmed, setResetArmed] = useState(false);
+  const [restartArmed, setRestartArmed] = useState(false);
 
   useEffect(() => {
     let alive = true;
     loadProgress().then((saved) => {
       if (!alive) return;
-      if (saved) {
-        setProgress({
-          solved: saved.solved || {},
-          read: saved.read || {},
-          streak: { count: 0, last: null, ...(saved.streak || {}) },
-        });
-      }
+      if (saved) setProgress(mergeSaved(saved));
       setLoaded(true);
     });
     return () => {
@@ -1866,6 +2533,15 @@ export default function WoodshedApp() {
     return ORDERED_PROBLEMS.find((p) => !progress.solved[p.slug]) || null;
   }, [pickSlug, progress.solved]);
 
+  function bumpStreak(streak) {
+    const today = ymd(new Date());
+    if (streak.last === today) return streak;
+    return {
+      count: streak.last === yesterdayYmd() ? streak.count + 1 : 1,
+      last: today,
+    };
+  }
+
   function toggleSolved(slug) {
     setProgress((prev) => {
       const solved = { ...prev.solved };
@@ -1873,14 +2549,8 @@ export default function WoodshedApp() {
       if (solved[slug]) {
         delete solved[slug];
       } else {
-        const today = ymd(new Date());
-        solved[slug] = today;
-        if (streak.last !== today) {
-          streak = {
-            count: streak.last === yesterdayYmd() ? streak.count + 1 : 1,
-            last: today,
-          };
-        }
+        solved[slug] = ymd(new Date());
+        streak = bumpStreak(streak);
       }
       return { ...prev, solved, streak };
     });
@@ -1893,6 +2563,43 @@ export default function WoodshedApp() {
       else read[id] = true;
       return { ...prev, read };
     });
+  }
+
+  function toggleTask(id) {
+    setProgress((prev) => {
+      const tasks = { ...prev.tasks };
+      let streak = { ...prev.streak };
+      if (tasks[id]) delete tasks[id];
+      else {
+        tasks[id] = true;
+        streak = bumpStreak(streak);
+      }
+      return { ...prev, tasks, streak };
+    });
+  }
+
+  function markReviewed(slug) {
+    setProgress((prev) => {
+      const reviewed = { ...prev.reviewed };
+      const arr = reviewed[slug] ? [...reviewed[slug]] : [];
+      arr.push(ymd(new Date()));
+      reviewed[slug] = arr;
+      return { ...prev, reviewed, streak: bumpStreak({ ...prev.streak }) };
+    });
+  }
+
+  function startPlan() {
+    setProgress((prev) => ({ ...prev, planStart: prev.planStart || ymd(new Date()) }));
+  }
+
+  function restartPlan() {
+    if (!restartArmed) {
+      setRestartArmed(true);
+      setTimeout(() => setRestartArmed(false), 3500);
+      return;
+    }
+    setRestartArmed(false);
+    setProgress((prev) => ({ ...prev, planStart: ymd(new Date()) }));
   }
 
   function shuffleRep() {
@@ -1926,6 +2633,7 @@ export default function WoodshedApp() {
   const streakAlive =
     progress.streak.last === today || progress.streak.last === yesterdayYmd();
   const headerStreak = streakAlive ? progress.streak.count : 0;
+  const solvedCount = Object.keys(progress.solved).length;
   const activeTab = view.name === "concept" ? "roadmap" : view.name;
 
   if (!loaded) {
@@ -1945,98 +2653,123 @@ export default function WoodshedApp() {
   return (
     <div className="ws-root min-h-screen" style={{ backgroundColor: T.ink, color: T.ivory }}>
       <GlobalStyle />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-28 sm:pb-16">
-        <header className="flex items-end justify-between gap-3">
-          <div>
-            <div
-              className="ws-display text-2xl font-bold"
-              style={{ letterSpacing: "0.03em", color: T.ivory }}
-            >
-              Woodshed
+
+      <SideNav
+        activeTab={activeTab}
+        setView={setView}
+        headerStreak={headerStreak}
+        solvedCount={solvedCount}
+        total={ORDERED_PROBLEMS.length}
+      />
+
+      <div className="lg:pl-60">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-28 sm:pb-16">
+          <header className="lg:hidden flex items-end justify-between gap-3">
+            <div>
+              <div
+                className="ws-display text-2xl font-bold"
+                style={{ letterSpacing: "0.03em", color: T.ivory }}
+              >
+                Woodshed
+              </div>
+              <div
+                className="text-xs mt-1 uppercase"
+                style={{ color: T.faint, fontFamily: MONO, letterSpacing: "0.16em" }}
+              >
+                Daily reps for technical interviews
+              </div>
             </div>
             <div
-              className="text-xs mt-1 uppercase"
-              style={{ color: T.faint, fontFamily: MONO, letterSpacing: "0.16em" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
+              style={{
+                border: "1px solid " + T.edge,
+                backgroundColor: headerStreak > 0 ? T.accentSoft : "transparent",
+              }}
             >
-              Daily reps for technical interviews
+              <Flame size={14} color={headerStreak > 0 ? T.accent : T.faint} />
+              <span
+                className="text-xs"
+                style={{ color: headerStreak > 0 ? T.accent : T.faint, fontFamily: MONO }}
+              >
+                {headerStreak}
+              </span>
             </div>
+          </header>
+
+          <div className="lg:hidden mt-4">
+            <KeyStrip />
           </div>
-          <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
-            style={{
-              border: "1px solid " + T.edge,
-              backgroundColor: headerStreak > 0 ? T.brassSoft : "transparent",
-            }}
+
+          <nav
+            className="hidden sm:flex lg:hidden gap-1 mt-5 p-1 rounded-xl"
+            style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
           >
-            <Flame size={14} color={headerStreak > 0 ? T.brass : T.faint} />
-            <span
-              className="text-xs"
-              style={{ color: headerStreak > 0 ? T.brass : T.faint, fontFamily: MONO }}
-            >
-              {headerStreak}
-            </span>
-          </div>
-        </header>
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setView({ name: t.id })}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                style={
+                  activeTab === t.id
+                    ? { backgroundColor: T.surfaceUp, color: T.accent }
+                    : { color: T.muted }
+                }
+              >
+                <t.icon size={15} />
+                {t.label}
+              </button>
+            ))}
+          </nav>
 
-        <div className="mt-4">
-          <KeyStrip />
+          <main key={view.name + (view.id || "")} className="ws-fade mt-6 lg:mt-0">
+            {view.name === "today" && (
+              <TodayView
+                progress={progress}
+                nextUp={nextUp}
+                onShuffle={shuffleRep}
+                onToggleSolved={toggleSolved}
+                onOpenConcept={openConcept}
+                resetArmed={resetArmed}
+                onReset={handleReset}
+                onImport={importProgress}
+                onToggleTask={toggleTask}
+                onStartPlan={startPlan}
+                onMarkReviewed={markReviewed}
+              />
+            )}
+            {view.name === "plan" && (
+              <PlanView
+                progress={progress}
+                onToggleSolved={toggleSolved}
+                onToggleTask={toggleTask}
+                onOpenConcept={openConcept}
+                onStartPlan={startPlan}
+                onRestartPlan={restartPlan}
+                restartArmed={restartArmed}
+              />
+            )}
+            {view.name === "roadmap" && (
+              <RoadmapView progress={progress} onOpenConcept={openConcept} />
+            )}
+            {view.name === "concept" && (
+              <ConceptView
+                concept={conceptById(view.id)}
+                progress={progress}
+                onToggleSolved={toggleSolved}
+                onToggleRead={toggleRead}
+                onBack={() => setView({ name: "roadmap" })}
+                onOpenConcept={openConcept}
+              />
+            )}
+            {view.name === "skills" && <SkillsView />}
+          </main>
         </div>
-
-        <nav
-          className="hidden sm:flex gap-1 mt-5 p-1 rounded-xl"
-          style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
-        >
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setView({ name: t.id })}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
-              style={
-                activeTab === t.id
-                  ? { backgroundColor: T.surfaceUp, color: T.brass }
-                  : { color: T.muted }
-              }
-            >
-              <t.icon size={15} />
-              {t.label}
-            </button>
-          ))}
-        </nav>
-
-        <main key={view.name + (view.id || "")} className="ws-fade mt-6">
-          {view.name === "today" && (
-            <TodayView
-              progress={progress}
-              nextUp={nextUp}
-              onShuffle={shuffleRep}
-              onToggleSolved={toggleSolved}
-              onOpenConcept={openConcept}
-              resetArmed={resetArmed}
-              onReset={handleReset}
-              onImport={importProgress}
-            />
-          )}
-          {view.name === "roadmap" && (
-            <RoadmapView progress={progress} onOpenConcept={openConcept} />
-          )}
-          {view.name === "concept" && (
-            <ConceptView
-              concept={conceptById(view.id)}
-              progress={progress}
-              onToggleSolved={toggleSolved}
-              onToggleRead={toggleRead}
-              onBack={() => setView({ name: "roadmap" })}
-              onOpenConcept={openConcept}
-            />
-          )}
-          {view.name === "skills" && <SkillsView />}
-        </main>
       </div>
 
       <nav
         className="sm:hidden fixed bottom-0 left-0 right-0"
         style={{
-          backgroundColor: "rgba(23,19,16,0.94)",
+          backgroundColor: "rgba(16,20,16,0.94)",
           borderTop: "1px solid " + T.edge,
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
@@ -2047,8 +2780,8 @@ export default function WoodshedApp() {
             <button
               key={t.id}
               onClick={() => setView({ name: t.id })}
-              className="flex flex-col items-center gap-1 px-5 py-1 text-xs"
-              style={{ color: activeTab === t.id ? T.brass : T.faint }}
+              className="flex flex-col items-center gap-1 px-4 py-1 text-xs"
+              style={{ color: activeTab === t.id ? T.accent : T.faint }}
             >
               <t.icon size={19} />
               {t.label}
