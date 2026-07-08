@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v5: pattern drill, mock mode, solve quality, weak spots, takeaway notes.
+// v6: semantic color system — green acts, brass performs, blue thinks.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -26,6 +26,11 @@ const T = {
   gold: "#D2B457",
   rust: "#CB6B5B",
   onAccent: "#0E140D",
+  brass: "#E1A94E",
+  brassSoft: "rgba(225,169,78,0.15)",
+  onBrass: "#251A07",
+  blue: "#8FB4D9",
+  blueSoft: "rgba(143,180,217,0.14)",
   codeBg: "#0C100C",
 };
 
@@ -1274,11 +1279,11 @@ function KeyStrip() {
   );
 }
 
-function Eyebrow({ children }) {
+function Eyebrow({ children, color }) {
   return (
     <div
       className="text-xs uppercase"
-      style={{ color: T.accent, letterSpacing: "0.22em", fontFamily: MONO }}
+      style={{ color: color || T.accent, letterSpacing: "0.22em", fontFamily: MONO }}
     >
       {children}
     </div>
@@ -1336,10 +1341,10 @@ function Bar({ value, max }) {
   );
 }
 
-function SectionHead({ icon: Icon, children }) {
+function SectionHead({ icon: Icon, children, color }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <Icon size={15} color={T.accent} />
+      <Icon size={15} color={color || T.accent} />
       <h2
         className="text-xs font-semibold uppercase"
         style={{ letterSpacing: "0.14em", color: T.muted }}
@@ -1502,11 +1507,11 @@ function RepTimer() {
 
   return (
     <Card>
-      <Eyebrow>Rep timer</Eyebrow>
+      <Eyebrow color={T.brass}>Rep timer</Eyebrow>
       <div className="flex items-center justify-between mt-2">
         <span
           className="ws-display text-4xl font-bold"
-          style={{ color: left === 0 ? T.rust : running ? T.accent : T.ivory, fontVariantNumeric: "tabular-nums" }}
+          style={{ color: left === 0 ? T.rust : running ? T.brass : T.ivory, fontVariantNumeric: "tabular-nums" }}
         >
           {mm}:{ss}
         </span>
@@ -1515,7 +1520,7 @@ function RepTimer() {
             onClick={() => left > 0 && setRunning(!running)}
             aria-label={running ? "Pause timer" : "Start timer"}
             className="p-2.5 rounded-xl"
-            style={{ backgroundColor: T.accent, color: T.onAccent }}
+            style={{ backgroundColor: T.brass, color: T.onBrass }}
           >
             {running ? <Pause size={16} /> : <Play size={16} />}
           </button>
@@ -1589,7 +1594,7 @@ function ReviewSection({ progress, onMarkReviewed }) {
   const show = ordered.slice(0, 5);
   return (
     <Card>
-      <SectionHead icon={RotateCcw}>{"Review due (" + due.length + ")"}</SectionHead>
+      <SectionHead icon={RotateCcw} color={T.blue}>{"Review due (" + due.length + ")"}</SectionHead>
       <p className="text-xs mb-2 leading-relaxed" style={{ color: T.faint }}>
         Solved a few days ago, due for a cold re-solve, weakest pattern first. If it flows,
         it is yours. No peeking first.
@@ -1627,7 +1632,7 @@ function ReviewSection({ progress, onMarkReviewed }) {
             <button
               onClick={() => onMarkReviewed(p.slug)}
               className="shrink-0 text-xs px-3 py-1.5 rounded-full"
-              style={{ border: "1px solid " + T.edge, color: T.accent }}
+              style={{ border: "1px solid " + T.blue, color: T.blue }}
             >
               Re-solved
             </button>
@@ -1936,7 +1941,7 @@ function LibraryControls({ bookId, attached, onAttach, onRemove }) {
         <>
           <span
             className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
-            style={{ color: T.accent, backgroundColor: T.accentSoft }}
+            style={{ color: T.blue, backgroundColor: T.blueSoft }}
           >
             <CheckCircle2 size={13} /> Attached on this device
           </span>
@@ -2008,7 +2013,7 @@ function DrillOverlay({ onRecord, onClose }) {
     <div className="fixed inset-0 z-50 flex flex-col overflow-auto" style={{ backgroundColor: "rgba(9,12,9,0.98)" }}>
       <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid " + T.edge }}>
         <div className="flex items-center gap-2">
-          <Brain size={16} color={T.accent} />
+          <Brain size={16} color={T.brass} />
           <span className="text-sm font-semibold" style={{ color: T.ivory }}>Pattern drill</span>
           {!done && (
             <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
@@ -2044,11 +2049,11 @@ function DrillOverlay({ onRecord, onClose }) {
             </div>
             {picked && (
               <div className="mt-5">
-                <div className="pl-3 text-sm leading-relaxed" style={{ borderLeft: "2px solid " + T.accent, color: picked === item.a ? T.accent : T.ivory }}>
+                <div className="pl-3 text-sm leading-relaxed" style={{ borderLeft: "2px solid " + T.brass, color: picked === item.a ? T.accent : T.ivory }}>
                   {picked === item.a ? "Right. " : "The answer: " + (DRILL_OPTIONS.find((o) => o.id === item.a) || {}).label + ". "}
                   {item.why}
                 </div>
-                <button onClick={next} className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.accent, color: T.onAccent }}>
+                <button onClick={next} className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.brass, color: T.onBrass }}>
                   {step + 1 < order.length ? "Next" : "See the score"} <ChevronRight size={15} />
                 </button>
               </div>
@@ -2058,12 +2063,12 @@ function DrillOverlay({ onRecord, onClose }) {
 
         {done && (
           <div className="text-center">
-            <div className="ws-display font-bold" style={{ color: T.accent, fontSize: "64px" }}>
+            <div className="ws-display font-bold" style={{ color: T.brass, fontSize: "64px" }}>
               {score}/5
             </div>
             <p className="text-sm mt-2" style={{ color: T.muted }}>{summary}</p>
             <div className="flex items-center justify-center gap-2 mt-6">
-              <button onClick={again} className="px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.accent, color: T.onAccent }}>
+              <button onClick={again} className="px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.brass, color: T.onBrass }}>
                 Run it again
               </button>
               <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ border: "1px solid " + T.edge, color: T.ivory }}>
@@ -2149,7 +2154,7 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
     <div className="fixed inset-0 z-50 flex flex-col overflow-auto" style={{ backgroundColor: "rgba(9,12,9,0.98)" }}>
       <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid " + T.edge }}>
         <div className="flex items-center gap-2">
-          <Trophy size={16} color={T.accent} />
+          <Trophy size={16} color={T.brass} />
           <span className="text-sm font-semibold" style={{ color: T.ivory }}>Mock interview</span>
         </div>
         <button onClick={onClose} aria-label="Close mock" className="p-2 rounded-lg" style={{ color: T.ivory }}>
@@ -2174,7 +2179,7 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
               early, score yourself honestly on the four axes interviewers actually grade.
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-5">
-              <button onClick={start} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.accent, color: T.onAccent }}>
+              <button onClick={start} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.brass, color: T.onBrass }}>
                 <Play size={15} /> Start the clock
               </button>
               <a href={lc(pick.slug)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium" style={{ border: "1px solid " + T.edge, color: T.ivory }}>
@@ -2189,15 +2194,15 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
 
         {phase === "running" && (
           <div className="text-center">
-            <div className="ws-display font-bold" style={{ color: left < 120 ? T.rust : T.ivory, fontSize: "64px", fontVariantNumeric: "tabular-nums" }}>
+            <div className="ws-display font-bold" style={{ color: left < 120 ? T.rust : T.brass, fontSize: "64px", fontVariantNumeric: "tabular-nums" }}>
               {mm}:{ss}
             </div>
-            <p className="text-sm mt-3 leading-relaxed" style={{ color: T.accent }}>{stage}</p>
+            <p className="text-sm mt-3 leading-relaxed" style={{ color: T.brass }}>{stage}</p>
             <p className="text-xs mt-2" style={{ color: T.faint }}>
               {pick.title} · LC {pick.num}
             </p>
             <div className="flex items-center justify-center gap-2 mt-6">
-              <button onClick={() => setRunning(!running)} aria-label={running ? "Pause" : "Resume"} className="p-3 rounded-xl" style={{ backgroundColor: T.accent, color: T.onAccent }}>
+              <button onClick={() => setRunning(!running)} aria-label={running ? "Pause" : "Resume"} className="p-3 rounded-xl" style={{ backgroundColor: T.brass, color: T.onBrass }}>
                 {running ? <Pause size={18} /> : <Play size={18} />}
               </button>
               <button onClick={() => { setRunning(false); setPhase("score"); }} className="px-4 py-3 rounded-xl text-sm font-medium" style={{ border: "1px solid " + T.edge, color: T.ivory }}>
@@ -2222,7 +2227,7 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
                         className="flex-1 py-2 rounded-xl text-xs font-medium"
                         style={
                           scores[k] === v
-                            ? { backgroundColor: T.accentSoft, color: T.accent, border: "1px solid " + T.accent }
+                            ? { backgroundColor: T.brassSoft, color: T.brass, border: "1px solid " + T.brass }
                             : { border: "1px solid " + T.edge, color: T.muted }
                         }
                       >
@@ -2242,7 +2247,7 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
                       className="flex-1 py-2 rounded-xl text-xs font-medium"
                       style={
                         finish === v
-                          ? { backgroundColor: T.accentSoft, color: T.accent, border: "1px solid " + T.accent }
+                          ? { backgroundColor: T.brassSoft, color: T.brass, border: "1px solid " + T.brass }
                           : { border: "1px solid " + T.edge, color: T.muted }
                       }
                     >
@@ -2358,7 +2363,7 @@ function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept, 
                 className="text-sm"
                 style={{ color: done ? T.faint : T.ivory, textDecoration: done ? "line-through" : "none" }}
               >
-                <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.what}
+                <span style={{ color: T.blue }}>{BOOKS[r.b].short}:</span> {r.what}
               </span>
               <div className="text-xs mt-0.5" style={{ color: T.faint, fontFamily: MONO }}>
                 companion reading
@@ -2368,7 +2373,7 @@ function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept, 
               <button
                 onClick={() => onOpenBook(r.b, r.p)}
                 className="shrink-0 text-xs px-3 py-1.5 rounded-full"
-                style={{ backgroundColor: T.accentSoft, color: T.accent }}
+                style={{ backgroundColor: T.blueSoft, color: T.blue }}
               >
                 Open p. {r.p}
               </button>
@@ -2601,8 +2606,8 @@ function TodayView({
         <div className="grid sm:grid-cols-2 gap-4">
           <Card>
             <div className="flex items-center gap-2">
-              <Brain size={15} color={T.accent} />
-              <Eyebrow>Pattern drill</Eyebrow>
+              <Brain size={15} color={T.brass} />
+              <Eyebrow color={T.brass}>Pattern drill</Eyebrow>
             </div>
             <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
               Five blind prompts, no labels. Name the pattern before you flip. This is the
@@ -2616,15 +2621,15 @@ function TodayView({
             <button
               onClick={onOpenDrill}
               className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: T.accent, color: T.onAccent }}
+              style={{ backgroundColor: T.brass, color: T.onBrass }}
             >
               Start a drill <ChevronRight size={15} />
             </button>
           </Card>
           <Card>
             <div className="flex items-center gap-2">
-              <Trophy size={15} color={T.accent} />
-              <Eyebrow>Mock interview</Eyebrow>
+              <Trophy size={15} color={T.brass} />
+              <Eyebrow color={T.brass}>Mock interview</Eyebrow>
             </div>
             <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
               A surprise medium, a 40-minute clock with stage prompts, then an honest
@@ -2640,7 +2645,7 @@ function TodayView({
               className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
               style={{ border: "1px solid " + T.edge, color: T.ivory }}
             >
-              Run a mock <ChevronRight size={15} color={T.accent} />
+              Run a mock <ChevronRight size={15} color={T.brass} />
             </button>
           </Card>
         </div>
@@ -2653,9 +2658,9 @@ function TodayView({
             className="w-full text-left rounded-2xl p-5 flex items-center gap-4"
             style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
           >
-            <BookOpen size={18} color={T.accent} className="shrink-0" />
+            <BookOpen size={18} color={T.blue} className="shrink-0" />
             <div className="min-w-0 flex-1">
-              <Eyebrow>Keep reading</Eyebrow>
+              <Eyebrow color={T.blue}>Keep reading</Eyebrow>
               <div className="ws-display text-base font-semibold mt-1" style={{ color: T.ivory }}>
                 {firstUnread.title}
               </div>
@@ -2671,15 +2676,15 @@ function TodayView({
       <div className="lg:col-span-2 space-y-4 mt-4 lg:mt-0">
         <div className="grid grid-cols-2 gap-4">
           <Card>
-            <Eyebrow>Streak</Eyebrow>
+            <Eyebrow color={T.brass}>Streak</Eyebrow>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="ws-display text-4xl font-bold" style={{ color: streak > 0 ? T.accent : T.faint }}>
+              <span className="ws-display text-4xl font-bold" style={{ color: streak > 0 ? T.brass : T.faint }}>
                 {streak}
               </span>
               <span className="text-xs" style={{ color: T.faint }}>
                 {streak === 1 ? "day" : "days"}
               </span>
-              <Flame size={18} color={streak > 0 ? T.accent : T.faint} />
+              <Flame size={18} color={streak > 0 ? T.brass : T.faint} />
             </div>
             <p className="text-xs mt-2" style={{ color: T.faint }}>
               {doneToday ? "You showed up today." : streak > 0 ? "One rep keeps it alive." : "One rep starts it."}
@@ -2725,7 +2730,7 @@ function TodayView({
 
         {weak.length > 0 && (
           <Card>
-            <Eyebrow>Weak spots</Eyebrow>
+            <Eyebrow color={T.gold}>Weak spots</Eyebrow>
             <div className="mt-1">
               {weak.slice(0, 3).map((w) => {
                 const c = conceptById(w.cid);
@@ -2799,11 +2804,11 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
       </div>
 
       <div>
-        <SectionHead icon={Library}>Your bookshelf, and how it fits</SectionHead>
+        <SectionHead icon={Library} color={T.blue}>Your bookshelf, and how it fits</SectionHead>
         <div className="grid gap-3 lg:grid-cols-3">
           {Object.entries(BOOKS).map(([id, b]) => (
             <Card key={id}>
-              <Eyebrow>{b.short}</Eyebrow>
+              <Eyebrow color={T.blue}>{b.short}</Eyebrow>
               <div className="ws-display text-base font-semibold mt-1.5" style={{ color: T.ivory }}>
                 {b.title}
               </div>
@@ -2979,7 +2984,7 @@ function RoadmapView({ progress, onOpenConcept }) {
                         <span className="ws-display text-base font-semibold" style={{ color: T.ivory }}>
                           {c.title}
                         </span>
-                        {read && <BookOpen size={13} color={T.accent} />}
+                        {read && <BookOpen size={13} color={T.blue} />}
                       </div>
                       <div className="text-xs mt-0.5" style={{ color: T.faint }}>
                         {c.tagline}
@@ -3020,7 +3025,7 @@ function BookRefsCard({ conceptId, library, onOpenBook }) {
   const refs = BOOK_REFS[conceptId] || [];
   return (
     <Card>
-      <SectionHead icon={Library}>In your books</SectionHead>
+      <SectionHead icon={Library} color={T.blue}>In your books</SectionHead>
       {refs.length > 0 ? (
         <ul className="space-y-2.5">
           {refs.map((r, i) => {
@@ -3029,13 +3034,13 @@ function BookRefsCard({ conceptId, library, onOpenBook }) {
               <li key={i} className="flex items-start gap-2.5">
                 <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
                 <span className="text-sm leading-relaxed min-w-0 flex-1" style={{ color: T.ivory }}>
-                  <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.where}
+                  <span style={{ color: T.blue }}>{BOOKS[r.b].short}:</span> {r.where}
                 </span>
                 {canOpen && (
                   <button
                     onClick={() => onOpenBook(r.b, r.p)}
                     className="shrink-0 text-xs px-2.5 py-1 rounded-full mt-0.5"
-                    style={{ backgroundColor: T.accentSoft, color: T.accent }}
+                    style={{ backgroundColor: T.blueSoft, color: T.blue }}
                   >
                     Open
                   </button>
@@ -3086,7 +3091,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
             className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full mt-1"
             style={
               read
-                ? { color: T.accent, backgroundColor: T.accentSoft, border: "1px solid transparent" }
+                ? { color: T.blue, backgroundColor: T.blueSoft, border: "1px solid transparent" }
                 : { color: T.muted, border: "1px solid " + T.edge }
             }
           >
@@ -3102,7 +3107,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
       <div className="lg:grid lg:grid-cols-5 lg:gap-5 space-y-5 lg:space-y-0">
         <div className="lg:col-span-3 space-y-5">
           <Card>
-            <SectionHead icon={Lightbulb}>ELI5 — the idea</SectionHead>
+            <SectionHead icon={Lightbulb} color={T.blue}>ELI5 — the idea</SectionHead>
             <div className="space-y-3">
               {concept.eli5.map((para, i) => (
                 <p key={i} className="text-sm leading-relaxed" style={{ color: T.ivory }}>
@@ -3113,7 +3118,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
           </Card>
 
           <Card>
-            <SectionHead icon={Radar}>Spot it when</SectionHead>
+            <SectionHead icon={Radar} color={T.blue}>Spot it when</SectionHead>
             <ul className="space-y-2.5">
               {concept.spotIt.map((s, i) => (
                 <li key={i} className="flex gap-2.5">
@@ -3330,7 +3335,7 @@ function SkillsView() {
       </div>
 
       <div>
-        <SectionHead icon={Flame}>Big tech, specifically</SectionHead>
+        <SectionHead icon={Flame} color={T.brass}>Big tech, specifically</SectionHead>
         <Card>
           <ul className="space-y-3">
             {BIGTECH.map((b, i) => (
@@ -3367,7 +3372,7 @@ function SkillsView() {
 
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
         <div>
-          <SectionHead icon={BookOpen}>LeetCode, for someone starting cold</SectionHead>
+          <SectionHead icon={BookOpen} color={T.blue}>LeetCode, for someone starting cold</SectionHead>
           <Card>
             <ul className="space-y-2.5">
               {QUICKSTART.map((q, i) => (
@@ -3442,7 +3447,7 @@ function GlobalStyle() {
   return (
     <style>{`
       .ws-display { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
-      .ws-root { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      .ws-root { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; background-image: radial-gradient(1100px 520px at 18% -8%, rgba(140,192,132,0.07), transparent 62%), radial-gradient(900px 480px at 108% 112%, rgba(225,169,78,0.05), transparent 60%); background-attachment: fixed; }
       .ws-root ::selection { background: rgba(140,192,132,0.35); }
       .ws-fade { animation: wsfade 240ms ease both; }
       @keyframes wsfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -3494,10 +3499,10 @@ function SideNav({ activeTab, setView, headerStreak, solvedCount, total }) {
 
       <div className="mt-auto space-y-4">
         <div className="flex items-center gap-2">
-          <Flame size={15} color={headerStreak > 0 ? T.accent : T.faint} />
+          <Flame size={15} color={headerStreak > 0 ? T.brass : T.faint} />
           <span
             className="text-sm"
-            style={{ color: headerStreak > 0 ? T.accent : T.faint, fontFamily: MONO }}
+            style={{ color: headerStreak > 0 ? T.brass : T.faint, fontFamily: MONO }}
           >
             {headerStreak} day streak
           </span>
@@ -3787,13 +3792,13 @@ export default function WoodshedApp() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
               style={{
                 border: "1px solid " + T.edge,
-                backgroundColor: headerStreak > 0 ? T.accentSoft : "transparent",
+                backgroundColor: headerStreak > 0 ? T.brassSoft : "transparent",
               }}
             >
-              <Flame size={14} color={headerStreak > 0 ? T.accent : T.faint} />
+              <Flame size={14} color={headerStreak > 0 ? T.brass : T.faint} />
               <span
                 className="text-xs"
-                style={{ color: headerStreak > 0 ? T.accent : T.faint, fontFamily: MONO }}
+                style={{ color: headerStreak > 0 ? T.brass : T.faint, fontFamily: MONO }}
               >
                 {headerStreak}
               </span>
