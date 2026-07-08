@@ -1,12 +1,12 @@
 // WOODSHED — daily reps for technical interviews
-// v3: companion bookshelf — CTCI, De-Coding (Bostian), Imposter's Handbook.
+// v4: in-app library — attach your PDFs per device, jump to exact pages.
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Flame, Sun, Map, Mic, Lightbulb, Radar, Code2, ListChecks,
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
   ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
-  CalendarDays, Play, Pause, TimerReset, Library
+  CalendarDays, Play, Pause, TimerReset, Library, X, ChevronLeft, Upload, Trash2
 } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
@@ -926,76 +926,79 @@ const BOOKS = {
     short: "CTCI",
     title: "Cracking the Coding Interview",
     author: "Gayle Laakmann McDowell, 6th edition",
+    offset: 11,
     role: "The bible. Heavy, thorough, and the source of half the questions you will actually get. This month: Big O, chapters 1 to 4 and 8, and the process sections. Its problem sets become your extra reps once a concept's list here is done.",
   },
   emma: {
     short: "De-Coding",
     title: "De-Coding the Technical Interview Process",
     author: "Emma Bostian",
+    offset: 0,
     role: "The short, modern one, written by a front-end engineer, so it is the closest to your world. Read the process chapters in week one and finish it by week two. Best in class on the parts nobody practices: coding challenges, on-sites, and what happens after.",
   },
   imposter: {
     short: "Imposter's",
     title: "The Imposter's Handbook",
     author: "Rob Conery",
+    offset: 36,
     role: "The why behind everything, written for practical engineers who skipped the CS degree. Not interview-tactical; it back-fills the theory so the vocabulary stops feeling foreign. Evening reading: chapters 1, 2, 6, and 7 this month, the rest whenever.",
   },
 };
 
 const BOOK_REFS = {
   "big-o": [
-    { b: "ctci", where: "Big O, section VI, p. 38 — the canonical treatment" },
-    { b: "imposter", where: "Chapter 2, Big-O, p. 21, and Chapter 1, Complexity Theory, p. 1 when curious" },
-    { b: "emma", where: "Algorithmic Complexity, p. 129" },
+    { p: 38, b: "ctci", where: "Big O, section VI, p. 38 — the canonical treatment" },
+    { p: 21, b: "imposter", where: "Chapter 2, Big-O, p. 21, and Chapter 1, Complexity Theory, p. 1 when curious" },
+    { p: 129, b: "emma", where: "Algorithmic Complexity, p. 129" },
   ],
   "arrays-strings": [
-    { b: "ctci", where: "Chapter 1, Arrays and Strings, p. 88" },
-    { b: "imposter", where: "Arrays, 6.1, p. 94 — includes the JavaScript view" },
+    { p: 88, b: "ctci", where: "Chapter 1, Arrays and Strings, p. 88" },
+    { p: 94, b: "imposter", where: "Arrays, 6.1, p. 94 — includes the JavaScript view" },
   ],
   "hash-maps": [
-    { b: "ctci", where: "Chapter 1, hash tables intro, p. 88" },
-    { b: "imposter", where: "Hash Table, 6.3, p. 98 — how the magic actually works" },
+    { p: 88, b: "ctci", where: "Chapter 1, hash tables intro, p. 88" },
+    { p: 98, b: "imposter", where: "Hash Table, 6.3, p. 98 — how the magic actually works" },
   ],
   "two-pointers": [
-    { b: "ctci", where: "No dedicated chapter; the Chapter 1 problem set, p. 90, is your extra reps" },
+    { p: 90, b: "ctci", where: "No dedicated chapter; the Chapter 1 problem set, p. 90, is your extra reps" },
   ],
   "sliding-window": [
-    { b: "ctci", where: "Optimize and Solve techniques, section VII, p. 67 — the BUD method pairs well here" },
+    { p: 67, b: "ctci", where: "Optimize and Solve techniques, section VII, p. 67 — the BUD method pairs well here" },
   ],
   "prefix-sums": [],
   "binary-search": [
-    { b: "ctci", where: "Chapter 10, Sorting and Searching, p. 146" },
-    { b: "emma", where: "Binary Search, p. 160" },
+    { p: 146, b: "ctci", where: "Chapter 10, Sorting and Searching, p. 146" },
+    { p: 160, b: "emma", where: "Binary Search, p. 160" },
   ],
   "stacks-queues": [
-    { b: "ctci", where: "Chapter 3, Stacks and Queues, p. 96" },
-    { b: "emma", where: "Stacks, p. 62, and Queues, p. 73" },
+    { p: 96, b: "ctci", where: "Chapter 3, Stacks and Queues, p. 96" },
+    { p: 62, b: "emma", where: "Stacks, p. 62, and Queues, p. 73" },
   ],
   "linked-lists": [
-    { b: "ctci", where: "Chapter 2, Linked Lists, p. 92" },
-    { b: "emma", where: "Linked Lists, p. 79" },
-    { b: "imposter", where: "Linked Lists, 6.2, p. 96" },
+    { p: 92, b: "ctci", where: "Chapter 2, Linked Lists, p. 92" },
+    { p: 79, b: "emma", where: "Linked Lists, p. 79" },
+    { p: 96, b: "imposter", where: "Linked Lists, 6.2, p. 96" },
   ],
   trees: [
-    { b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the trees half" },
-    { b: "emma", where: "Trees, p. 104, and Tree Traversals, p. 162" },
-    { b: "imposter", where: "Binary Search Tree, 6.5, p. 103" },
+    { p: 100, b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the trees half" },
+    { p: 104, b: "emma", where: "Trees, p. 104, and Tree Traversals, p. 162" },
+    { p: 103, b: "imposter", where: "Binary Search Tree, 6.5, p. 103" },
   ],
   graphs: [
-    { b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the graphs half" },
-    { b: "emma", where: "Graphs, p. 98" },
-    { b: "imposter", where: "Graphs, 6.6, p. 106 — starts with the bridges of Konigsberg, worth it" },
+    { p: 100, b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the graphs half" },
+    { p: 98, b: "emma", where: "Graphs, p. 98" },
+    { p: 106, b: "imposter", where: "Graphs, 6.6, p. 106 — starts with the bridges of Konigsberg, worth it" },
   ],
   heaps: [
-    { b: "imposter", where: "Heap, 6.4, p. 102" },
-    { b: "ctci", where: "Inside Chapter 4, p. 100 onward — heaps appear alongside trees" },
+    { p: 102, b: "imposter", where: "Heap, 6.4, p. 102" },
+    { p: 100, b: "ctci", where: "Inside Chapter 4, p. 100 onward — heaps appear alongside trees" },
   ],
   backtracking: [
-    { b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130 — the recursion half" },
+    { p: 130, b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130 — the recursion half" },
   ],
   dp: [
-    { b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130" },
-    { b: "imposter", where: "Chapter 7, Algorithms, p. 117 — the theory-side companion" },
+    { p: 130, b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130" },
+    { p: 117, b: "imposter", where: "Chapter 7, Algorithms, p. 117 — the theory-side companion" },
   ],
   greedy: [],
   intervals: [],
@@ -1004,49 +1007,49 @@ const BOOK_REFS = {
 // ---------------------------------------------------------------- 30-day plan
 
 const PLAN = [
-  { day: 1, focus: "Big O and arrays", reading: [{ id: "rd1", b: "ctci", what: "Big O, section VI, p. 38 — read it after the reps; it will land differently now" }], read: ["big-o", "arrays-strings"], solve: ["concatenation-of-array", "remove-duplicates-from-sorted-array"] },
-  { day: 2, focus: "Arrays", reading: [{ id: "rd2", b: "emma", what: "The Interview Process, p. 10 — start tonight, finish by day six; short, and it demystifies the whole pipeline" }], solve: ["best-time-to-buy-and-sell-stock", "rotate-array", "product-of-array-except-self"] },
-  { day: 3, focus: "Hash maps", reading: [{ id: "rd3", b: "ctci", what: "Chapter 1 hash tables intro, p. 88" }], read: ["hash-maps"], solve: ["contains-duplicate", "valid-anagram", "two-sum"] },
-  { day: 4, focus: "Hash maps", reading: [{ id: "rd4", b: "imposter", what: "Chapter 2, Big-O, p. 21 — the friendly second pass on day one" }], solve: ["group-anagrams", "top-k-frequent-elements"] },
+  { day: 1, focus: "Big O and arrays", reading: [{ id: "rd1", p: 38, b: "ctci", what: "Big O, section VI, p. 38 — read it after the reps; it will land differently now" }], read: ["big-o", "arrays-strings"], solve: ["concatenation-of-array", "remove-duplicates-from-sorted-array"] },
+  { day: 2, focus: "Arrays", reading: [{ id: "rd2", p: 10, b: "emma", what: "The Interview Process, p. 10 — start tonight, finish by day six; short, and it demystifies the whole pipeline" }], solve: ["best-time-to-buy-and-sell-stock", "rotate-array", "product-of-array-except-self"] },
+  { day: 3, focus: "Hash maps", reading: [{ id: "rd3", p: 88, b: "ctci", what: "Chapter 1 hash tables intro, p. 88" }], read: ["hash-maps"], solve: ["contains-duplicate", "valid-anagram", "two-sum"] },
+  { day: 4, focus: "Hash maps", reading: [{ id: "rd4", p: 21, b: "imposter", what: "Chapter 2, Big-O, p. 21 — the friendly second pass on day one" }], solve: ["group-anagrams", "top-k-frequent-elements"] },
   { day: 5, focus: "Two pointers", read: ["two-pointers"], solve: ["valid-palindrome", "move-zeroes", "squares-of-a-sorted-array"] },
-  { day: 6, focus: "Two pointers", reading: [{ id: "rd6", b: "emma", what: "Problem Solving, p. 53 — her version of the routine you meet tomorrow" }], solve: ["two-sum-ii-input-array-is-sorted", "container-with-most-water"] },
-  { day: 7, focus: "Review and the first boss", reading: [{ id: "rd7", b: "ctci", what: "Walking Through a Problem, p. 62, then Behavioral Questions, p. 32" }], solve: ["3sum"], extra: [
+  { day: 6, focus: "Two pointers", reading: [{ id: "rd6", p: 53, b: "emma", what: "Problem Solving, p. 53 — her version of the routine you meet tomorrow" }], solve: ["two-sum-ii-input-array-is-sorted", "container-with-most-water"] },
+  { day: 7, focus: "Review and the first boss", reading: [{ id: "rd7", p: 62, b: "ctci", what: "Walking Through a Problem, p. 62, then Behavioral Questions, p. 32" }], solve: ["3sum"], extra: [
     { id: "d7-review", label: "Re-solve 3 problems from the review queue, cold" },
     { id: "d7-skills", label: "Read the whole Skills tab once, out loud where it says to" },
   ] },
   { day: 8, focus: "Sliding window", read: ["sliding-window"], solve: ["maximum-average-subarray-i", "longest-substring-without-repeating-characters"] },
   { day: 9, focus: "Window, then prefix sums", read: ["prefix-sums"], solve: ["longest-repeating-character-replacement", "running-sum-of-1d-array"] },
-  { day: 10, focus: "Prefix sums", reading: [{ id: "rd10", b: "imposter", what: "Chapter 6, Data Structures, p. 93 — start grazing a section a night through week three" }], solve: ["find-pivot-index", "range-sum-query-immutable", "subarray-sum-equals-k"] },
-  { day: 11, focus: "Binary search", reading: [{ id: "rd11", b: "emma", what: "Binary Search, p. 160" }], read: ["binary-search"], solve: ["binary-search", "search-insert-position", "first-bad-version"] },
+  { day: 10, focus: "Prefix sums", reading: [{ id: "rd10", p: 93, b: "imposter", what: "Chapter 6, Data Structures, p. 93 — start grazing a section a night through week three" }], solve: ["find-pivot-index", "range-sum-query-immutable", "subarray-sum-equals-k"] },
+  { day: 11, focus: "Binary search", reading: [{ id: "rd11", p: 160, b: "emma", what: "Binary Search, p. 160" }], read: ["binary-search"], solve: ["binary-search", "search-insert-position", "first-bad-version"] },
   { day: 12, focus: "Binary search", solve: ["search-in-rotated-sorted-array", "koko-eating-bananas"] },
-  { day: 13, focus: "Stacks and queues", reading: [{ id: "rd13", b: "ctci", what: "Chapter 3, Stacks and Queues, p. 96" }], read: ["stacks-queues"], solve: ["valid-parentheses", "implement-queue-using-stacks", "min-stack"] },
+  { day: 13, focus: "Stacks and queues", reading: [{ id: "rd13", p: 96, b: "ctci", what: "Chapter 3, Stacks and Queues, p. 96" }], read: ["stacks-queues"], solve: ["valid-parentheses", "implement-queue-using-stacks", "min-stack"] },
   { day: 14, focus: "Mock, week two", solve: ["daily-temperatures"], extra: [
     { id: "d14-mock", label: "Treat Daily Temperatures as a mock: 40-minute timer, narrate the whole time" },
     { id: "d14-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 15, focus: "Linked lists", reading: [{ id: "rd15", b: "ctci", what: "Chapter 2, Linked Lists, p. 92" }], read: ["linked-lists"], solve: ["evaluate-reverse-polish-notation", "reverse-linked-list", "merge-two-sorted-lists"] },
+  { day: 15, focus: "Linked lists", reading: [{ id: "rd15", p: 92, b: "ctci", what: "Chapter 2, Linked Lists, p. 92" }], read: ["linked-lists"], solve: ["evaluate-reverse-polish-notation", "reverse-linked-list", "merge-two-sorted-lists"] },
   { day: 16, focus: "Linked lists", solve: ["linked-list-cycle", "middle-of-the-linked-list", "remove-nth-node-from-end-of-list"] },
-  { day: 17, focus: "Lists, then trees", reading: [{ id: "rd17", b: "ctci", what: "Chapter 4, Trees and Graphs, p. 100 — the month's biggest read; take it in halves through day 22" }], read: ["trees"], solve: ["reorder-list", "maximum-depth-of-binary-tree", "invert-binary-tree"] },
+  { day: 17, focus: "Lists, then trees", reading: [{ id: "rd17", p: 100, b: "ctci", what: "Chapter 4, Trees and Graphs, p. 100 — the month's biggest read; take it in halves through day 22" }], read: ["trees"], solve: ["reorder-list", "maximum-depth-of-binary-tree", "invert-binary-tree"] },
   { day: 18, focus: "Trees", solve: ["same-tree", "diameter-of-binary-tree", "binary-tree-level-order-traversal"] },
-  { day: 19, focus: "Trees, then graphs", reading: [{ id: "rd19", b: "emma", what: "Graphs, p. 98, and Trees, p. 104 — a quick second voice on this week's work" }], read: ["graphs"], solve: ["validate-binary-search-tree", "flood-fill"] },
+  { day: 19, focus: "Trees, then graphs", reading: [{ id: "rd19", p: 98, b: "emma", what: "Graphs, p. 98, and Trees, p. 104 — a quick second voice on this week's work" }], read: ["graphs"], solve: ["validate-binary-search-tree", "flood-fill"] },
   { day: 20, focus: "Graphs", solve: ["number-of-islands", "max-area-of-island"] },
   { day: 21, focus: "Mock, week three", solve: ["rotting-oranges"], extra: [
     { id: "d21-mock", label: "Rotting Oranges as a mock: 40-minute timer, out loud" },
     { id: "d21-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 22, focus: "Graphs, then heaps", reading: [{ id: "rd22", b: "imposter", what: "Heap, 6.4, p. 102 — JavaScript never gave you one; here is what you were missing" }], read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
+  { day: 22, focus: "Graphs, then heaps", reading: [{ id: "rd22", p: 102, b: "imposter", what: "Heap, 6.4, p. 102 — JavaScript never gave you one; here is what you were missing" }], read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
   { day: 23, focus: "Heaps, then backtracking", read: ["backtracking"], solve: ["k-closest-points-to-origin", "subsets"] },
   { day: 24, focus: "Backtracking", solve: ["permutations", "combination-sum"] },
-  { day: 25, focus: "Backtracking, then DP", reading: [{ id: "rd25", b: "ctci", what: "Chapter 8, Recursion and Dynamic Programming, p. 130" }], read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
+  { day: 25, focus: "Backtracking, then DP", reading: [{ id: "rd25", p: 130, b: "ctci", what: "Chapter 8, Recursion and Dynamic Programming, p. 130" }], read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
   { day: 26, focus: "DP under the clock", solve: ["climbing-stairs", "min-cost-climbing-stairs", "house-robber"], extra: [
     { id: "d26-mock", label: "First two problems back to back, 25 minutes each, timed" },
   ] },
-  { day: 27, focus: "DP", reading: [{ id: "rd27", b: "emma", what: "Front-End Interviews, p. 177 — home turf; at least one round of your loop will look like this" }], solve: ["unique-paths", "coin-change"] },
+  { day: 27, focus: "DP", reading: [{ id: "rd27", p: 177, b: "emma", what: "Front-End Interviews, p. 177 — home turf; at least one round of your loop will look like this" }], solve: ["unique-paths", "coin-change"] },
   { day: 28, focus: "DP, then greedy", read: ["greedy"], solve: ["longest-increasing-subsequence", "maximum-subarray", "jump-game"] },
-  { day: 29, focus: "Greedy, then intervals", reading: [{ id: "rd29", b: "ctci", what: "The Offer and Beyond, p. 82 — negotiation, before you need it" }], read: ["intervals"], solve: ["gas-station", "merge-intervals"], extra: [
+  { day: 29, focus: "Greedy, then intervals", reading: [{ id: "rd29", p: 82, b: "ctci", what: "The Offer and Beyond, p. 82 — negotiation, before you need it" }], read: ["intervals"], solve: ["gas-station", "merge-intervals"], extra: [
     { id: "d29-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 30, focus: "Finish line", reading: [{ id: "rd30", b: "emma", what: "Systems Design Interviews, p. 194 — a taste of the senior round; full prep is its own track" }], solve: ["insert-interval", "non-overlapping-intervals", "minimum-number-of-arrows-to-burst-balloons"], stretch: ["minimum-window-substring", "find-median-from-data-stream"], extra: [
+  { day: 30, focus: "Finish line", reading: [{ id: "rd30", p: 194, b: "emma", what: "Systems Design Interviews, p. 194 — a taste of the senior round; full prep is its own track" }], solve: ["insert-interval", "non-overlapping-intervals", "minimum-number-of-arrows-to-burst-balloons"], stretch: ["minimum-window-substring", "find-median-from-data-stream"], extra: [
     { id: "d30-mock", label: "One full 45-minute mock on Pramp or with a friend, camera on" },
   ] },
 ];
@@ -1558,9 +1561,241 @@ function SyncPanel({ progress, onImport }) {
   );
 }
 
+// ---------------------------------------------------------------- library (in-browser PDFs)
+
+const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+let pdfjsPromise = null;
+function loadPdfJs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = new Promise((resolve, reject) => {
+      if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        resolve(window.pdfjsLib);
+        return;
+      }
+      const s = document.createElement("script");
+      s.src = PDFJS_URL;
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = () => reject(new Error("pdf.js failed to load"));
+      document.head.appendChild(s);
+    });
+  }
+  return pdfjsPromise;
+}
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = window.indexedDB.open("woodshed-library", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("books");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function libPut(id, file) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("books", "readwrite");
+    tx.objectStore("books").put(file, id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function libGet(id) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const rq = db.transaction("books").objectStore("books").get(id);
+    rq.onsuccess = () => resolve(rq.result || null);
+    rq.onerror = () => reject(rq.error);
+  });
+}
+async function libDelete(id) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("books", "readwrite");
+    tx.objectStore("books").delete(id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function libStatus() {
+  const out = {};
+  try {
+    for (const id of Object.keys(BOOKS)) out[id] = !!(await libGet(id));
+  } catch (e) {
+    for (const id of Object.keys(BOOKS)) out[id] = false;
+  }
+  return out;
+}
+
+function ReaderOverlay({ bookId, printedPage, onClose }) {
+  const book = BOOKS[bookId];
+  const [doc, setDoc] = useState(null);
+  const [pdfPage, setPdfPage] = useState(printedPage + book.offset);
+  const [err, setErr] = useState("");
+  const canvasRef = useRef(null);
+  const wrapRef = useRef(null);
+  const seq = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pdfjs = await loadPdfJs();
+        const blob = await libGet(bookId);
+        if (!blob) {
+          setErr("This book is not attached on this device. Attach it in the Plan tab.");
+          return;
+        }
+        const buf = await blob.arrayBuffer();
+        const d = await pdfjs.getDocument({ data: buf }).promise;
+        if (cancelled) return;
+        setDoc(d);
+        setPdfPage((p) => Math.min(Math.max(1, p), d.numPages));
+      } catch (e) {
+        setErr("Could not open the PDF on this device.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId]);
+
+  useEffect(() => {
+    if (!doc || !canvasRef.current) return;
+    const my = ++seq.current;
+    (async () => {
+      try {
+        const page = await doc.getPage(pdfPage);
+        if (my !== seq.current || !canvasRef.current) return;
+        const canvas = canvasRef.current;
+        const wrapW = wrapRef.current ? wrapRef.current.clientWidth : 600;
+        const base = page.getViewport({ scale: 1 });
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const vp = page.getViewport({ scale: (wrapW / base.width) * dpr });
+        canvas.width = vp.width;
+        canvas.height = vp.height;
+        canvas.style.width = "100%";
+        canvas.style.height = "auto";
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+      } catch (e) {
+        // render superseded or failed; the next render attempt recovers
+      }
+    })();
+  }, [doc, pdfPage]);
+
+  const shownPrinted = pdfPage - book.offset;
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: "rgba(9,12,9,0.98)" }}>
+      <div
+        className="flex items-center justify-between gap-3 px-4 py-3"
+        style={{ borderBottom: "1px solid " + T.edge }}
+      >
+        <div className="min-w-0">
+          <div className="text-sm font-semibold truncate" style={{ color: T.ivory }}>
+            {book.title}
+          </div>
+          <div className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+            {shownPrinted > 0 ? "p. " + shownPrinted : "front matter"}
+            {doc ? " · pdf " + pdfPage + "/" + doc.numPages : ""}
+          </div>
+        </div>
+        <button onClick={onClose} aria-label="Close reader" className="p-2 rounded-lg shrink-0" style={{ color: T.ivory }}>
+          <X size={20} />
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto p-3 flex justify-center">
+        <div ref={wrapRef} className="w-full max-w-3xl">
+          {err ? (
+            <p className="text-sm mt-8 text-center leading-relaxed" style={{ color: T.muted }}>
+              {err}
+            </p>
+          ) : (
+            <canvas ref={canvasRef} className="rounded-lg" style={{ backgroundColor: "#FFFFFF" }} />
+          )}
+        </div>
+      </div>
+      {doc && !err && (
+        <div
+          className="flex items-center justify-center gap-3 px-4 py-3"
+          style={{ borderTop: "1px solid " + T.edge }}
+        >
+          <button
+            onClick={() => setPdfPage((p) => Math.max(1, p - 1))}
+            aria-label="Previous page"
+            className="p-2.5 rounded-xl"
+            style={{ border: "1px solid " + T.edge, color: T.ivory }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="text-xs w-20 text-center" style={{ color: T.muted, fontFamily: MONO }}>
+            {shownPrinted > 0 ? "p. " + shownPrinted : "—"}
+          </span>
+          <button
+            onClick={() => setPdfPage((p) => Math.min(doc.numPages, p + 1))}
+            aria-label="Next page"
+            className="p-2.5 rounded-xl"
+            style={{ border: "1px solid " + T.edge, color: T.ivory }}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LibraryControls({ bookId, attached, onAttach, onRemove }) {
+  const inputRef = useRef(null);
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files && e.target.files[0];
+          if (f) onAttach(bookId, f);
+          e.target.value = "";
+        }}
+      />
+      {attached ? (
+        <>
+          <span
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+            style={{ color: T.accent, backgroundColor: T.accentSoft }}
+          >
+            <CheckCircle2 size={13} /> Attached on this device
+          </span>
+          <button
+            onClick={() => onRemove(bookId)}
+            aria-label="Remove this PDF from the browser"
+            className="p-1.5 rounded-lg"
+            style={{ color: T.faint, border: "1px solid " + T.edge }}
+          >
+            <Trash2 size={13} />
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => inputRef.current && inputRef.current.click()}
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+          style={{ border: "1px solid " + T.edge, color: T.ivory }}
+        >
+          <Upload size={13} /> Attach PDF
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- plan pieces
 
-function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept }) {
+function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept, library, onOpenBook }) {
   const reads = day.read || [];
   const solves = day.solve || [];
   const stretch = day.stretch || [];
@@ -1615,18 +1850,20 @@ function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept }
       })}
       {(day.reading || []).map((r) => {
         const done = !!progress.tasks[r.id];
+        const canOpen = r.p && library && library[r.b];
         return (
-          <button
-            key={r.id}
-            onClick={() => onToggleTask(r.id)}
-            className="w-full flex items-center gap-3 py-3 text-left"
-            style={{ borderBottom: HAIRLINE }}
-          >
-            {done ? (
-              <CheckCircle2 size={20} color={T.accent} className="shrink-0" />
-            ) : (
-              <Library size={20} color={T.faint} className="shrink-0" />
-            )}
+          <div key={r.id} className="flex items-center gap-3 py-3" style={{ borderBottom: HAIRLINE }}>
+            <button
+              onClick={() => onToggleTask(r.id)}
+              aria-label={(done ? "Mark unread: " : "Mark read: ") + BOOKS[r.b].short}
+              className="shrink-0"
+            >
+              {done ? (
+                <CheckCircle2 size={20} color={T.accent} />
+              ) : (
+                <Library size={20} color={T.faint} />
+              )}
+            </button>
             <div className="min-w-0 flex-1">
               <span
                 className="text-sm"
@@ -1638,7 +1875,16 @@ function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept }
                 companion reading
               </div>
             </div>
-          </button>
+            {canOpen && (
+              <button
+                onClick={() => onOpenBook(r.b, r.p)}
+                className="shrink-0 text-xs px-3 py-1.5 rounded-full"
+                style={{ backgroundColor: T.accentSoft, color: T.accent }}
+              >
+                Open p. {r.p}
+              </button>
+            )}
+          </div>
         );
       })}
       {extras.map((e) => {
@@ -1694,7 +1940,7 @@ function StartPlanCard({ onStartPlan }) {
   );
 }
 
-function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept }) {
+function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept, library, onOpenBook }) {
   const n = currentPlanDay(progress);
   const behind = PLAN.filter((d) => d.day < Math.min(n, 31) && !dayStats(d, progress).complete).length;
 
@@ -1738,6 +1984,8 @@ function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept }
           onToggleSolved={onToggleSolved}
           onToggleTask={onToggleTask}
           onOpenConcept={onOpenConcept}
+          library={library}
+          onOpenBook={onOpenBook}
         />
       </div>
       {stats.complete && (
@@ -1754,6 +2002,7 @@ function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept }
 function TodayView({
   progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
   resetArmed, onReset, onImport, onToggleTask, onStartPlan, onMarkReviewed,
+  library, onOpenBook,
 }) {
   const solvedCount = Object.keys(progress.solved).length;
   const total = ORDERED_PROBLEMS.length;
@@ -1792,6 +2041,8 @@ function TodayView({
             onToggleSolved={onToggleSolved}
             onToggleTask={onToggleTask}
             onOpenConcept={onOpenConcept}
+            library={library}
+            onOpenBook={onOpenBook}
           />
         ) : (
           <StartPlanCard onStartPlan={onStartPlan} />
@@ -1945,7 +2196,7 @@ function TodayView({
 
 // ---------------------------------------------------------------- plan view
 
-function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed }) {
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed, library, onAttachBook, onRemoveBook, onOpenBook }) {
   const n = currentPlanDay(progress);
   const [openDay, setOpenDay] = useState(n && n <= 30 ? n : null);
   const doneDays = PLAN.filter((d) => dayStats(d, progress).complete).length;
@@ -1981,14 +2232,21 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
               <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
                 {b.role}
               </p>
+              <LibraryControls
+                bookId={id}
+                attached={!!library[id]}
+                onAttach={onAttachBook}
+                onRemove={onRemoveBook}
+              />
             </Card>
           ))}
         </div>
         <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
-          Chapter assignments appear inside the plan days below as companion reading, 15 to
-          25 minutes each. They never block a day. Every concept page also lists where each
-          book goes deeper. Keep the PDFs in your Books or Files app on each device; they
-          stay off the public site.
+          Attach each PDF once per device with the buttons above. The files are stored
+          inside this browser only and are never uploaded anywhere, so they stay entirely
+          off the public site. Once attached, every chapter assignment below and every
+          concept page reference gains an Open button that jumps straight to the exact
+          page. Assignments are 15 to 25 minutes each and never block a day.
         </p>
       </div>
 
@@ -2077,6 +2335,8 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
                         onToggleSolved={onToggleSolved}
                         onToggleTask={onToggleTask}
                         onOpenConcept={onOpenConcept}
+                        library={library}
+                        onOpenBook={onOpenBook}
                       />
                     </div>
                   )}
@@ -2173,21 +2433,33 @@ function RoadmapView({ progress, onOpenConcept }) {
 
 // ---------------------------------------------------------------- concept detail
 
-function BookRefsCard({ conceptId }) {
+function BookRefsCard({ conceptId, library, onOpenBook }) {
   const refs = BOOK_REFS[conceptId] || [];
   return (
     <Card>
       <SectionHead icon={Library}>In your books</SectionHead>
       {refs.length > 0 ? (
         <ul className="space-y-2.5">
-          {refs.map((r, i) => (
-            <li key={i} className="flex gap-2.5">
-              <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
-              <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.where}
-              </span>
-            </li>
-          ))}
+          {refs.map((r, i) => {
+            const canOpen = r.p && library && library[r.b];
+            return (
+              <li key={i} className="flex items-start gap-2.5">
+                <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
+                <span className="text-sm leading-relaxed min-w-0 flex-1" style={{ color: T.ivory }}>
+                  <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.where}
+                </span>
+                {canOpen && (
+                  <button
+                    onClick={() => onOpenBook(r.b, r.p)}
+                    className="shrink-0 text-xs px-2.5 py-1 rounded-full mt-0.5"
+                    style={{ backgroundColor: T.accentSoft, color: T.accent }}
+                  >
+                    Open
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-sm leading-relaxed" style={{ color: T.muted }}>
@@ -2196,13 +2468,14 @@ function BookRefsCard({ conceptId }) {
         </p>
       )}
       <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
-        Page numbers are the printed ones inside each book, not PDF positions.
+        Attach your PDFs in the Plan tab and these become one-tap page jumps. Page numbers
+        are the printed ones inside each book.
       </p>
     </Card>
   );
 }
 
-function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, onOpenConcept }) {
+function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, onOpenConcept, library, onOpenBook }) {
   const read = !!progress.read[concept.id];
   const phase = PHASES.find((p) => p.id === concept.phase);
   const idx = ORDERED_CONCEPTS.findIndex((c) => c.id === concept.id);
@@ -2318,7 +2591,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
                 </p>
               </Card>
             )}
-            <BookRefsCard conceptId={concept.id} />
+            <BookRefsCard conceptId={concept.id} library={library} onOpenBook={onOpenBook} />
           </div>
         </div>
       </div>
@@ -2668,6 +2941,8 @@ export default function WoodshedApp() {
   const [pickSlug, setPickSlug] = useState(null);
   const [resetArmed, setResetArmed] = useState(false);
   const [restartArmed, setRestartArmed] = useState(false);
+  const [library, setLibrary] = useState({});
+  const [reader, setReader] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -2793,6 +3068,38 @@ export default function WoodshedApp() {
     setPickSlug(null);
   }
 
+  useEffect(() => {
+    let alive = true;
+    libStatus().then((s) => {
+      if (alive) setLibrary(s);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function attachBook(bookId, file) {
+    try {
+      await libPut(bookId, file);
+      setLibrary((l) => ({ ...l, [bookId]: true }));
+    } catch (e) {
+      // storage refused the file; nothing persisted
+    }
+  }
+
+  async function removeBook(bookId) {
+    try {
+      await libDelete(bookId);
+    } catch (e) {
+      // already gone
+    }
+    setLibrary((l) => ({ ...l, [bookId]: false }));
+  }
+
+  function openBook(bookId, printedPage) {
+    if (library[bookId]) setReader({ bookId, printedPage });
+  }
+
   const openConcept = (id) => setView({ name: "concept", id });
 
   const today = ymd(new Date());
@@ -2901,6 +3208,8 @@ export default function WoodshedApp() {
                 onToggleTask={toggleTask}
                 onStartPlan={startPlan}
                 onMarkReviewed={markReviewed}
+                library={library}
+                onOpenBook={openBook}
               />
             )}
             {view.name === "plan" && (
@@ -2912,6 +3221,10 @@ export default function WoodshedApp() {
                 onStartPlan={startPlan}
                 onRestartPlan={restartPlan}
                 restartArmed={restartArmed}
+                library={library}
+                onAttachBook={attachBook}
+                onRemoveBook={removeBook}
+                onOpenBook={openBook}
               />
             )}
             {view.name === "roadmap" && (
@@ -2925,6 +3238,8 @@ export default function WoodshedApp() {
                 onToggleRead={toggleRead}
                 onBack={() => setView({ name: "roadmap" })}
                 onOpenConcept={openConcept}
+                library={library}
+                onOpenBook={openBook}
               />
             )}
             {view.name === "skills" && <SkillsView />}
@@ -2955,6 +3270,14 @@ export default function WoodshedApp() {
           ))}
         </div>
       </nav>
+
+      {reader && (
+        <ReaderOverlay
+          bookId={reader.bookId}
+          printedPage={reader.printedPage}
+          onClose={() => setReader(null)}
+        />
+      )}
     </div>
   );
 }
