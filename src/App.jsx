@@ -1,12 +1,12 @@
 // WOODSHED — daily reps for technical interviews
-// v2: green room theme, desktop layout, 30-day plan, spaced review, timer.
+// v3: companion bookshelf — CTCI, De-Coding (Bostian), Imposter's Handbook.
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Flame, Sun, Map, Mic, Lightbulb, Radar, Code2, ListChecks,
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
   ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
-  CalendarDays, Play, Pause, TimerReset
+  CalendarDays, Play, Pause, TimerReset, Library
 } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
@@ -919,52 +919,134 @@ const ROUTINE = [
   { name: "Wrap", time: "5 min", desc: "Say the approach back in one sentence, state the complexity, and mark it solved here. The one-sentence summary is what makes it stick." },
 ];
 
+// ---------------------------------------------------------------- bookshelf
+
+const BOOKS = {
+  ctci: {
+    short: "CTCI",
+    title: "Cracking the Coding Interview",
+    author: "Gayle Laakmann McDowell, 6th edition",
+    role: "The bible. Heavy, thorough, and the source of half the questions you will actually get. This month: Big O, chapters 1 to 4 and 8, and the process sections. Its problem sets become your extra reps once a concept's list here is done.",
+  },
+  emma: {
+    short: "De-Coding",
+    title: "De-Coding the Technical Interview Process",
+    author: "Emma Bostian",
+    role: "The short, modern one, written by a front-end engineer, so it is the closest to your world. Read the process chapters in week one and finish it by week two. Best in class on the parts nobody practices: coding challenges, on-sites, and what happens after.",
+  },
+  imposter: {
+    short: "Imposter's",
+    title: "The Imposter's Handbook",
+    author: "Rob Conery",
+    role: "The why behind everything, written for practical engineers who skipped the CS degree. Not interview-tactical; it back-fills the theory so the vocabulary stops feeling foreign. Evening reading: chapters 1, 2, 6, and 7 this month, the rest whenever.",
+  },
+};
+
+const BOOK_REFS = {
+  "big-o": [
+    { b: "ctci", where: "Big O, section VI, p. 38 — the canonical treatment" },
+    { b: "imposter", where: "Chapter 2, Big-O, p. 21, and Chapter 1, Complexity Theory, p. 1 when curious" },
+    { b: "emma", where: "Algorithmic Complexity, p. 129" },
+  ],
+  "arrays-strings": [
+    { b: "ctci", where: "Chapter 1, Arrays and Strings, p. 88" },
+    { b: "imposter", where: "Arrays, 6.1, p. 94 — includes the JavaScript view" },
+  ],
+  "hash-maps": [
+    { b: "ctci", where: "Chapter 1, hash tables intro, p. 88" },
+    { b: "imposter", where: "Hash Table, 6.3, p. 98 — how the magic actually works" },
+  ],
+  "two-pointers": [
+    { b: "ctci", where: "No dedicated chapter; the Chapter 1 problem set, p. 90, is your extra reps" },
+  ],
+  "sliding-window": [
+    { b: "ctci", where: "Optimize and Solve techniques, section VII, p. 67 — the BUD method pairs well here" },
+  ],
+  "prefix-sums": [],
+  "binary-search": [
+    { b: "ctci", where: "Chapter 10, Sorting and Searching, p. 146" },
+    { b: "emma", where: "Binary Search, p. 160" },
+  ],
+  "stacks-queues": [
+    { b: "ctci", where: "Chapter 3, Stacks and Queues, p. 96" },
+    { b: "emma", where: "Stacks, p. 62, and Queues, p. 73" },
+  ],
+  "linked-lists": [
+    { b: "ctci", where: "Chapter 2, Linked Lists, p. 92" },
+    { b: "emma", where: "Linked Lists, p. 79" },
+    { b: "imposter", where: "Linked Lists, 6.2, p. 96" },
+  ],
+  trees: [
+    { b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the trees half" },
+    { b: "emma", where: "Trees, p. 104, and Tree Traversals, p. 162" },
+    { b: "imposter", where: "Binary Search Tree, 6.5, p. 103" },
+  ],
+  graphs: [
+    { b: "ctci", where: "Chapter 4, Trees and Graphs, p. 100 — the graphs half" },
+    { b: "emma", where: "Graphs, p. 98" },
+    { b: "imposter", where: "Graphs, 6.6, p. 106 — starts with the bridges of Konigsberg, worth it" },
+  ],
+  heaps: [
+    { b: "imposter", where: "Heap, 6.4, p. 102" },
+    { b: "ctci", where: "Inside Chapter 4, p. 100 onward — heaps appear alongside trees" },
+  ],
+  backtracking: [
+    { b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130 — the recursion half" },
+  ],
+  dp: [
+    { b: "ctci", where: "Chapter 8, Recursion and Dynamic Programming, p. 130" },
+    { b: "imposter", where: "Chapter 7, Algorithms, p. 117 — the theory-side companion" },
+  ],
+  greedy: [],
+  intervals: [],
+};
+
 // ---------------------------------------------------------------- 30-day plan
 
 const PLAN = [
-  { day: 1, focus: "Big O and arrays", read: ["big-o", "arrays-strings"], solve: ["concatenation-of-array", "remove-duplicates-from-sorted-array"] },
-  { day: 2, focus: "Arrays", solve: ["best-time-to-buy-and-sell-stock", "rotate-array", "product-of-array-except-self"] },
-  { day: 3, focus: "Hash maps", read: ["hash-maps"], solve: ["contains-duplicate", "valid-anagram", "two-sum"] },
-  { day: 4, focus: "Hash maps", solve: ["group-anagrams", "top-k-frequent-elements"] },
+  { day: 1, focus: "Big O and arrays", reading: [{ id: "rd1", b: "ctci", what: "Big O, section VI, p. 38 — read it after the reps; it will land differently now" }], read: ["big-o", "arrays-strings"], solve: ["concatenation-of-array", "remove-duplicates-from-sorted-array"] },
+  { day: 2, focus: "Arrays", reading: [{ id: "rd2", b: "emma", what: "The Interview Process, p. 10 — start tonight, finish by day six; short, and it demystifies the whole pipeline" }], solve: ["best-time-to-buy-and-sell-stock", "rotate-array", "product-of-array-except-self"] },
+  { day: 3, focus: "Hash maps", reading: [{ id: "rd3", b: "ctci", what: "Chapter 1 hash tables intro, p. 88" }], read: ["hash-maps"], solve: ["contains-duplicate", "valid-anagram", "two-sum"] },
+  { day: 4, focus: "Hash maps", reading: [{ id: "rd4", b: "imposter", what: "Chapter 2, Big-O, p. 21 — the friendly second pass on day one" }], solve: ["group-anagrams", "top-k-frequent-elements"] },
   { day: 5, focus: "Two pointers", read: ["two-pointers"], solve: ["valid-palindrome", "move-zeroes", "squares-of-a-sorted-array"] },
-  { day: 6, focus: "Two pointers", solve: ["two-sum-ii-input-array-is-sorted", "container-with-most-water"] },
-  { day: 7, focus: "Review and the first boss", solve: ["3sum"], extra: [
+  { day: 6, focus: "Two pointers", reading: [{ id: "rd6", b: "emma", what: "Problem Solving, p. 53 — her version of the routine you meet tomorrow" }], solve: ["two-sum-ii-input-array-is-sorted", "container-with-most-water"] },
+  { day: 7, focus: "Review and the first boss", reading: [{ id: "rd7", b: "ctci", what: "Walking Through a Problem, p. 62, then Behavioral Questions, p. 32" }], solve: ["3sum"], extra: [
     { id: "d7-review", label: "Re-solve 3 problems from the review queue, cold" },
     { id: "d7-skills", label: "Read the whole Skills tab once, out loud where it says to" },
   ] },
   { day: 8, focus: "Sliding window", read: ["sliding-window"], solve: ["maximum-average-subarray-i", "longest-substring-without-repeating-characters"] },
   { day: 9, focus: "Window, then prefix sums", read: ["prefix-sums"], solve: ["longest-repeating-character-replacement", "running-sum-of-1d-array"] },
-  { day: 10, focus: "Prefix sums", solve: ["find-pivot-index", "range-sum-query-immutable", "subarray-sum-equals-k"] },
-  { day: 11, focus: "Binary search", read: ["binary-search"], solve: ["binary-search", "search-insert-position", "first-bad-version"] },
+  { day: 10, focus: "Prefix sums", reading: [{ id: "rd10", b: "imposter", what: "Chapter 6, Data Structures, p. 93 — start grazing a section a night through week three" }], solve: ["find-pivot-index", "range-sum-query-immutable", "subarray-sum-equals-k"] },
+  { day: 11, focus: "Binary search", reading: [{ id: "rd11", b: "emma", what: "Binary Search, p. 160" }], read: ["binary-search"], solve: ["binary-search", "search-insert-position", "first-bad-version"] },
   { day: 12, focus: "Binary search", solve: ["search-in-rotated-sorted-array", "koko-eating-bananas"] },
-  { day: 13, focus: "Stacks and queues", read: ["stacks-queues"], solve: ["valid-parentheses", "implement-queue-using-stacks", "min-stack"] },
+  { day: 13, focus: "Stacks and queues", reading: [{ id: "rd13", b: "ctci", what: "Chapter 3, Stacks and Queues, p. 96" }], read: ["stacks-queues"], solve: ["valid-parentheses", "implement-queue-using-stacks", "min-stack"] },
   { day: 14, focus: "Mock, week two", solve: ["daily-temperatures"], extra: [
     { id: "d14-mock", label: "Treat Daily Temperatures as a mock: 40-minute timer, narrate the whole time" },
     { id: "d14-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 15, focus: "Linked lists", read: ["linked-lists"], solve: ["evaluate-reverse-polish-notation", "reverse-linked-list", "merge-two-sorted-lists"] },
+  { day: 15, focus: "Linked lists", reading: [{ id: "rd15", b: "ctci", what: "Chapter 2, Linked Lists, p. 92" }], read: ["linked-lists"], solve: ["evaluate-reverse-polish-notation", "reverse-linked-list", "merge-two-sorted-lists"] },
   { day: 16, focus: "Linked lists", solve: ["linked-list-cycle", "middle-of-the-linked-list", "remove-nth-node-from-end-of-list"] },
-  { day: 17, focus: "Lists, then trees", read: ["trees"], solve: ["reorder-list", "maximum-depth-of-binary-tree", "invert-binary-tree"] },
+  { day: 17, focus: "Lists, then trees", reading: [{ id: "rd17", b: "ctci", what: "Chapter 4, Trees and Graphs, p. 100 — the month's biggest read; take it in halves through day 22" }], read: ["trees"], solve: ["reorder-list", "maximum-depth-of-binary-tree", "invert-binary-tree"] },
   { day: 18, focus: "Trees", solve: ["same-tree", "diameter-of-binary-tree", "binary-tree-level-order-traversal"] },
-  { day: 19, focus: "Trees, then graphs", read: ["graphs"], solve: ["validate-binary-search-tree", "flood-fill"] },
+  { day: 19, focus: "Trees, then graphs", reading: [{ id: "rd19", b: "emma", what: "Graphs, p. 98, and Trees, p. 104 — a quick second voice on this week's work" }], read: ["graphs"], solve: ["validate-binary-search-tree", "flood-fill"] },
   { day: 20, focus: "Graphs", solve: ["number-of-islands", "max-area-of-island"] },
   { day: 21, focus: "Mock, week three", solve: ["rotting-oranges"], extra: [
     { id: "d21-mock", label: "Rotting Oranges as a mock: 40-minute timer, out loud" },
     { id: "d21-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 22, focus: "Graphs, then heaps", read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
+  { day: 22, focus: "Graphs, then heaps", reading: [{ id: "rd22", b: "imposter", what: "Heap, 6.4, p. 102 — JavaScript never gave you one; here is what you were missing" }], read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
   { day: 23, focus: "Heaps, then backtracking", read: ["backtracking"], solve: ["k-closest-points-to-origin", "subsets"] },
   { day: 24, focus: "Backtracking", solve: ["permutations", "combination-sum"] },
-  { day: 25, focus: "Backtracking, then DP", read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
+  { day: 25, focus: "Backtracking, then DP", reading: [{ id: "rd25", b: "ctci", what: "Chapter 8, Recursion and Dynamic Programming, p. 130" }], read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
   { day: 26, focus: "DP under the clock", solve: ["climbing-stairs", "min-cost-climbing-stairs", "house-robber"], extra: [
     { id: "d26-mock", label: "First two problems back to back, 25 minutes each, timed" },
   ] },
-  { day: 27, focus: "DP", solve: ["unique-paths", "coin-change"] },
+  { day: 27, focus: "DP", reading: [{ id: "rd27", b: "emma", what: "Front-End Interviews, p. 177 — home turf; at least one round of your loop will look like this" }], solve: ["unique-paths", "coin-change"] },
   { day: 28, focus: "DP, then greedy", read: ["greedy"], solve: ["longest-increasing-subsequence", "maximum-subarray", "jump-game"] },
-  { day: 29, focus: "Greedy, then intervals", read: ["intervals"], solve: ["gas-station", "merge-intervals"], extra: [
+  { day: 29, focus: "Greedy, then intervals", reading: [{ id: "rd29", b: "ctci", what: "The Offer and Beyond, p. 82 — negotiation, before you need it" }], read: ["intervals"], solve: ["gas-station", "merge-intervals"], extra: [
     { id: "d29-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 30, focus: "Finish line", solve: ["insert-interval", "non-overlapping-intervals", "minimum-number-of-arrows-to-burst-balloons"], stretch: ["minimum-window-substring", "find-median-from-data-stream"], extra: [
+  { day: 30, focus: "Finish line", reading: [{ id: "rd30", b: "emma", what: "Systems Design Interviews, p. 194 — a taste of the senior round; full prep is its own track" }], solve: ["insert-interval", "non-overlapping-intervals", "minimum-number-of-arrows-to-burst-balloons"], stretch: ["minimum-window-substring", "find-median-from-data-stream"], extra: [
     { id: "d30-mock", label: "One full 45-minute mock on Pramp or with a friend, camera on" },
   ] },
 ];
@@ -1531,6 +1613,34 @@ function DayTasks({ day, progress, onToggleSolved, onToggleTask, onOpenConcept }
           />
         );
       })}
+      {(day.reading || []).map((r) => {
+        const done = !!progress.tasks[r.id];
+        return (
+          <button
+            key={r.id}
+            onClick={() => onToggleTask(r.id)}
+            className="w-full flex items-center gap-3 py-3 text-left"
+            style={{ borderBottom: HAIRLINE }}
+          >
+            {done ? (
+              <CheckCircle2 size={20} color={T.accent} className="shrink-0" />
+            ) : (
+              <Library size={20} color={T.faint} className="shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <span
+                className="text-sm"
+                style={{ color: done ? T.faint : T.ivory, textDecoration: done ? "line-through" : "none" }}
+              >
+                <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.what}
+              </span>
+              <div className="text-xs mt-0.5" style={{ color: T.faint, fontFamily: MONO }}>
+                companion reading
+              </div>
+            </div>
+          </button>
+        );
+      })}
       {extras.map((e) => {
         const done = !!progress.tasks[e.id];
         return (
@@ -1856,6 +1966,32 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
         </p>
       </div>
 
+      <div>
+        <SectionHead icon={Library}>Your bookshelf, and how it fits</SectionHead>
+        <div className="grid gap-3 lg:grid-cols-3">
+          {Object.entries(BOOKS).map(([id, b]) => (
+            <Card key={id}>
+              <Eyebrow>{b.short}</Eyebrow>
+              <div className="ws-display text-base font-semibold mt-1.5" style={{ color: T.ivory }}>
+                {b.title}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: T.faint }}>
+                {b.author}
+              </div>
+              <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+                {b.role}
+              </p>
+            </Card>
+          ))}
+        </div>
+        <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
+          Chapter assignments appear inside the plan days below as companion reading, 15 to
+          25 minutes each. They never block a day. Every concept page also lists where each
+          book goes deeper. Keep the PDFs in your Books or Files app on each device; they
+          stay off the public site.
+        </p>
+      </div>
+
       {!progress.planStart ? (
         <StartPlanCard onStartPlan={onStartPlan} />
       ) : (
@@ -2037,6 +2173,35 @@ function RoadmapView({ progress, onOpenConcept }) {
 
 // ---------------------------------------------------------------- concept detail
 
+function BookRefsCard({ conceptId }) {
+  const refs = BOOK_REFS[conceptId] || [];
+  return (
+    <Card>
+      <SectionHead icon={Library}>In your books</SectionHead>
+      {refs.length > 0 ? (
+        <ul className="space-y-2.5">
+          {refs.map((r, i) => (
+            <li key={i} className="flex gap-2.5">
+              <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
+              <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                <span style={{ color: T.accent }}>{BOOKS[r.b].short}:</span> {r.where}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm leading-relaxed" style={{ color: T.muted }}>
+          None of your three books covers this pattern directly. This page is the source;
+          the problems are the reading.
+        </p>
+      )}
+      <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
+        Page numbers are the printed ones inside each book, not PDF positions.
+      </p>
+    </Card>
+  );
+}
+
 function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, onOpenConcept }) {
   const read = !!progress.read[concept.id];
   const phase = PHASES.find((p) => p.id === concept.phase);
@@ -2153,6 +2318,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
                 </p>
               </Card>
             )}
+            <BookRefsCard conceptId={concept.id} />
           </div>
         </div>
       </div>
