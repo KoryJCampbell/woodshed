@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v6: semantic color system — green acts, brass performs, blue thinks.
+// v7: backup, Big-O drill, field notes, interview countdown, story builder.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -7,7 +7,7 @@ import {
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
   ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
   CalendarDays, Play, Pause, TimerReset, Library, X, ChevronLeft, Upload, Trash2,
-  Brain, Trophy, Pencil
+  Brain, Trophy, Pencil, Download
 } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
@@ -1126,6 +1126,53 @@ async function clearProgress() {
   }
 }
 
+function downloadFile(name, content, type) {
+  try {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function downloadRepCalendar() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  const stamp = "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "T073000";
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Woodshed//EN",
+    "BEGIN:VEVENT",
+    "UID:woodshed-rep-" + Date.now() + "@local",
+    "DTSTAMP:" + stamp,
+    "DTSTART:" + stamp,
+    "DURATION:PT45M",
+    "RRULE:FREQ=DAILY;COUNT=30",
+    "SUMMARY:Woodshed rep",
+    "DESCRIPTION:One problem. Out loud. Mark it in the app.",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  downloadFile("woodshed-daily-rep.ics", lines.join("\r\n"), "text/calendar");
+}
+
+const STORY_SLOTS = [
+  { id: "conflict", name: "Conflict", hint: "A real disagreement, technical or interpersonal. What you did, what you said, and what shipped because of it." },
+  { id: "failure", name: "Failure", hint: "Something you owned going wrong. The lesson must be specific, not just communicate more." },
+  { id: "leadership", name: "Leading without authority", hint: "You moved people you did not manage. A decade of federal delivery is full of these. Mine it." },
+  { id: "ambiguity", name: "Ambiguity", hint: "Requirements were fog. How you carved a path, and how you checked it was the right one." },
+  { id: "impact", name: "Measurable impact", hint: "Numbers or it did not happen: latency down, hours saved, defects caught, adoption up." },
+];
+
 const FRESH = {
   solved: {},
   read: {},
@@ -1137,6 +1184,8 @@ const FRESH = {
   notes: {},
   mocks: [],
   drill: { attempts: 0, correct: 0, byConcept: {} },
+  interviewDate: null,
+  stories: {},
 };
 
 function mergeSaved(saved) {
@@ -1151,6 +1200,8 @@ function mergeSaved(saved) {
     notes: saved.notes || {},
     mocks: saved.mocks || [],
     drill: saved.drill || { attempts: 0, correct: 0, byConcept: {} },
+    interviewDate: saved.interviewDate || null,
+    stories: saved.stories || {},
   };
 }
 
@@ -1217,6 +1268,56 @@ const DRILL_BANK = [
   { q: "Find the minimum number of rooms needed to host all the meetings.", a: "int", why: "Intervals plus peak overlap: sort the boundaries and sweep." },
   { q: "Answer thousands of queries asking for the sum of prices between day i and day j.", a: "ps", why: "Precompute running totals once; every range becomes two lookups." },
   { q: "Count how many contiguous stretches of the array sum to exactly zero.", a: "ps", why: "Running total plus a map of totals seen: equal totals bracket a zero stretch." },
+  { q: "In a sorted array, count the pairs whose difference is exactly k.", a: "tp", why: "Sorted plus pairs: two fingers moving forward together, never backtracking." },
+  { q: "Reorder an array in place so all even numbers come before all odd numbers.", a: "tp", why: "In-place partitioning: slow pointer marks the boundary, fast pointer scans." },
+  { q: "A delivery van holds k packages; find the heaviest total weight over any k consecutive stops.", a: "win", why: "Fixed-size window: add the entering stop, drop the leaving one." },
+  { q: "Find the shortest stretch of a playlist that contains every genre at least once.", a: "win", why: "Shortest stretch covering a requirement: stretchy window with need counts." },
+  { q: "Two arrays of order IDs; return the IDs that appear in both.", a: "hash", why: "Membership questions: pour one array into a Set, scan the other." },
+  { q: "Detect whether any two players share a jersey number across a league roster.", a: "hash", why: "Have I seen this before is the Set question, verbatim." },
+  { q: "Repeatedly run whichever job in the queue has the highest priority right now.", a: "heap", why: "Always-grab-the-max with arrivals mixed in: a priority queue, literally." },
+  { q: "Given a million star distances, find the 5 closest to Earth without fully sorting.", a: "heap", why: "Top k of a huge set: a size-k heap beats an n log n sort." },
+  { q: "A virus spreads to adjacent cells each hour; how many hours until the whole grid is infected?", a: "bfs", why: "Spreading in rings where rings are time: multi-source BFS." },
+  { q: "Find the minimum number of bus transfers between two stops given all the routes.", a: "bfs", why: "Fewest hops through a network: BFS counts the rings." },
+  { q: "Given a folder tree, compute the total size of every directory.", a: "dfs", why: "A parent's answer is built from its children's answers: recurse down, sum up." },
+  { q: "Check whether a set of dependency rules contains a circular reference.", a: "dfs", why: "Cycle detection in a directed graph: DFS with visiting and visited states." },
+  { q: "Generate all valid combinations of n pairs of parentheses.", a: "bt", why: "Build every valid string choice by choice, backtracking on dead ends." },
+  { q: "Place 8 queens on a chessboard so none attack each other.", a: "bt", why: "Constraint puzzle asking for arrangements: backtracking with pruning." },
+  { q: "A rotated sorted array of unique IDs; find where the rotation happened.", a: "bs", why: "One half is always sorted: halve toward the seam." },
+  { q: "In a sorted list with duplicates, find the first and last position of a target.", a: "bs", why: "Sorted plus find in better than O(n): two boundary binary searches." },
+  { q: "Given stair-step costs, pay the minimum total to reach the top moving 1 or 2 steps.", a: "dp", why: "Min cost to reach, built from one or two earlier answers." },
+  { q: "Two words: compute the minimum single-character edits to turn one into the other.", a: "dp", why: "Edit distance: a 2D table of subproblem answers." },
+  { q: "Simplify a Unix file path with dot and dot-dot segments into canonical form.", a: "stack", why: "Dot-dot pops the most recent directory: unfinished business, reversed." },
+  { q: "For each day, find how many consecutive prior days had lower prices.", a: "stack", why: "Span and next-greater questions: a monotonic stack of open candidates." },
+  { q: "Insert one new meeting into a sorted calendar, merging any conflicts.", a: "int", why: "Before, overlapping, after: the three-zone interval sweep." },
+  { q: "Remove the fewest meetings so that none overlap.", a: "int", why: "Interval scheduling: sort by end time, keep the earliest finisher." },
+  { q: "Given an array, count subarrays whose sum is divisible by k.", a: "ps", why: "Running totals with the same remainder bracket a divisible stretch: prefix sums plus a map." },
+  { q: "A car logs odometer readings hourly; answer many queries for miles driven between hour i and j.", a: "ps", why: "The reading already is the running total: two lookups per query." },
+];
+
+const BIGO_OPTIONS = [
+  { id: "c1", label: "O(1)" },
+  { id: "logn", label: "O(log n)" },
+  { id: "n", label: "O(n)" },
+  { id: "nlogn", label: "O(n log n)" },
+  { id: "n2", label: "O(n^2)" },
+  { id: "exp", label: "O(2^n)" },
+];
+
+const BIGO_BANK = [
+  { a: "c1", why: "Index math and arithmetic, no loops. Same cost at any size.", code: "function last(nums) {\n  return nums[nums.length - 1];\n}" },
+  { a: "n", why: "One pass, constant work per element.", code: "function total(nums) {\n  let sum = 0;\n  for (const x of nums) sum += x;\n  return sum;\n}" },
+  { a: "n2", why: "A loop inside a loop over the same input: the handshake shape.", code: "function hasDup(nums) {\n  for (let i = 0; i < nums.length; i++) {\n    for (let j = i + 1; j < nums.length; j++) {\n      if (nums[i] === nums[j]) return true;\n    }\n  }\n  return false;\n}" },
+  { a: "logn", why: "The search space halves every iteration.", code: "function f(n) {\n  let steps = 0;\n  while (n > 1) {\n    n = Math.floor(n / 2);\n    steps++;\n  }\n  return steps;\n}" },
+  { a: "nlogn", why: "The sort dominates; everything after is cheaper.", code: "function range(nums) {\n  nums.sort((a, b) => a - b);\n  return nums[nums.length - 1] - nums[0];\n}" },
+  { a: "n2", why: "includes is a hidden linear scan inside a linear loop.", code: "function hasPair(nums, k) {\n  for (const a of nums) {\n    if (nums.includes(k - a)) return true;\n  }\n  return false;\n}" },
+  { a: "n", why: "Same problem, but the Set lookup is O(1): the classic trade.", code: "function hasPair(nums, k) {\n  const seen = new Set();\n  for (const a of nums) {\n    if (seen.has(k - a)) return true;\n    seen.add(a);\n  }\n  return false;\n}" },
+  { a: "exp", why: "Each call spawns two more: the tree doubles every level.", code: "function fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}" },
+  { a: "n", why: "Sequential loops add, they do not multiply: n plus n is still O(n).", code: "function f(nums) {\n  let a = 0;\n  for (const x of nums) a += x;\n  let b = 1;\n  for (const x of nums) b *= x;\n  return a + b;\n}" },
+  { a: "n", why: "The inner loop is a fixed 10 regardless of n: constants drop.", code: "function f(nums) {\n  let out = 0;\n  for (const x of nums) {\n    for (let k = 0; k < 10; k++) out += x * k;\n  }\n  return out;\n}" },
+  { a: "exp", why: "The output itself has 2 to the n entries; you cannot beat writing them down.", code: "function subsets(nums) {\n  let res = [[]];\n  for (const x of nums) {\n    res = res.concat(res.map((s) => [...s, x]));\n  }\n  return res;\n}" },
+  { a: "n2", why: "The triangle is half of n squared, and half of n squared is still O(n^2).", code: "function f(nums) {\n  let out = 0;\n  for (let i = 0; i < nums.length; i++) {\n    for (let j = i; j < nums.length; j++) out += nums[j];\n  }\n  return out;\n}" },
+  { a: "logn", why: "Classic binary search: toss half the zone each loop.", code: "function find(nums, t) {\n  let lo = 0, hi = nums.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (nums[mid] === t) return mid;\n    if (nums[mid] < t) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}" },
+  { a: "nlogn", why: "n elements, each costing a log n heap operation.", code: "function process(jobs, heap) {\n  for (const j of jobs) {\n    heap.push(j); // O(log n)\n    heap.pop();   // O(log n)\n  }\n}" },
 ];
 
 function weakSpots(progress) {
@@ -1969,9 +2070,12 @@ function LibraryControls({ bookId, attached, onAttach, onRemove }) {
 
 // ---------------------------------------------------------------- drill and mock overlays
 
-function DrillOverlay({ onRecord, onClose }) {
+function DrillOverlay({ mode, onRecord, onClose }) {
+  const isBigO = mode === "bigo";
+  const BANK = isBigO ? BIGO_BANK : DRILL_BANK;
+  const OPTS = isBigO ? BIGO_OPTIONS : DRILL_OPTIONS;
   const gen = () => {
-    const idx = DRILL_BANK.map((_, i) => i);
+    const idx = BANK.map((_, i) => i);
     for (let i = idx.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [idx[i], idx[j]] = [idx[j], idx[i]];
@@ -1983,14 +2087,14 @@ function DrillOverlay({ onRecord, onClose }) {
   const [picked, setPicked] = useState(null);
   const [score, setScore] = useState(0);
   const done = step >= order.length;
-  const item = done ? null : DRILL_BANK[order[step]];
+  const item = done ? null : BANK[order[step]];
 
   function pick(id) {
     if (picked || !item) return;
     setPicked(id);
     const correct = id === item.a;
     if (correct) setScore((s) => s + 1);
-    onRecord(PATTERN_TO_CONCEPT[item.a], correct);
+    onRecord(isBigO ? "big-o" : PATTERN_TO_CONCEPT[item.a], correct);
   }
   function next() {
     setPicked(null);
@@ -2014,7 +2118,9 @@ function DrillOverlay({ onRecord, onClose }) {
       <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid " + T.edge }}>
         <div className="flex items-center gap-2">
           <Brain size={16} color={T.brass} />
-          <span className="text-sm font-semibold" style={{ color: T.ivory }}>Pattern drill</span>
+          <span className="text-sm font-semibold" style={{ color: T.ivory }}>
+            {isBigO ? "Big-O drill" : "Pattern drill"}
+          </span>
           {!done && (
             <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
               {step + 1} of {order.length}
@@ -2029,11 +2135,20 @@ function DrillOverlay({ onRecord, onClose }) {
       <div className="flex-1 w-full max-w-xl mx-auto px-4 py-6">
         {item && (
           <div>
-            <p className="ws-display text-xl leading-relaxed font-semibold" style={{ color: T.ivory }}>
-              {item.q}
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-5">
-              {DRILL_OPTIONS.map((o) => {
+            {isBigO ? (
+              <div>
+                <p className="text-xs mb-3 uppercase" style={{ color: T.faint, letterSpacing: "0.14em", fontFamily: MONO }}>
+                  Name the time complexity
+                </p>
+                <CodeBlock code={item.code} />
+              </div>
+            ) : (
+              <p className="ws-display text-xl leading-relaxed font-semibold" style={{ color: T.ivory }}>
+                {item.q}
+              </p>
+            )}
+            <div className={"grid gap-2 mt-5 " + (isBigO ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-3")}>
+              {OPTS.map((o) => {
                 let style = { border: "1px solid " + T.edge, color: T.muted };
                 if (picked) {
                   if (o.id === item.a) style = { backgroundColor: T.accentSoft, color: T.accent, border: "1px solid " + T.accent };
@@ -2050,7 +2165,7 @@ function DrillOverlay({ onRecord, onClose }) {
             {picked && (
               <div className="mt-5">
                 <div className="pl-3 text-sm leading-relaxed" style={{ borderLeft: "2px solid " + T.brass, color: picked === item.a ? T.accent : T.ivory }}>
-                  {picked === item.a ? "Right. " : "The answer: " + (DRILL_OPTIONS.find((o) => o.id === item.a) || {}).label + ". "}
+                  {picked === item.a ? "Right. " : "The answer: " + (OPTS.find((o) => o.id === item.a) || {}).label + ". "}
                   {item.why}
                 </div>
                 <button onClick={next} className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.brass, color: T.onBrass }}>
@@ -2268,6 +2383,332 @@ function MockOverlay({ progress, onSolve, onSaveMock, onClose }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- v7 components
+
+function NotesOverlay({ progress, onClose }) {
+  const [msg, setMsg] = useState("");
+  const groups = ORDERED_CONCEPTS.map((c) => ({
+    c,
+    items: c.problems.filter((p) => progress.notes && progress.notes[p.slug]),
+  })).filter((g) => g.items.length > 0);
+
+  function copyAll() {
+    const lines = [];
+    for (const g of groups) {
+      lines.push(g.c.title.toUpperCase());
+      for (const p of g.items) lines.push("LC " + p.num + " " + p.title + " — " + progress.notes[p.slug]);
+      lines.push("");
+    }
+    const text = lines.join("\n");
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => setMsg("Copied. Paste it anywhere.")).catch(() => setMsg("Could not copy on this device."));
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col overflow-auto" style={{ backgroundColor: "rgba(9,12,9,0.98)" }}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid " + T.edge }}>
+        <div className="flex items-center gap-2">
+          <Pencil size={16} color={T.blue} />
+          <span className="text-sm font-semibold" style={{ color: T.ivory }}>Field notes</span>
+        </div>
+        <button onClick={onClose} aria-label="Close notes" className="p-2 rounded-lg" style={{ color: T.ivory }}>
+          <X size={20} />
+        </button>
+      </div>
+      <div className="flex-1 w-full max-w-xl mx-auto px-4 py-6">
+        <p className="text-sm leading-relaxed" style={{ color: T.muted }}>
+          Every takeaway you wrote, in your own words. This is the cheat sheet written by
+          the one author you fully trust: past you.
+        </p>
+        <button onClick={copyAll} className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium" style={{ border: "1px solid " + T.blue, color: T.blue }}>
+          Copy everything
+        </button>
+        {msg && <p className="text-xs mt-2" style={{ color: T.muted }}>{msg}</p>}
+        <div className="mt-5 space-y-5">
+          {groups.map((g) => (
+            <div key={g.c.id}>
+              <div className="text-xs font-semibold uppercase mb-2" style={{ letterSpacing: "0.14em", color: T.blue }}>
+                {g.c.title}
+              </div>
+              {g.items.map((p) => (
+                <div key={p.slug} className="py-2.5" style={{ borderBottom: HAIRLINE }}>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>{p.num}</span>
+                    <span className="text-sm font-medium" style={{ color: T.ivory }}>{p.title}</span>
+                  </div>
+                  <div className="text-sm mt-1 italic leading-relaxed" style={{ color: T.muted }}>
+                    {progress.notes[p.slug]}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InterviewCountdown({ progress, onToggleTask }) {
+  if (!progress.interviewDate) return null;
+  const d = daysBetween(ymd(new Date()), progress.interviewDate);
+
+  if (d < 0) {
+    return (
+      <Card>
+        <Eyebrow color={T.brass}>The loop happened</Eyebrow>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          However it went, log the takeaways while they are fresh: which patterns showed
+          up, where you stalled, what you would say differently. Then set the next date in
+          the Plan tab and keep the reps going.
+        </p>
+      </Card>
+    );
+  }
+
+  if (d <= 2) {
+    const CHECK = [
+      { id: "t48-logistics", label: "Logistics: link or address, ID, quiet room, charger, water" },
+      { id: "t48-notes", label: "Re-read your field notes once, out loud" },
+      { id: "t48-stories", label: "Run your five stories out loud, 90 seconds each" },
+      { id: "t48-light", label: "One drill or one easy re-solve, then hands off" },
+      { id: "t48-sleep", label: "Sleep. It is the last rep." },
+    ];
+    return (
+      <Card style={{ borderLeft: "3px solid " + T.brass }}>
+        <Eyebrow color={T.brass}>{d === 0 ? "Interview day" : d === 1 ? "Interview tomorrow" : "Interview in 2 days"}</Eyebrow>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          Cramming now costs more than it pays. The final 48 hours are logistics,
+          rehearsal, and rest.
+        </p>
+        <div className="mt-2">
+          {CHECK.map((c) => {
+            const done = !!progress.tasks[c.id];
+            return (
+              <button key={c.id} onClick={() => onToggleTask(c.id)} className="w-full flex items-center gap-3 py-2.5 text-left" style={{ borderBottom: HAIRLINE }}>
+                {done ? <CheckCircle2 size={18} color={T.brass} className="shrink-0" /> : <Circle size={18} color={T.faint} className="shrink-0" />}
+                <span className="text-sm" style={{ color: done ? T.faint : T.ivory, textDecoration: done ? "line-through" : "none" }}>
+                  {c.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+    );
+  }
+
+  if (d <= 7) {
+    return (
+      <Card style={{ borderLeft: "3px solid " + T.brass }}>
+        <Eyebrow color={T.brass}>{"Taper week — " + d + " days out"}</Eyebrow>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.ivory }}>
+          Shift the mix: a mock every other day, the review queue over new problems, no
+          new hards, one pattern drill daily. You are sharpening now, not building.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 px-1">
+      <Flame size={13} color={d <= 14 ? T.gold : T.faint} />
+      <span className="text-xs" style={{ color: d <= 14 ? T.gold : T.faint, fontFamily: MONO }}>
+        Interview in {d} days — the plan is your pace.
+      </span>
+    </div>
+  );
+}
+
+function InterviewDateControl({ progress, onSetDate }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(progress.interviewDate || "");
+  const d = progress.interviewDate ? daysBetween(ymd(new Date()), progress.interviewDate) : null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {progress.interviewDate && !editing ? (
+        <>
+          <span className="text-sm" style={{ color: T.muted }}>
+            Interview: <span style={{ color: T.brass, fontFamily: MONO }}>{progress.interviewDate}</span>
+            {d !== null && d >= 0 ? " · in " + d + (d === 1 ? " day" : " days") : " · passed"}
+          </span>
+          <button onClick={() => { setVal(progress.interviewDate); setEditing(true); }} className="text-xs px-3 py-1.5 rounded-full" style={{ border: "1px solid " + T.edge, color: T.muted }}>
+            Change
+          </button>
+          <button onClick={() => onSetDate(null)} className="text-xs px-3 py-1.5 rounded-full" style={{ border: "1px solid " + T.edge, color: T.faint }}>
+            Clear
+          </button>
+        </>
+      ) : editing || !progress.interviewDate ? (
+        <>
+          {editing || val !== "" || progress.interviewDate ? null : null}
+          {editing ? (
+            <>
+              <input
+                type="date"
+                value={val}
+                onChange={(e) => setVal(e.target.value)}
+                className="rounded-xl px-3 py-2 text-xs"
+                style={{ backgroundColor: T.codeBg, border: "1px solid " + T.edge, color: T.ivory, colorScheme: "dark" }}
+              />
+              <button onClick={() => { if (val) { onSetDate(val); setEditing(false); } }} className="text-xs px-3 py-1.5 rounded-full" style={{ backgroundColor: T.brass, color: T.onBrass }}>
+                Save
+              </button>
+              <button onClick={() => setEditing(false)} className="text-xs px-3 py-1.5 rounded-full" style={{ color: T.faint }}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ border: "1px solid " + T.brass, color: T.brass }}>
+              <CalendarDays size={13} /> Set your interview date
+            </button>
+          )}
+        </>
+      ) : null}
+      <button onClick={downloadRepCalendar} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ border: "1px solid " + T.edge, color: T.muted }}>
+        <Download size={13} /> Daily rep to calendar (.ics)
+      </button>
+    </div>
+  );
+}
+
+function StoryBuilder({ progress, onSaveStory }) {
+  const [open, setOpen] = useState(null);
+  const [draft, setDraft] = useState("");
+  const [saved, setSaved] = useState("");
+
+  function toggle(id) {
+    if (open === id) {
+      setOpen(null);
+      return;
+    }
+    setOpen(id);
+    setDraft((progress.stories && progress.stories[id]) || "");
+    setSaved("");
+  }
+
+  return (
+    <div>
+      <SectionHead icon={Mic} color={T.brass}>Your five stories</SectionHead>
+      <Card>
+        <p className="text-xs mb-2 leading-relaxed" style={{ color: T.faint }}>
+          Behavioral rounds are real scoring at your level. Write each once in a
+          situation, task, action, result shape, about 90 seconds spoken, then rehearse
+          out loud until they are yours. These save with your progress and travel in
+          backups.
+        </p>
+        <div>
+          {STORY_SLOTS.map((s) => {
+            const written = !!(progress.stories && progress.stories[s.id]);
+            const isOpen = open === s.id;
+            return (
+              <div key={s.id} style={{ borderBottom: HAIRLINE }}>
+                <button onClick={() => toggle(s.id)} className="w-full flex items-center gap-3 py-3 text-left">
+                  {written ? (
+                    <CheckCircle2 size={18} color={T.brass} className="shrink-0" />
+                  ) : (
+                    <Circle size={18} color={T.faint} className="shrink-0" />
+                  )}
+                  <span className="text-sm font-medium min-w-0 flex-1" style={{ color: T.ivory }}>
+                    {s.name}
+                  </span>
+                  <ChevronDown
+                    size={15}
+                    color={T.faint}
+                    className="shrink-0"
+                    style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 150ms" }}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="pb-3">
+                    <p className="text-xs leading-relaxed mb-2" style={{ color: T.faint }}>
+                      {s.hint}
+                    </p>
+                    <textarea
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      rows={5}
+                      className="w-full rounded-xl p-3 text-sm leading-relaxed"
+                      style={{ backgroundColor: T.codeBg, border: "1px solid " + T.edge, color: T.ivory }}
+                      placeholder="Situation, task, action, result. Specifics beat polish."
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={() => { onSaveStory(s.id, draft); setSaved(s.id); }}
+                        className="text-xs px-3 py-2 rounded-xl"
+                        style={{ backgroundColor: T.brass, color: T.onBrass }}
+                      >
+                        Save story
+                      </button>
+                      {saved === s.id && (
+                        <span className="text-xs" style={{ color: T.brass }}>Saved.</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function BackupPanel({ progress, onImport }) {
+  const inputRef = useRef(null);
+  const [msg, setMsg] = useState("");
+
+  function backup() {
+    const ok = downloadFile(
+      "woodshed-backup-" + ymd(new Date()) + ".json",
+      JSON.stringify({ app: "woodshed", exported: ymd(new Date()), progress }, null, 2),
+      "application/json"
+    );
+    setMsg(ok ? "Backup downloaded. Park it in Drive or Files." : "Could not download on this device.");
+  }
+
+  function restore(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(r.result);
+        const prog = data.progress || data;
+        if (!prog || typeof prog !== "object" || !prog.solved) throw new Error("bad backup");
+        onImport(mergeSaved(prog));
+        setMsg("Backup restored on this device.");
+      } catch (err) {
+        setMsg("That file did not check out.");
+      }
+    };
+    r.readAsText(f);
+    e.target.value = "";
+  }
+
+  return (
+    <div className="mt-3">
+      <input ref={inputRef} type="file" accept="application/json" className="hidden" onChange={restore} />
+      <div className="flex items-center justify-center gap-4">
+        <button onClick={backup} className="inline-flex items-center gap-1.5 text-xs" style={{ color: T.faint }}>
+          <Download size={12} /> Download backup
+        </button>
+        <button onClick={() => inputRef.current && inputRef.current.click()} className="inline-flex items-center gap-1.5 text-xs" style={{ color: T.faint }}>
+          <Upload size={12} /> Restore backup
+        </button>
+      </div>
+      {msg && (
+        <p className="text-xs mt-2" style={{ color: T.muted }}>
+          {msg}
+        </p>
+      )}
     </div>
   );
 }
@@ -2499,6 +2940,7 @@ function TodayView({
   progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
   resetArmed, onReset, onImport, onToggleTask, onStartPlan, onMarkReviewed,
   library, onOpenBook, onSolve, onSaveNote, onOpenDrill, onOpenMock,
+  onOpenBigO, onOpenNotes,
 }) {
   const solvedCount = Object.keys(progress.solved).length;
   const total = ORDERED_PROBLEMS.length;
@@ -2532,6 +2974,8 @@ function TodayView({
             </p>
           </Card>
         )}
+
+        <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
 
         {planActive ? (
           <PlanTodayCard
@@ -2618,13 +3062,22 @@ function TodayView({
                 lifetime {progress.drill.correct}/{progress.drill.attempts} ({Math.round((progress.drill.correct / progress.drill.attempts) * 100)}%)
               </p>
             )}
-            <button
-              onClick={onOpenDrill}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: T.brass, color: T.onBrass }}
-            >
-              Start a drill <ChevronRight size={15} />
-            </button>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <button
+                onClick={onOpenDrill}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ backgroundColor: T.brass, color: T.onBrass }}
+              >
+                Pattern drill <ChevronRight size={15} />
+              </button>
+              <button
+                onClick={onOpenBigO}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+                style={{ border: "1px solid " + T.brass, color: T.brass }}
+              >
+                Big-O drill
+              </button>
+            </div>
           </Card>
           <Card>
             <div className="flex items-center gap-2">
@@ -2728,6 +3181,22 @@ function TodayView({
           </div>
         </Card>
 
+        {Object.keys(progress.notes || {}).length > 0 && (
+          <Card>
+            <Eyebrow color={T.blue}>Field notes</Eyebrow>
+            <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+              {Object.keys(progress.notes).length} takeaways, in your own words.
+            </p>
+            <button
+              onClick={onOpenNotes}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: T.blueSoft, color: T.blue }}
+            >
+              Open the notebook <ChevronRight size={13} />
+            </button>
+          </Card>
+        )}
+
         {weak.length > 0 && (
           <Card>
             <Eyebrow color={T.gold}>Weak spots</Eyebrow>
@@ -2766,6 +3235,7 @@ function TodayView({
             shed. You build the hands that perform.
           </p>
           <SyncPanel progress={progress} onImport={onImport} />
+          <BackupPanel progress={progress} onImport={onImport} />
           <button
             onClick={onReset}
             className="mt-3 inline-flex items-center gap-1.5 text-xs"
@@ -2782,7 +3252,7 @@ function TodayView({
 
 // ---------------------------------------------------------------- plan view
 
-function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed, library, onAttachBook, onRemoveBook, onOpenBook, onSolve, onSaveNote }) {
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed, library, onAttachBook, onRemoveBook, onOpenBook, onSolve, onSaveNote, onSetDate }) {
   const n = currentPlanDay(progress);
   const [openDay, setOpenDay] = useState(n && n <= 30 ? n : null);
   const doneDays = PLAN.filter((d) => dayStats(d, progress).complete).length;
@@ -2835,6 +3305,8 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
           page. Assignments are 15 to 25 minutes each and never block a day.
         </p>
       </div>
+
+      <InterviewDateControl progress={progress} onSetDate={onSetDate} />
 
       {!progress.planStart ? (
         <StartPlanCard onStartPlan={onStartPlan} />
@@ -3220,7 +3692,7 @@ const BIGTECH = [
   "Do at least three live mocks before a real loop. Solo practice does not simulate another human watching you think.",
 ];
 
-function SkillsView() {
+function SkillsView({ progress, onSaveStory }) {
   return (
     <div className="space-y-5">
       <div className="max-w-3xl">
@@ -3369,6 +3841,8 @@ function SkillsView() {
           </div>
         </Card>
       </div>
+
+      <StoryBuilder progress={progress} onSaveStory={onSaveStory} />
 
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
         <div>
@@ -3535,8 +4009,9 @@ export default function WoodshedApp() {
   const [restartArmed, setRestartArmed] = useState(false);
   const [library, setLibrary] = useState({});
   const [reader, setReader] = useState(null);
-  const [drillOpen, setDrillOpen] = useState(false);
+  const [drillMode, setDrillMode] = useState(null);
   const [mockOpen, setMockOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -3627,6 +4102,17 @@ export default function WoodshedApp() {
       ...prev,
       mocks: [...(prev.mocks || []), entry],
       streak: bumpStreak({ ...prev.streak }),
+    }));
+  }
+
+  function setInterviewDate(d) {
+    setProgress((prev) => ({ ...prev, interviewDate: d || null }));
+  }
+
+  function saveStory(id, text) {
+    setProgress((prev) => ({
+      ...prev,
+      stories: { ...(prev.stories || {}), [id]: (text || "").trim() },
     }));
   }
 
@@ -3848,8 +4334,10 @@ export default function WoodshedApp() {
                 onOpenBook={openBook}
                 onSolve={solveProblem}
                 onSaveNote={saveNote}
-                onOpenDrill={() => setDrillOpen(true)}
+                onOpenDrill={() => setDrillMode("pattern")}
+                onOpenBigO={() => setDrillMode("bigo")}
                 onOpenMock={() => setMockOpen(true)}
+                onOpenNotes={() => setNotesOpen(true)}
               />
             )}
             {view.name === "plan" && (
@@ -3867,6 +4355,7 @@ export default function WoodshedApp() {
                 onOpenBook={openBook}
                 onSolve={solveProblem}
                 onSaveNote={saveNote}
+                onSetDate={setInterviewDate}
               />
             )}
             {view.name === "roadmap" && (
@@ -3886,7 +4375,7 @@ export default function WoodshedApp() {
                 onSaveNote={saveNote}
               />
             )}
-            {view.name === "skills" && <SkillsView />}
+            {view.name === "skills" && <SkillsView progress={progress} onSaveStory={saveStory} />}
           </main>
         </div>
       </div>
@@ -3923,8 +4412,12 @@ export default function WoodshedApp() {
         />
       )}
 
-      {drillOpen && (
-        <DrillOverlay onRecord={recordDrill} onClose={() => setDrillOpen(false)} />
+      {drillMode && (
+        <DrillOverlay mode={drillMode} onRecord={recordDrill} onClose={() => setDrillMode(null)} />
+      )}
+
+      {notesOpen && (
+        <NotesOverlay progress={progress} onClose={() => setNotesOpen(false)} />
       )}
 
       {mockOpen && (
