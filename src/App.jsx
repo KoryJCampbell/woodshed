@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v9: 150-question bank and the flip-card flashcard system.
+// v10: Job Fit — paste a JD, get strengths, gaps, a verdict, and pointers.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1187,6 +1187,7 @@ const FRESH = {
   interviewDate: null,
   stories: {},
   qa: {},
+  fit: null,
 };
 
 function mergeSaved(saved) {
@@ -1204,6 +1205,7 @@ function mergeSaved(saved) {
     interviewDate: saved.interviewDate || null,
     stories: saved.stories || {},
     qa: saved.qa || {},
+    fit: saved.fit || null,
   };
 }
 
@@ -1220,6 +1222,195 @@ function reviewDueList(progress) {
     if (daysBetween(anchor, today) >= wait) out.push({ ...p, stage: revs.length + 1 });
   }
   return out;
+}
+
+// ---------------------------------------------------------------- job fit engine
+
+const PROFILE = {
+  headline: "Senior Software Engineer and Technical Lead. Ten-plus years of federal contracting across Accenture Federal Services, Booz Allen Hamilton, and Deloitte. Lead frontend architect on a production React/TypeScript system for a federal law-enforcement agency, with hands-on Spring Boot 3 backend work on the same program. Active TS/SCI clearance. Based in Washington, DC.",
+};
+
+// mine: 3 core strength, 2 solid, 1 familiar and bridgeable, 0 genuine gap
+const SKILLS = [
+  { id: "react", label: "React", rx: ["\\breact(\\.js|js)?\\b"], mine: 3, track: "react", note: "lead frontend architect on a production React/TypeScript system for a federal agency" },
+  { id: "ts", label: "TypeScript", rx: ["typescript", "\\bts\\b"], mine: 3, track: "js", note: "TypeScript daily across a large production codebase" },
+  { id: "js", label: "JavaScript", rx: ["javascript", "\\bes6\\b", "ecmascript"], mine: 3, track: "js", note: "a decade of production JavaScript" },
+  { id: "htmlcss", label: "HTML/CSS", rx: ["\\bhtml\\b", "\\bcss\\b", "sass", "scss", "tailwind"], mine: 3, track: "web", note: "deep layout, responsive, and design-system work" },
+  { id: "responsive", label: "Responsive design", rx: ["responsive design", "responsive", "mobile-first"], mine: 3, track: "web", note: "mobile-first responsive builds shipped across devices" },
+  { id: "a11y", label: "Accessibility / 508", rx: ["accessib", "\\ba11y\\b", "508", "wcag"], mine: 2, track: "web", note: "508 compliance is a standing requirement on your federal work" },
+  { id: "angular", label: "Angular", rx: ["angular"], mine: 1, track: "ng", bridge: "Use the DI-feels-like-Spring bridge and run the Angular track: the concepts transfer and you can prove it with examples" },
+  { id: "vue", label: "Vue", rx: ["\\bvue(\\.js)?\\b"], mine: 1, bridge: "Component-model fluency transfers; be honest that Vue specifics are a fast ramp, not current depth" },
+  { id: "nextjs", label: "Next.js / SSR", rx: ["next\\.?js", "server[- ]side rendering", "\\bssr\\b"], mine: 1, track: "web", bridge: "React depth carries most of it; your SSR and hydration answers live in the Web track" },
+  { id: "redux", label: "State management", rx: ["redux", "zustand", "state management", "mobx"], mine: 3, track: "react", note: "owns state architecture on a large React app" },
+  { id: "java", label: "Java", rx: ["\\bjava(?!script)\\b"], mine: 3, track: "java", note: "hands-on Java daily on your current backend" },
+  { id: "spring", label: "Spring Boot", rx: ["spring boot", "\\bspring\\b"], mine: 3, track: "java", note: "Spring Boot 3 services in production: REST, JPA, migrations, security config" },
+  { id: "rest", label: "REST APIs", rx: ["\\brest(ful)?\\b", "\\bapi[s]?\\b", "web services"], mine: 3, track: "web", note: "designs and consumes REST daily, on both sides of the wire" },
+  { id: "graphql", label: "GraphQL", rx: ["graphql"], mine: 1, bridge: "REST depth plus an honest consumed-not-designed answer, and offer a one-evening spike" },
+  { id: "postgres", label: "PostgreSQL / SQL", rx: ["postgres", "postgresql", "\\bsql\\b", "relational"], mine: 3, note: "production Postgres: schema design, migrations, coordinating with DBA teams" },
+  { id: "jpa", label: "JPA / Hibernate", rx: ["\\bjpa\\b", "hibernate"], mine: 2, track: "java", note: "JPA in production, including the fun parts like N+1" },
+  { id: "auth", label: "Auth (OIDC/OAuth2/JWT)", rx: ["oauth", "oidc", "keycloak", "\\bjwt\\b", "\\bsso\\b", "authentication"], mine: 3, track: "web", note: "implemented Keycloak OIDC end to end, token claims through logout flows" },
+  { id: "k8s", label: "Kubernetes / containers", rx: ["kubernetes", "\\bk8s\\b", "docker", "container", "istio", "helm"], mine: 2, note: "ships to Kubernetes with a service mesh on a government platform" },
+  { id: "cloud", label: "Cloud (AWS/Azure/GCP)", rx: ["\\baws\\b", "azure", "\\bgcp\\b", "google cloud", "cloud-native", "cloud native"], mine: 1, bridge: "Frame your Kubernetes-platform delivery as cloud-native engineering; a certification is a fast follow if they care" },
+  { id: "cicd", label: "CI/CD", rx: ["ci/cd", "\\bci\\b", "pipeline", "jenkins", "gitlab", "github actions"], mine: 2, note: "works in gated pipelines with scanning and review requirements" },
+  { id: "git", label: "Git", rx: ["\\bgit\\b", "version control"], mine: 3 },
+  { id: "testing", label: "Testing", rx: ["unit test", "testing", "jest", "junit", "cypress", "playwright", "test-driven", "\\btdd\\b"], mine: 3, note: "test-first habits: React Testing Library on the front, JUnit slices on the back" },
+  { id: "ai", label: "AI / LLM engineering", rx: ["\\bllm\\b", "large language", "generative ai", "gen\\s?ai", "prompt engineer", "claude", "gemini", "\\bgpt\\b", "openai", "anthropic", "\\brag\\b", "machine learning", "ai[- ](powered|driven|assisted)", "artificial intelligence", "copilot"], mine: 3, track: "ai", note: "daily AI-assisted workflow with real quality gates, plus RAG project experience" },
+  { id: "python", label: "Python", rx: ["python"], mine: 2, note: "working proficiency: tooling, scripts, data wrangling" },
+  { id: "node", label: "Node.js", rx: ["node(\\.js)?\\b"], mine: 2, note: "comfortable across Node tooling and services" },
+  { id: "micro", label: "Microservices", rx: ["microservice"], mine: 2, note: "service-oriented delivery behind a mesh" },
+  { id: "sysdes", label: "System design", rx: ["system design", "architecture", "architect"], mine: 2, note: "architecture ownership on your current program; formal system-design prep is its own track" },
+  { id: "agile", label: "Agile delivery", rx: ["agile", "scrum", "sprint", "kanban"], mine: 3 },
+  { id: "lead", label: "Technical leadership", rx: ["\\blead\\b", "mentor", "technical lead", "leadership", "code review"], mine: 3, note: "technical lead: reviews, mentoring, architecture calls, stakeholder trust" },
+  { id: "fed", label: "Federal / public sector", rx: ["federal", "government", "public sector", "fedramp", "\\bdod\\b", "civilian agency", "\\bato\\b"], mine: 3, note: "a decade across Accenture Federal, Booz Allen, and Deloitte: you speak compliance natively" },
+  { id: "clearance", label: "Security clearance", rx: ["ts/?sci", "top secret", "secret clearance", "security clearance", "public trust", "\\bclearance\\b", "cleared"], mine: 3, note: "active TS/SCI: a scarce, expensive asset you hand them for free" },
+  { id: "perf", label: "Web performance", rx: ["performance", "core web vitals", "optimization"], mine: 2, track: "web", note: "profiling and render-path work on a large React app" },
+  { id: "ux", label: "UX collaboration", rx: ["\\bux\\b", "user experience", "figma", "design system"], mine: 2, note: "close designer collaboration plus your own design practice" },
+  { id: "websocket", label: "Real-time (WebSockets)", rx: ["websocket", "real-time", "\\bsse\\b"], mine: 2, track: "web" },
+  { id: "dotnet", label: ".NET / C#", rx: ["\\bc#\\b", "\\b\\.net\\b", "dotnet", "csharp"], mine: 0, bridge: "Adjacent-stack honesty: strong Java/Spring maps concept for concept; the pitch is ramp speed, not current depth" },
+  { id: "golang", label: "Go", rx: ["golang"], mine: 0, bridge: "Polyglot honesty: fundamentals transfer and you pick languages up fast; do not oversell" },
+  { id: "rust", label: "Rust", rx: ["\\brust\\b"], mine: 0, bridge: "Genuine gap; only worth bridging if the role is otherwise compelling" },
+  { id: "php", label: "PHP", rx: ["\\bphp\\b", "laravel"], mine: 0, bridge: "Genuine gap: weigh whether this stack is where you want to invest" },
+  { id: "mobile", label: "Native mobile", rx: ["\\bios\\b", "android", "swift", "kotlin", "mobile develop"], mine: 0, bridge: "Web-React strength with an honest native-mobile gap; React Native is the nearest bridge if they flex" },
+  { id: "rn", label: "React Native", rx: ["react native"], mine: 1, bridge: "React depth carries the model; be honest that native modules and store pipelines would be new" },
+  { id: "kafka", label: "Kafka / event streaming", rx: ["kafka", "event-driven", "event streaming", "rabbitmq"], mine: 1, bridge: "Event-driven concepts via queues and async patterns; name it a growth edge, not a blank" },
+  { id: "terraform", label: "Terraform / IaC", rx: ["terraform", "infrastructure as code", "ansible"], mine: 0, bridge: "Platform consumer today: speak to manifests and deploy configs, and honest willingness to go deeper" },
+  { id: "search", label: "Elasticsearch", rx: ["elastic", "opensearch", "solr"], mine: 0, bridge: "Genuine gap; Postgres full-text is your nearest reference point" },
+  { id: "data", label: "Data engineering", rx: ["etl", "data pipeline", "spark", "airflow"], mine: 0, bridge: "Genuine gap; frame SQL depth as the foundation if the role is mostly adjacent" },
+];
+
+const TRACK_NAMES = { js: "JavaScript", react: "React", java: "Java & Spring", ng: "Angular", web: "Web & HTTP", ai: "AI-assisted dev" };
+
+function tierOf(score) {
+  if (score >= 78) return { name: "Interview. Strong fit.", color: "accent" };
+  if (score >= 60) return { name: "Interview. Solid fit with prep.", color: "accent" };
+  if (score >= 45) return { name: "Worth a conversation. Stretch fit.", color: "gold" };
+  return { name: "Probably pass, unless it has other pull.", color: "rust" };
+}
+
+function analyzeJD(raw) {
+  const text = (raw || "").toLowerCase();
+  const head = text.slice(0, 260);
+  const hits = [];
+  for (const s of SKILLS) {
+    let count = 0;
+    let inHead = false;
+    for (const p of s.rx) {
+      let re;
+      try { re = new RegExp(p, "gi"); } catch (e) { continue; }
+      const m = text.match(re);
+      if (m) count += m.length;
+      if (new RegExp(p, "i").test(head)) inHead = true;
+    }
+    if (count > 0) hits.push({ ...s, count, inHead });
+  }
+
+  const clearanceReq = hits.some((h) => h.id === "clearance");
+  const fedReq = hits.some((h) => h.id === "fed");
+  const aiReq = hits.some((h) => h.id === "ai");
+  const senior = /senior|staff|principal|\blead\b|sr\./.test(text);
+  const junior = /\bjunior\b|entry[- ]level|\bintern\b/.test(text);
+  const yearsMatch = text.match(/(\d{1,2})\s*\+?\s*year/);
+  const yearsReq = yearsMatch ? parseInt(yearsMatch[1], 10) : null;
+
+  const scored = hits.filter((h) => !["clearance", "fed", "agile", "git"].includes(h.id));
+  let score;
+  if (scored.length < 3) {
+    score = 50;
+  } else {
+    const got = scored.reduce((a, h) => a + Math.min(h.mine, 3), 0);
+    score = Math.round((got / (scored.length * 3)) * 100);
+  }
+  if (clearanceReq) score += 12;
+  if (fedReq) score += 5;
+  const zeroCore = scored.filter((h) => h.mine === 0 && (h.inHead || h.count >= 2));
+  const hasMyFramework = hits.some((h) => ["react", "spring", "java", "ts", "js"].includes(h.id));
+  if (zeroCore.length > 0 && !hasMyFramework) score -= 18;
+  score = Math.max(5, Math.min(99, score));
+
+  const strengths = hits
+    .filter((h) => h.mine >= 2)
+    .sort((a, b) => b.mine - a.mine || b.count - a.count)
+    .slice(0, 6)
+    .map((h) => ({ label: h.label, why: h.note || "solid, current, and demonstrable" }));
+
+  const gaps = hits
+    .filter((h) => h.mine <= 1)
+    .sort((a, b) => a.mine - b.mine || b.count - a.count)
+    .slice(0, 5)
+    .map((h) => ({ label: h.label, bridge: h.bridge || "Name it honestly, pair it with your closest adjacent depth, and sell ramp speed" }));
+
+  const pointers = [];
+  if (clearanceReq) pointers.push("Say TS/SCI in the first five minutes. It deletes their biggest risk and their biggest cost.");
+  if (fedReq && !clearanceReq) pointers.push("Speak their language early: compliance, 508, ATO-aware delivery. A decade of federal work is the moat here.");
+  if (aiReq) pointers.push("Run the AI-assisted track tonight. Their AI bullets are interview questions wearing a job-description costume.");
+  const top = strengths[0];
+  if (top) pointers.push("Lead with " + top.label + ": " + top.why + ".");
+  if (gaps.length > 0) pointers.push("Do not dodge the " + gaps[0].label + " question; bridge it: " + (gaps[0].bridge.charAt(0).toLowerCase() + gaps[0].bridge.slice(1)) + ".");
+  if (senior) pointers.push("Senior posting: expect a system-design conversation and behavioral weight. Your five stories carry the second; flag the first for prep.");
+  if (junior) pointers.push("This reads junior to mid. You would be interviewing down; decide if the mission or flexibility justifies it before spending a loop.");
+  if (yearsReq && yearsReq > 0) pointers.push("They ask for " + yearsReq + "+ years; you bring ten-plus. Say the number once, then prove it with specifics instead of repeating it.");
+
+  const askThem = [];
+  askThem.push("What does success in this seat look like at ninety days?");
+  if (fedReq || clearanceReq) askThem.push("Which agency and contract is this, and where is it in the period of performance?");
+  if (aiReq) askThem.push("How does AI-generated code get reviewed and owned here, and what tools are approved?");
+  askThem.push("What is the shape of the team: how many engineers, and who owns architecture decisions?");
+
+  const tracks = [...new Set(hits.filter((h) => h.track && h.mine >= 1).map((h) => h.track))].slice(0, 4);
+
+  return { score, strengths, gaps, pointers: pointers.slice(0, 6), askThem: askThem.slice(0, 4), tracks };
+}
+
+const AI_KEY_STORE = "woodshed-anthropic-key";
+const CLAUDE_MODEL = "claude-sonnet-4-6";
+
+function getAiKey() {
+  try { return window.localStorage.getItem(AI_KEY_STORE) || ""; } catch (e) { return ""; }
+}
+function setAiKey(k) {
+  try {
+    if (k) window.localStorage.setItem(AI_KEY_STORE, k);
+    else window.localStorage.removeItem(AI_KEY_STORE);
+  } catch (e) { /* storage blocked */ }
+}
+
+async function deepAnalyze(key, jd) {
+  const system =
+    "You are a blunt, expert technical-career advisor. Candidate profile: " + PROFILE.headline +
+    " Core strengths: React/TypeScript (expert, lead level), Java/Spring Boot 3 (strong, daily production), REST API design, PostgreSQL, Keycloak OIDC/OAuth2/JWT, Kubernetes deployment, testing discipline, AI-assisted engineering with real quality gates (prompting, RAG, evals), technical leadership, and deep federal-contracting fluency with an active TS/SCI clearance. Familiar but not deep: Angular, Vue, Next.js/SSR, GraphQL, cloud certifications, React Native, Kafka. Genuine gaps: .NET, Go, Rust, native mobile, Terraform, data engineering." +
+    " Analyze the job description the user provides against this candidate. Respond with ONLY valid JSON, no markdown fences, no prose, exactly this shape: {\"score\": number 0-100, \"verdict\": one blunt sentence on whether to interview, \"strengths\": [{\"label\": string, \"why\": string} up to 5], \"gaps\": [{\"label\": string, \"bridge\": string with concrete interview-day advice} up to 5], \"pointers\": [string, up to 6 specific interview tactics for THIS role], \"askThem\": [string, up to 4 sharp questions to ask them], \"tracks\": [subset of \"js\",\"react\",\"java\",\"ng\",\"web\",\"ai\" worth rehearsing]}.";
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1500,
+      system,
+      messages: [{ role: "user", content: "Job description:\n\n" + jd.slice(0, 15000) }],
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error("API " + res.status + ": " + body.slice(0, 240));
+  }
+  const data = await res.json();
+  const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+  const clean = text.replace(/```json|```/g, "").trim();
+  const parsed = JSON.parse(clean);
+  return {
+    score: Math.max(0, Math.min(100, Number(parsed.score) || 0)),
+    verdict: parsed.verdict || "",
+    strengths: (parsed.strengths || []).slice(0, 5),
+    gaps: (parsed.gaps || []).slice(0, 5),
+    pointers: (parsed.pointers || []).slice(0, 6),
+    askThem: (parsed.askThem || []).slice(0, 4),
+    tracks: (parsed.tracks || []).filter((t) => TRACK_NAMES[t]).slice(0, 4),
+  };
 }
 
 // ---------------------------------------------------------------- question bank
@@ -4455,13 +4646,279 @@ function FlashcardOverlay({ tracks, title, progress, onMark, onClose }) {
   );
 }
 
-// ---------------------------------------------------------------- shell// ---------------------------------------------------------------- shell
+// ---------------------------------------------------------------- job fit view
+
+function JobFitView({ progress, onSaveFit, onOpenTrack }) {
+  const [jd, setJd] = useState("");
+  const [result, setResult] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [key, setKeyState] = useState(getAiKey());
+  const [keyDraft, setKeyDraft] = useState("");
+  const [showKey, setShowKey] = useState(false);
+
+  const roleTitle = () =>
+    ((jd.trim().split("\n").map((l) => l.trim()).find((l) => l.length > 3)) || "This role").slice(0, 80);
+
+  function runQuick() {
+    setErr("");
+    const t = jd.trim();
+    if (t.length < 120) {
+      setErr("Paste the whole posting, requirements and responsibilities included.");
+      return;
+    }
+    const data = analyzeJD(t);
+    setResult({ mode: "quick", data, tier: tierOf(data.score), title: roleTitle() });
+    onSaveFit({ date: ymd(new Date()), title: roleTitle(), score: data.score, mode: "quick" });
+  }
+
+  async function runDeep() {
+    setErr("");
+    const t = jd.trim();
+    if (t.length < 120) {
+      setErr("Paste the whole posting first.");
+      return;
+    }
+    if (!key) {
+      setShowKey(true);
+      setErr("The deep read needs a Claude API key below. The quick read works without one.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const data = await deepAnalyze(key, t);
+      setResult({ mode: "deep", data, tier: tierOf(data.score), title: roleTitle() });
+      onSaveFit({ date: ymd(new Date()), title: roleTitle(), score: data.score, mode: "deep" });
+    } catch (e) {
+      setErr("Deep read failed: " + ((e && e.message) || "unknown error") + " The quick read still works.");
+    }
+    setBusy(false);
+  }
+
+  function saveKey() {
+    setAiKey(keyDraft.trim());
+    setKeyState(keyDraft.trim());
+    setKeyDraft("");
+    setShowKey(false);
+  }
+  function removeKey() {
+    setAiKey("");
+    setKeyState("");
+  }
+
+  const tierColor = (c) => (c === "accent" ? T.accent : c === "gold" ? T.gold : T.rust);
+  const r = result;
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <div>
+        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+          Job fit
+        </h1>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          Paste a posting. The quick read scores it against your encoded profile in an
+          instant, offline. The deep read sends it with your profile straight from this
+          browser to Claude for real judgment, if you add an API key. When a role
+          matters, run both.
+        </p>
+      </div>
+
+      <Card>
+        <textarea
+          value={jd}
+          onChange={(e) => setJd(e.target.value)}
+          rows={10}
+          spellCheck={false}
+          placeholder="Paste the full job description here: title, requirements, responsibilities, all of it."
+          className="w-full rounded-xl p-3 text-xs leading-relaxed"
+          style={{ backgroundColor: T.codeBg, border: "1px solid " + T.edge, color: T.ivory, fontFamily: MONO }}
+        />
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <button
+            onClick={runQuick}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+            style={{ backgroundColor: T.accent, color: T.onAccent }}
+          >
+            <Target size={15} /> Quick read
+          </button>
+          <button
+            onClick={runDeep}
+            disabled={busy}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+            style={{ border: "1px solid " + T.brass, color: busy ? T.faint : T.brass }}
+          >
+            {busy ? "Asking Claude..." : "Deep read with Claude"}
+          </button>
+          <button
+            onClick={() => setShowKey(!showKey)}
+            className="text-xs px-2 py-2.5"
+            style={{ color: T.faint }}
+          >
+            {key ? "API key saved" : "API key"}
+          </button>
+        </div>
+        {err && (
+          <p className="text-xs mt-2 leading-relaxed" style={{ color: T.rust }}>
+            {err}
+          </p>
+        )}
+        {showKey && (
+          <div className="mt-3 rounded-xl p-4" style={{ backgroundColor: T.surfaceUp, border: "1px solid " + T.edge }}>
+            <p className="text-xs leading-relaxed" style={{ color: T.muted }}>
+              The key is stored only in this browser and sent only to Anthropic, straight
+              from your device. Usage bills your key. Get one at console.anthropic.com,
+              and remove it here any time.
+            </p>
+            {key ? (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs" style={{ color: T.accent, fontFamily: MONO }}>
+                  Key saved on this device.
+                </span>
+                <button onClick={removeKey} className="text-xs px-3 py-1.5 rounded-full" style={{ border: "1px solid " + T.edge, color: T.rust }}>
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="password"
+                  value={keyDraft}
+                  onChange={(e) => setKeyDraft(e.target.value)}
+                  placeholder="sk-ant-..."
+                  className="flex-1 min-w-0 rounded-xl px-3 py-2 text-xs"
+                  style={{ backgroundColor: T.codeBg, border: "1px solid " + T.edge, color: T.ivory, fontFamily: MONO }}
+                />
+                <button onClick={saveKey} className="text-xs px-3 py-2 rounded-xl shrink-0" style={{ backgroundColor: T.brass, color: T.onBrass }}>
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        {!r && progress.fit && (
+          <p className="text-xs mt-3" style={{ color: T.faint, fontFamily: MONO }}>
+            Last analyzed: {progress.fit.title} — {progress.fit.score}/100 ({progress.fit.date})
+          </p>
+        )}
+      </Card>
+
+      {r && (
+        <div className="space-y-4">
+          <Card style={{ borderLeft: "3px solid " + tierColor(r.tier.color) }}>
+            <Eyebrow color={tierColor(r.tier.color)}>{r.mode === "deep" ? "Deep read" : "Quick read"}</Eyebrow>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="ws-display text-5xl font-bold" style={{ color: tierColor(r.tier.color) }}>
+                {r.data.score}
+              </span>
+              <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                /100
+              </span>
+            </div>
+            <p className="text-sm font-medium mt-2" style={{ color: T.ivory }}>
+              {r.mode === "deep" && r.data.verdict ? r.data.verdict : r.tier.name}
+            </p>
+            <p className="text-xs mt-1" style={{ color: T.faint }}>
+              {r.title}
+            </p>
+          </Card>
+
+          {r.data.strengths && r.data.strengths.length > 0 && (
+            <Card>
+              <SectionHead icon={CheckCircle2}>Your strengths for this role</SectionHead>
+              <ul className="space-y-2.5">
+                {r.data.strengths.map((s, i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <ChevronRight size={14} color={T.accent} className="shrink-0 mt-1" />
+                    <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                      <span className="font-semibold">{s.label}:</span> {s.why}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {r.data.gaps && r.data.gaps.length > 0 && (
+            <Card>
+              <SectionHead icon={Radar} color={T.gold}>Gaps, and the bridge for each</SectionHead>
+              <ul className="space-y-2.5">
+                {r.data.gaps.map((g, i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <ChevronRight size={14} color={T.gold} className="shrink-0 mt-1" />
+                    <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                      <span className="font-semibold">{g.label}:</span> {g.bridge}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {r.data.pointers && r.data.pointers.length > 0 && (
+            <Card>
+              <SectionHead icon={Mic} color={T.brass}>Interview pointers</SectionHead>
+              <ol className="space-y-3">
+                {r.data.pointers.map((p, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="shrink-0 text-xs mt-1" style={{ color: T.brass, fontFamily: MONO }}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                      {p}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </Card>
+          )}
+
+          {r.data.askThem && r.data.askThem.length > 0 && (
+            <Card>
+              <SectionHead icon={MessageSquare} color={T.blue}>Ask them</SectionHead>
+              <ul className="space-y-2.5">
+                {r.data.askThem.map((q, i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <ChevronRight size={14} color={T.blue} className="shrink-0 mt-1" />
+                    <span className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                      {q}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {r.data.tracks && r.data.tracks.length > 0 && (
+            <Card>
+              <SectionHead icon={ListChecks} color={T.blue}>Rehearse before the screen</SectionHead>
+              <div className="flex flex-wrap gap-2">
+                {r.data.tracks.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => onOpenTrack(t)}
+                    className="text-xs px-3 py-1.5 rounded-full"
+                    style={{ backgroundColor: T.blueSoft, color: T.blue }}
+                  >
+                    {TRACK_NAMES[t] || t}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- shell
 
 const TABS = [
   { id: "today", label: "Today", icon: Sun },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "roadmap", label: "Roadmap", icon: Map },
   { id: "questions", label: "Questions", icon: MessageSquare },
+  { id: "fit", label: "Job fit", icon: Target },
   { id: "skills", label: "Skills", icon: Mic },
 ];
 
@@ -4669,6 +5126,10 @@ export default function WoodshedApp() {
       ...prev,
       stories: { ...(prev.stories || {}), [id]: (text || "").trim() },
     }));
+  }
+
+  function saveFit(summary) {
+    setProgress((prev) => ({ ...prev, fit: summary }));
   }
 
   function markQA(qid, val) {
@@ -4952,6 +5413,13 @@ export default function WoodshedApp() {
                 onOpenBook={openBook}
                 onSolve={solveProblem}
                 onSaveNote={saveNote}
+              />
+            )}
+            {view.name === "fit" && (
+              <JobFitView
+                progress={progress}
+                onSaveFit={saveFit}
+                onOpenTrack={(id) => setView({ name: "qtrack", id })}
               />
             )}
             {view.name === "skills" && <SkillsView progress={progress} onSaveStory={saveStory} />}
