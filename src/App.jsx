@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v8: the Questions tab — spoken answers for the conversational technical screen.
+// v9: 150-question bank and the flip-card flashcard system.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1240,6 +1240,21 @@ const QA_TRACKS = [
       { id: "js8", q: "map, filter, reduce: when and why?", a: "Map transforms one array into another of the same length. Filter keeps the items that pass a test. Reduce folds everything into a single value. All three return new arrays or values instead of mutating, which matters for React state. My honest caveat: when a reduce needs a comment to be understood, I write a loop. Readability outranks cleverness.", probe: "The non-mutating point and the honest reduce caveat." },
       { id: "js9", q: "Debounce vs throttle?", a: "Debounce waits for silence: reset the timer on every event and fire once things settle, perfect for search-as-you-type. Throttle guarantees a maximum rate: fire at most once per interval no matter how many events arrive, right for scroll and resize handlers. Debounce is about the last event, throttle is about a steady pace.", probe: "A crisp use case for each, not just definitions." },
       { id: "js10", q: "Shallow vs deep copy?", a: "Spread and Object.assign copy one level, so nested objects are still shared references, and mutating them mutates the original. structuredClone is the modern built-in deep copy. The old JSON parse-stringify trick works but silently drops functions, undefined, and mangles dates. In React this is why you spread at each level you change rather than deep-copying everything.", probe: "Whether you have been bitten by shared nested references." },
+      { id: "js11", q: "null vs undefined?", a: "undefined means a variable was declared but never assigned, or a property does not exist: the language's default absence. null is the absence you set on purpose: this deliberately has no value. Two trivia points worth knowing: typeof null returns object, a historic bug frozen forever, and double equals treats them as equal to each other while triple equals does not.", probe: "The intentional-versus-default distinction, said crisply." },
+      { id: "js12", q: "What is event delegation?", a: "Instead of a listener on every row, you put one listener on the parent and let events bubble up, then read event.target to see which child fired. One listener instead of a thousand, and it keeps working when rows are added dynamically, which is why tables and lists use it. Frameworks do a version of this internally at the root.", probe: "Bubbling plus the dynamic-children benefit." },
+      { id: "js13", q: "Explain hoisting precisely.", a: "Declarations are processed before execution. var declarations hoist and initialize to undefined, so early reads succeed silently with garbage. Function declarations hoist entirely, callable before their line. let and const hoist too but sit in the temporal dead zone: touching them early throws, which is a feature, loud instead of silent. Function expressions and arrows follow their variable's rules, so they are not callable early.", probe: "That let and const are hoisted but dead: the trick part." },
+      { id: "js14", q: "Spread vs rest?", a: "Same three dots, opposite directions. Spread expands a collection into pieces: copying arrays, merging objects, passing an array as arguments. Rest gathers pieces into a collection: variadic function parameters and the leftover slot in destructuring. If it appears where values are consumed it is spread; where values are collected, it is rest.", probe: "The direction framing answers it in one sentence." },
+      { id: "js15", q: "Optional chaining and nullish coalescing?", a: "Question-dot short-circuits to undefined when the thing before it is null or undefined, killing whole pyramids of guard code. Double question mark provides a default only for null and undefined, which is its edge over the OR operator: OR also swallows zero, empty string, and false, which are often legitimate values. Together they made defensive access readable.", probe: "The nullish-versus-OR distinction with the zero example." },
+      { id: "js16", q: "What is falsy in JavaScript?", a: "Exactly these: false, zero and negative zero, BigInt zero, empty string, null, undefined, and NaN. Everything else is truthy, including the two that trip people: an empty array and an empty object are both truthy. So if array checks that a variable exists, not that it has items; length is the question you usually meant to ask.", probe: "The empty-array gotcha is the whole reason they ask." },
+      { id: "js17", q: "Array vs Set vs Map: when each?", a: "Array is the ordered default with the rich method set. Set holds unique values with constant-time has, so it wins for membership checks and dedupe: spreading a Set of an array is the one-line dedupe. Map holds key-value pairs where keys can be any type, not just strings, and preserves insertion order; it beats plain objects when keys are dynamic or non-string.", probe: "A concrete use case per structure, quickly." },
+      { id: "js18", q: "Which array methods mutate?", a: "push, pop, shift, unshift, splice, sort, and reverse mutate in place, and sort is the famous ambush because it also returns the array, hiding the mutation. map, filter, slice, and concat return new arrays. The modern additions toSorted, toReversed, and toSpliced are the non-mutating twins. In React this is the whole ballgame: mutate state and nothing re-renders.", probe: "Naming sort as the ambush shows scar tissue." },
+      { id: "js19", q: "ES modules vs CommonJS?", a: "ES modules use import and export, are statically analyzable, which enables tree-shaking, load asynchronously, and are strict by default. CommonJS is require and module.exports, dynamic and synchronous, Node's legacy format. Named exports keep refactors safe; default exports are fine for a file's one main thing. The practical pain is interop between the two systems, which build tools mostly hide.", probe: "Static analysis enabling tree-shaking is the depth marker." },
+      { id: "js20", q: "How does JavaScript interact with the DOM, and why is it expensive?", a: "The DOM is the live tree of nodes; JavaScript reads and writes it through APIs like querySelector, classList, and event listeners. The expense is that writes can trigger layout and paint, and interleaving reads and writes forces synchronous reflows. That cost is the entire reason frameworks batch updates and diff against a virtual representation before touching the real thing.", probe: "Connecting reflow cost to why frameworks exist." },
+      { id: "js21", q: "Why does setTimeout with zero not run immediately?", a: "Zero means as soon as possible, not now. The callback goes to the macrotask queue, and the event loop only picks it up after the current stack finishes and all queued microtasks, meaning promise callbacks, have drained. Browsers also clamp nested timers to a few milliseconds. Its legitimate use is exactly that: deferring work to let the browser breathe first.", probe: "A direct application of your event loop answer." },
+      { id: "js22", q: "How do you handle errors in async code?", a: "With async/await, normal try/catch works because await surfaces rejections as throws, and finally runs either way for cleanup. With raw promises it is dot-catch, and an easy bug is a missing catch producing an unhandled rejection, which browsers surface through the unhandledrejection event. My habit: every await chain owns an error path, even if that path is just logging with context.", probe: "That await turns rejections into catchable throws." },
+      { id: "js23", q: "What are higher-order functions and currying?", a: "A higher-order function takes or returns functions: map is one, and so is a debounce utility that takes your handler and returns a rate-limited version. Currying splits a multi-argument function into a chain of single-argument ones, enabling partial application: configure now, execute later. Practically it shows up as function factories: a makeValidator that returns validators.", probe: "One practical example beats a definition here." },
+      { id: "js24", q: "What are generators, in one breath?", a: "A function star that can pause at yield and resume later, producing values lazily on demand. Callers pull values through the iterator protocol, so for-of just works. They shine for lazy or infinite sequences and custom iteration, and they were the machinery under older async patterns before async/await standardized the good parts.", probe: "Lazy, pausable, pull-based: three words carry the answer." },
+      { id: "js25", q: "What does strict mode change?", a: "It turns silent failures into errors: assigning to an undeclared variable throws instead of creating a global, this in a plain function call is undefined instead of the window, and writes to read-only properties fail loudly. ES modules and class bodies are strict automatically, so in modern code you are living in it whether you typed the pragma or not.", probe: "The implicit-global example plus knowing modules are strict by default." },
     ],
   },
   {
@@ -1257,6 +1272,21 @@ const QA_TRACKS = [
       { id: "r8", q: "What are custom hooks and the rules of hooks?", a: "A custom hook is a function starting with use that composes other hooks, letting you share stateful logic without sharing UI: useDebounce, useLocalStorage, a data-fetching hook. The rules: call hooks only at the top level and only from components or other hooks. The reason is mechanical: React tracks hooks by call order, so a hook inside an if breaks the bookkeeping.", probe: "Knowing why the rules exist, not just that they do." },
       { id: "r9", q: "What does lifting state up mean?", a: "When two components need the same data, the state moves to their closest common ancestor and flows down as props, with changes flowing up through callbacks. It keeps one source of truth. The counterweight I always mention: lift too eagerly and everything re-renders from the top, so sometimes the better refactor is composition, passing children instead of data.", probe: "The counterweight shows judgment, not just doctrine." },
       { id: "r10", q: "Anything notable about React 18?", a: "Automatic batching, so multiple state updates in any context become one render, not just inside event handlers. Concurrent features like useTransition let urgent updates interrupt slow ones. And the one that bites people: StrictMode in development intentionally double-invokes renders and effects to surface impure code, so a double fetch in dev is a warning, not a bug in React.", probe: "The StrictMode double-invoke is a working-knowledge tell." },
+      { id: "r11", q: "What is useRef for?", a: "A mutable box that survives renders without causing them. Two jobs: holding a DOM node for focus, measurement, or media control, and stashing mutable values like timer IDs, abort controllers, or a previous value. The rule that keeps it honest: if the UI should change when the value changes, it belongs in state; if not, a ref.", probe: "The does-the-UI-care rule for ref versus state." },
+      { id: "r12", q: "useReducer vs useState?", a: "useState for independent values; useReducer when several pieces of state change together under named transitions. The reducer is a pure function of state and action, so the update logic becomes testable without rendering anything, and components dispatch intents instead of performing surgery. When I see four setState calls choreographed in one handler, that is the tell to switch.", probe: "The four-setStates-in-one-handler tell." },
+      { id: "r13", q: "What are Fragments?", a: "A way to return multiple siblings without inventing a wrapper div, keeping the real DOM clean, which matters for flex and grid parents where a stray wrapper wrecks the layout. The empty-tag shorthand covers most cases; the one exception is lists, where a keyed Fragment needs the long-form syntax because the shorthand cannot carry a key.", probe: "The key-needs-longform exception is the checkable detail." },
+      { id: "r14", q: "What are error boundaries?", a: "Components that catch render-phase errors in their subtree and show a fallback instead of unmounting the whole app. They are still class components under the hood, or a library like react-error-boundary. The limits matter: they do not catch errors in event handlers or async code, so those still need try/catch. Placement strategy: one per major region, so a broken widget does not take down the page.", probe: "Knowing what they do not catch." },
+      { id: "r15", q: "What are portals?", a: "createPortal renders children into a DOM node outside the parent hierarchy, which is how modals, tooltips, and toasts escape overflow-hidden and stacking-context traps. The elegant part: the component stays in the React tree, so context flows and events bubble through the React hierarchy, not the DOM one. Escape the CSS, keep the data flow.", probe: "Context and event bubbling surviving the move is the senior detail." },
+      { id: "r16", q: "How do you code-split a React app?", a: "React.lazy wraps a dynamic import, and Suspense provides the fallback while the chunk loads. The highest-leverage cut is route level: each page becomes its own bundle, so the first paint ships a fraction of the app. Below that, split genuinely heavy widgets like chart libraries and editors. The build tool does the chunking; you just draw the seams.", probe: "Route-level as the first cut, everything else second." },
+      { id: "r17", q: "How do you handle forms at scale?", a: "Controlled inputs are the teaching answer and fine for small forms, but every keystroke re-renders the form tree. At scale I reach for React Hook Form, which registers uncontrolled inputs through refs and re-renders almost nothing, paired with a schema validator like zod so validation rules live in one typed place shared with the API layer.", probe: "Knowing why RHF is fast, not just that it exists." },
+      { id: "r18", q: "How should React apps fetch data?", a: "The useEffect-plus-setState pattern works but you end up hand-rolling races, cleanup with AbortController, caching, and retries. Server state is its own species, so a library like React Query or SWR earns its keep: request deduplication, cache with revalidation, loading and error states as first-class values. My framing: client state belongs to React, server state belongs to a cache.", probe: "The client-state-versus-server-state framing." },
+      { id: "r19", q: "How does TypeScript change your React?", a: "Props become contracts: an interface per component means misuse fails at compile time, not in QA. Generics type custom hooks so useFetch of User returns typed data. Discriminated unions make impossible states unrepresentable, like a response that is either loading, error, or data, never two at once. The payoff compounds at refactor time: rename a prop and the compiler hands you the punch list.", probe: "Impossible-states-unrepresentable is the phrase that lands." },
+      { id: "r20", q: "How do you keep components from becoming god components?", a: "Composition over configuration. Pass children instead of ever-growing prop lists, split container logic from presentational rendering, and reach for compound components, like a Tabs parent with Tab children sharing context, when pieces must coordinate. The smell I act on: a component whose prop list reads like a settings page, or a boolean prop that changes what the component fundamentally is.", probe: "The boolean-prop-that-changes-identity smell." },
+      { id: "r21", q: "Your React performance toolkit?", a: "Measure first with the React Profiler: find what re-renders and why. Then the levers in order: stabilize identities so memo boundaries hold, split hot context so one changing value does not re-render every consumer, virtualize long lists with react-window, and code-split heavy routes. The discipline is that each memo or useMemo is a response to a measurement, not a reflex.", probe: "Profiler first. Optimizing unmeasured code is the anti-signal." },
+      { id: "r22", q: "Explain SSR and hydration at a high level.", a: "The server renders real HTML so the first paint is fast and crawlable; the client then hydrates, attaching React's event handlers to the existing markup. Hydration mismatches happen when server and client render differently, dates and randomness being the classic causes. The spectrum is client-side rendering, server-side per request, and static generation at build time, and frameworks like Next exist to manage exactly this.", probe: "Hydration as attach, not re-render, plus one mismatch cause." },
+      { id: "r23", q: "What are synthetic events?", a: "React wraps native events in a cross-browser synthetic wrapper and delegates listening at the root rather than attaching to every node. Since React 17 events attach to the app root instead of the document, which fixed interop with non-React code on the page. Day to day it behaves like the native API, with the pooling weirdness of old versions long gone.", probe: "Mostly a do-you-read-changelogs question. The root-attach detail suffices." },
+      { id: "r24", q: "What is derived state and why avoid storing it?", a: "Anything computable from existing state or props: a filtered list, a total, a validity flag. Storing it creates two sources of truth that drift, the classic stale-copy bug. Compute it in render, and if the computation is genuinely heavy, wrap it in useMemo. The question I ask before any new useState: can I derive this instead?", probe: "The can-I-derive-this reflex." },
+      { id: "r25", q: "Why do inline objects and functions as props cause re-renders?", a: "Because every render creates new references, and memoized children compare by reference, so the memo never holds and dependency arrays re-fire. Fixes in order of preference: move static objects outside the component, restructure so the prop is not needed, or stabilize with useCallback and useMemo when a memoized consumer actually exists downstream. No consumer, no ceremony.", probe: "Reference identity, and the no-consumer-no-ceremony discipline." },
     ],
   },
   {
@@ -1274,6 +1304,21 @@ const QA_TRACKS = [
       { id: "j8", q: "Constructor injection vs @Autowired fields?", a: "Constructor injection, every time. The dependencies are explicit in the signature, the fields can be final so the object is never in a half-built state, and tests can construct the class directly with mocks, no reflection or Spring context needed. Field injection hides the dependency list and makes the class untestable without the container. Modern Spring does not even need the annotation on a single constructor.", probe: "This one question separates people who write Spring from people who read about it." },
       { id: "j9", q: "What does Spring Boot add over Spring?", a: "Opinionated auto-configuration, starter dependencies that bundle compatible versions, an embedded server so the app is a runnable jar, and production plumbing like actuator endpoints. @SpringBootApplication is three annotations in one: configuration, auto-configuration, and component scanning. The mental model is convention over configuration, with properties and profiles as the escape hatch when the convention is wrong.", probe: "Auto-configuration plus the composite annotation." },
       { id: "j10", q: "Walk a request through Spring MVC.", a: "Everything enters through the DispatcherServlet. It asks the handler mappings which controller method matches, invokes it with arguments resolved from the path, params, and body, and takes the return value. With @RestController, which is just @Controller plus @ResponseBody, a message converter like Jackson turns that return object into JSON. Exceptions route through @ControllerAdvice handlers for consistent error responses.", probe: "DispatcherServlet as the front door, converters as the exit." },
+      { id: "j11", q: "Why are Strings immutable, and what is the pool?", a: "Immutability makes Strings safe to share across threads, safe as map keys, and cacheable: their hash is computed once. The string pool interns literals so identical literals share one object, which is exactly why double equals sometimes lies about strings being equal. The practical corollary: concatenating in a loop creates garbage, so StringBuilder is the loop answer.", probe: "The StringBuilder-in-loops corollary shows it is working knowledge." },
+      { id: "j12", q: "What does final actually do?", a: "On a variable, the reference cannot be reassigned, but the object it points to can still mutate: a final list still accepts adds, so final is not immutability. On a method it blocks overriding; on a class it blocks extension, which is how String stays trustworthy. And lambdas can only capture local variables that are final or effectively final.", probe: "Final-is-not-immutable is the trap inside the question." },
+      { id: "j13", q: "How do you use Optional well?", a: "As a return type that makes maybe-absent explicit, consumed with map, filter, and orElse chains instead of null checks. The anti-patterns matter as much: calling get blind defeats the point, Optional fields and parameters add ceremony without safety, and wrapping collections is wrong because an empty collection already expresses absence. It is an API-boundary tool, not a null replacement everywhere.", probe: "Knowing the anti-patterns, not just the happy path." },
+      { id: "j14", q: "What are records?", a: "Immutable data carriers since Java 16: declare the components and the compiler generates the constructor, accessors, equals, hashCode, and toString. They are perfect for DTOs and value objects, and they kill a whole category of Lombok usage. Compact constructors give you a place for validation. The constraint is the point: no setters, all final, shallow immutability.", probe: "Records-for-DTOs signals your Java is current." },
+      { id: "j15", q: "Generics and type erasure?", a: "Generics give compile-time type safety, but the types erase at runtime: a List of String and a List of Integer are the same class to the JVM. That is why you cannot instanceof a parameterized type or create a generic array. For wildcards, the PECS rule: producer extends, consumer super: a method reading from a collection takes extends, one writing into it takes super.", probe: "PECS stated cleanly, with the reading-versus-writing framing." },
+      { id: "j16", q: "How do you think about concurrency in modern Java?", a: "Prefer the highest-level tool that fits: ExecutorService over raw threads, CompletableFuture for composing async work, concurrent collections over hand-rolled locking, and synchronized or volatile only when I truly manage shared state. The modern headline is virtual threads in Java 21: blocking-style code that scales like async, which collapses a lot of reactive complexity for IO-bound services.", probe: "Mentioning virtual threads unprompted dates your knowledge correctly." },
+      { id: "j17", q: "Heap vs stack, and what does the GC do?", a: "Each thread gets a stack of frames holding locals and references; objects live on the shared heap. The collector is generational: most objects die young in cheap collections, survivors get promoted, old-gen collections cost more. The two famous failures separate cleanly: StackOverflowError is runaway recursion; OutOfMemoryError is the heap, usually a leak through a static collection or an unbounded cache.", probe: "Mapping the two errors to the two regions." },
+      { id: "j18", q: "How does @Transactional actually work, and its classic pitfall?", a: "Spring wraps the bean in a proxy that opens, commits, or rolls back a transaction around the method. That mechanism is the pitfall: a call from one method to another inside the same class bypasses the proxy, so the inner @Transactional silently does nothing. Also worth saying: rollback defaults to unchecked exceptions only, and readOnly on queries is a free hint. It belongs at the service layer.", probe: "Self-invocation bypassing the proxy is the whole question." },
+      { id: "j19", q: "Bean scopes and lifecycle hooks?", a: "Singleton is the default: one instance per container, which is why beans should be stateless. Prototype gives a fresh instance per injection, and web scopes like request and session exist for the rare cases that need them. @PostConstruct runs after wiring for initialization; @PreDestroy runs on shutdown for cleanup. The singleton-plus-stateless pairing is the design consequence to say out loud.", probe: "Singleton implies stateless: the consequence, not just the default." },
+      { id: "j20", q: "How do you manage configuration across environments?", a: "Externalized properties or YAML with profiles per environment, values injected via @Value for one-offs and @ConfigurationProperties for typed groups, which validate and autocomplete. Environment variables override files, which is how the same image promotes across environments, and secrets come from the platform, never the repo. I have externalized things like CORS origins exactly this way so deployments differ by config, not code.", probe: "Same-artifact-different-config is the operational point." },
+      { id: "j21", q: "Spring Data JPA and the N+1 problem?", a: "Repositories are interfaces: Spring derives queries from method names, with @Query for anything complex. The interview centerpiece is N+1: lazy relationships load per-row, so listing a hundred orders fires a hundred and one queries. Fixes: fetch joins or entity graphs for the specific query, and projections or DTOs when you never needed the entity graph at all. Turn on SQL logging in dev or you will not see it.", probe: "Naming N+1 and its fix before they ask the follow-up." },
+      { id: "j22", q: "Why DTOs instead of exposing entities?", a: "Three reasons: serialization of a lazy entity graph either explodes or drags half the database into the response, the API contract gets welded to the schema so migrations become breaking changes, and fields leak that clients had no business seeing. Records make the mapping cheap, MapStruct makes it automatic. The entity is the persistence shape; the DTO is the promise you make to clients.", probe: "The contract-versus-schema separation is the mature argument." },
+      { id: "j23", q: "How does request validation work in Spring?", a: "Jakarta annotations on the DTO, NotNull, Size, Email, plus custom validators for domain rules, triggered by @Valid on the controller parameter. Failures throw MethodArgumentNotValidException, which a @ControllerAdvice translates into a consistent 400 with field-level messages. The principle: validation at the edge, so service code operates on data already known to be well-formed.", probe: "The @ControllerAdvice translation step, for consistent error bodies." },
+      { id: "j24", q: "How do you test a Spring Boot service?", a: "A pyramid: plain JUnit plus Mockito for service logic, no context, milliseconds. Slice tests where the framework matters: @WebMvcTest with MockMvc for controllers, @DataJpaTest for repositories. Full @SpringBootTest sparingly, because context startup is the tax. For the database, Testcontainers runs real Postgres in the pipeline, which retires the H2-behaves-differently class of bug.", probe: "Slices as the middle layer, Testcontainers as the closer." },
+      { id: "j25", q: "How would you secure a Spring REST API?", a: "Spring Security's filter chain, configured stateless: the API validates a JWT on every request as an OAuth2 resource server, no sessions. Method-level rules with @PreAuthorize where roles matter. Two distinctions worth volunteering: CSRF protection is for cookie-session apps and is correctly disabled for stateless token APIs, and CORS is a separate browser concern configured explicitly. Identity itself lives in a provider like Keycloak.", probe: "The CSRF-off-because-stateless reasoning, stated with confidence." },
     ],
   },
   {
@@ -1289,6 +1334,23 @@ const QA_TRACKS = [
       { id: "a6", q: "Explain change detection and OnPush.", a: "Zone.js patches async operations so Angular knows something happened, then it checks the component tree for changes to render. Default strategy checks everything. OnPush skips a component unless an input reference changed or an event fired inside it, which is why OnPush pairs with immutable update patterns, the same discipline React enforces. It is the main performance lever in big Angular apps.", probe: "OnPush plus immutability in the same breath." },
       { id: "a7", q: "What is two-way binding really?", a: "The banana-in-a-box syntax on ngModel is sugar for two one-way bindings: a property binding pushing the value in, and an event binding pulling changes out. Knowing that demystifies it, and it means you can implement the same contract on your own components with an input plus an output named with the Change suffix.", probe: "Sugar-for-two-bindings is the whole answer they want." },
       { id: "a8", q: "You come from React. How do you compare them?", a: "React is a rendering library where you assemble your own stack; Angular ships the decisions: DI, router, forms, HTTP. React puts logic in JavaScript with JSX; Angular puts structure in templates and logic in classes. The concepts, components, one-way data flow, immutability for performance, transfer completely. I am productive in both, and honestly the DI model feels familiar from Spring on my backend work.", probe: "They are checking for flexibility, not tribal loyalty. Give them neither tribe." },
+      { id: "a9", q: "What does the Angular CLI give a team?", a: "One blessed way to generate, serve, build, and test, which is worth more than it sounds: every component, service, and test lands with the same shape, so codebases stay navigable across dozens of developers. Schematics extend that generation, and build budgets fail the pipeline when bundles bloat. It is Angular's opinionation expressed as tooling.", probe: "Standardization-at-team-scale is the actual answer." },
+      { id: "a10", q: "How do components communicate?", a: "Parent to child through @Input, child to parent through @Output with an EventEmitter, which keeps data flowing down and events flowing up. For siblings or distant components, a shared service holding a Subject or signal, injected into both. ViewChild exists for direct handles but is the last resort; the service pattern keeps components decoupled and testable.", probe: "Inputs down, outputs up, service across: the triangle." },
+      { id: "a11", q: "What are pipes, and pure vs impure?", a: "Template transforms: date, currency, or your own, applied with the pipe character. Pure pipes, the default, re-run only when the input reference changes, so they are cheap. Impure pipes run every change detection cycle, which is a performance trap. The async pipe is the special one: it subscribes to an observable, renders emissions, and unsubscribes on destroy, managing the whole lifecycle for you.", probe: "The async pipe as subscription management, again, because it matters." },
+      { id: "a12", q: "Reactive forms vs template-driven?", a: "Template-driven puts the logic in the template with ngModel: quick for trivial forms. Reactive forms build a FormGroup in the class: the form becomes an object you can validate conditionally, test without a DOM, patch programmatically, and observe as a stream of value changes. For anything with dynamic fields or cross-field rules, reactive is my default without much debate.", probe: "Testable-without-a-DOM is the argument that closes it." },
+      { id: "a13", q: "Angular routing essentials?", a: "A route table maps paths to components, routerLink navigates, and ActivatedRoute exposes params and query strings, ideally as observables since the component is reused across param changes. Lazy loading per feature with loadChildren, or loadComponent for standalone, keeps the initial bundle honest. Resolvers can pre-fetch data, though I often prefer loading states in the component.", probe: "The component-reuse-across-params observable detail." },
+      { id: "a14", q: "What are route guards?", a: "Functions that gate navigation: CanActivate for entering, CanDeactivate for unsaved-changes prompts, CanMatch for whether a route is even considered. Modern Angular writes them as plain functions using inject, which made them dramatically lighter than the old class-based versions. Auth is the canonical case: check the session, allow or redirect to login with a return URL.", probe: "Functional guards signal current Angular; class guards signal 2020." },
+      { id: "a15", q: "What are HTTP interceptors for?", a: "Middleware for every HTTP request and response: attach the auth token in one place, centralize error handling and retry logic, log timings. They chain in registration order, and each can transform the request or short-circuit entirely. It is the same job a fetch wrapper or axios interceptor does in a React app, formalized into the framework.", probe: "One-place-for-auth-headers is the use case they expect." },
+      { id: "a16", q: "Subject vs BehaviorSubject?", a: "Both are observables you can push into. A plain Subject gives subscribers only what happens after they arrive. A BehaviorSubject holds a current value and replays it immediately to new subscribers, which is exactly what state needs: a late-arriving component still gets the latest value. That is why the classic state-service pattern is a private BehaviorSubject with a public observable.", probe: "Replay-latest-to-late-subscribers is the entire distinction." },
+      { id: "a17", q: "switchMap vs mergeMap vs concatMap vs exhaustMap?", a: "They map values to inner observables and differ on overlap. switchMap cancels the previous inner: right for typeahead, where only the latest search matters. mergeMap runs them concurrently: right for independent parallel work. concatMap queues them in order: right when sequence matters. exhaustMap ignores new values while one is running: right for submit buttons being hammered. Picking wrong causes real bugs, stale results or double submits.", probe: "The four one-word use cases: typeahead, parallel, ordered, submit-spam." },
+      { id: "a18", q: "How do you prevent subscription leaks?", a: "First choice: do not subscribe manually at all, let the async pipe own the lifecycle. When code must subscribe, modern Angular offers takeUntilDestroyed tied to DestroyRef; the classic pattern is takeUntil with a Subject completed in ngOnDestroy. The leak mechanics: a component dies, its subscription does not, and the callback keeps firing against a dead view.", probe: "Async pipe first, takeUntilDestroyed second, discipline third." },
+      { id: "a19", q: "What are signals?", a: "Angular's fine-grained reactivity: signal holds a value, computed derives from others, effect reacts to changes, and the framework updates exactly the views that read them, no zone-wide tree checking. They interop with RxJS through toSignal and toObservable. Strategically, signals are Angular's path toward zoneless change detection, which is why new code leans on them for component state.", probe: "Fine-grained updates versus tree checking, plus the zoneless direction." },
+      { id: "a20", q: "What changed with standalone components?", a: "Components declare their own imports and stop needing an NgModule, which removes the most confusing ceremony Angular had: no more declarations arrays and forgotten module imports. New projects default to standalone, routing loads them directly with loadComponent, and modules remain only as a legacy grouping. The mental model collapses to something a React developer recognizes immediately.", probe: "That you know it is the default now, not an experiment." },
+      { id: "a21", q: "What is content projection?", a: "ng-content lets a component accept markup from its parent, Angular's version of children in React. Multi-slot projection with select attributes gives named regions, header here, actions there, which is how you build card, dialog, and layout components that stay generic. It is the composition tool that keeps you from adding a configuration input for every variation.", probe: "The React-children parallel plus multi-slot." },
+      { id: "a22", q: "When is ViewChild appropriate?", a: "When you genuinely need a handle on a child: focusing an input, calling play on a video, integrating a non-Angular widget, or measuring an element. It resolves after the view initializes, so ngAfterViewInit is where you first touch it. The discipline: if the interaction can be expressed as data flowing through inputs and outputs, do that instead; imperative handles are the exception.", probe: "Data-flow-first, handles as the documented exception." },
+      { id: "a23", q: "What does trackBy do in ngFor?", a: "It gives Angular a stable identity per item so the list diff reuses DOM nodes instead of tearing them down when the array reference changes. Without it, a refreshed list re-renders every row, losing focus and animation state. It is precisely React's key concept: same problem, same solution, different syntax: a function returning the item's ID.", probe: "The React-key equivalence, said in one sentence." },
+      { id: "a24", q: "How do you test Angular components?", a: "TestBed builds a testing module, the fixture gives you the component and its DOM, and you drive change detection explicitly. Services get tested as plain classes with mocked dependencies, which is most of the value at a fraction of the cost. HttpTestingController fakes the backend for HTTP code. Same pyramid philosophy as anywhere: many plain unit tests, fewer component tests, few end-to-end.", probe: "Explicit change detection in the fixture is the Angular-specific tell." },
+      { id: "a25", q: "Your Angular performance checklist?", a: "OnPush everywhere with immutable updates so change detection skips clean subtrees, trackBy on every real list, lazy-loaded feature routes, pure pipes over method calls in templates, because template method calls run every cycle, and the async pipe to avoid manual subscriptions. Signals reduce the checking further in modern code, and the CLI budgets keep the bundle honest in CI.", probe: "Template-method-calls-run-every-cycle is the deep cut." },
     ],
   },
   {
@@ -1306,6 +1368,21 @@ const QA_TRACKS = [
       { id: "w8", q: "How does CSS specificity work?", a: "The cascade weighs inline styles above IDs, IDs above classes and attributes, those above element selectors, with the later rule winning ties. Importance overrides all of it, which is why important is a smell: it is unwinnable arms-race territory. My practice is flat, class-based selectors, which is also why utility systems and CSS modules keep specificity fights from existing at all.", probe: "Connecting the theory to why your styling practice avoids the problem." },
       { id: "w9", q: "How do you approach responsive design?", a: "Mobile-first: base styles for small screens, media queries layering complexity upward. Fluid layouts with flex, grid, and relative units doing most of the work so breakpoints are few and chosen by where the content breaks, not by device names. Rem for type, real-device testing at the end, and container queries where component-level response fits better than viewport-level.", probe: "Content-driven breakpoints over device-name breakpoints." },
       { id: "w10", q: "Accessibility: what do you actually do?", a: "Semantic HTML first, because a real button and a real label do ninety percent of the work for free: keyboard focus, screen reader names, form association. Then alt text with intent, visible focus states, sufficient contrast, and keyboard-testing every flow. ARIA is the last resort for widgets HTML cannot express, not a coat of paint. On government work this is section 508, a requirement, not a virtue.", probe: "The 508 sentence lands hard in any federal interview." },
+      { id: "w11", q: "HTTP/1.1 vs HTTP/2 vs HTTP/3?", a: "1.1 handles one response at a time per connection, so browsers opened six and we bundled everything. HTTP/2 multiplexes many streams over one connection with header compression, which killed most bundling pressure, though packet loss still stalls everything because TCP is underneath. HTTP/3 moves to QUIC over UDP, so one lost packet stalls only its own stream. Practical takeaway: aggressive bundling is a 1.1 habit.", probe: "Multiplexing, and knowing why h3 exists in one clause." },
+      { id: "w12", q: "How does HTTP caching work?", a: "Cache-Control drives it: max-age says serve without asking, no-cache says revalidate first, no-store says never keep it. Revalidation uses ETag: the browser sends If-None-Match and a 304 says use what you have. The pattern every bundler exploits: hashed asset filenames get immutable, year-long caching, while the small HTML entry stays no-cache. Change the file, the hash changes, the cache never lies.", probe: "The hashed-immutable-assets pattern is your own build talking." },
+      { id: "w13", q: "Cookie security attributes?", a: "HttpOnly blocks script access, so stolen-by-XSS is off the table. Secure restricts them to HTTPS. SameSite controls cross-site sending: Lax is the default and covers most CSRF, Strict is tighter, and None, which requires Secure, is for legitimate cross-site cases. A session cookie should wear all three deliberately, and that combination is most of a CSRF story on its own.", probe: "SameSite None requiring Secure is the detail that gets checked." },
+      { id: "w14", q: "Explain XSS and how you prevent it.", a: "Cross-site scripting is untrusted input executing as script in someone else's browser: a comment that is actually a script tag. Defense one is output encoding, and React does this by default, interpolated values render as text, which is why dangerouslySetInnerHTML is named like a threat and only ever fed sanitized HTML. Defense two is a Content-Security-Policy header as the backstop when a mistake ships anyway.", probe: "React-escapes-by-default plus CSP as the second layer." },
+      { id: "w15", q: "Explain CSRF and its defenses.", a: "A malicious page makes your browser fire a request to a site where you are logged in, riding your cookies: you clicked nothing on the real site, but the request carried your session. Defenses: SameSite cookies neutralize most of it, anti-forgery tokens prove the request came from your own pages, and pure token-in-header APIs are largely immune because the attacker's page cannot read or attach the token.", probe: "Why bearer-token APIs are immune: the reasoning, not the fact." },
+      { id: "w16", q: "How does JWT-based auth work end to end?", a: "Login yields a signed token: header, payload, signature. The API verifies the signature and trusts the claims, no session store, which is the horizontal-scaling win. Two sharp edges to volunteer: the payload is only base64, readable by anyone, so no secrets in it; and tokens cannot be revoked mid-life, so keep them short-lived with a refresh flow. Storage debate: HttpOnly cookie versus memory, never localStorage for anything serious.", probe: "Readable-payload and short-expiry are the two edges they probe." },
+      { id: "w17", q: "WebSockets vs SSE vs polling?", a: "Polling asks repeatedly: simple, wasteful, fine at low frequency. Server-sent events hold one HTTP connection for server-to-client pushes, auto-reconnecting, perfect for feeds and notifications. WebSockets are fully bidirectional, right for chat, collaboration, and games. My decision rule: does the client need to push at conversational speed? WebSockets. Only listen? SSE. Neither, really? Poll and keep the infrastructure boring.", probe: "A decision rule, not three definitions." },
+      { id: "w18", q: "Which CSS properties are cheap to animate and why?", a: "Transform and opacity, because the compositor handles them on their own layer without recalculating layout or repainting. Animating width, height, top, or margin forces layout for potentially the whole page, sixty times a second. So the pattern is translate instead of top, scale instead of width. will-change can promote a layer but is a scalpel: overuse eats memory.", probe: "Compositor versus layout is the vocabulary being tested." },
+      { id: "w19", q: "What are Core Web Vitals?", a: "Google's user-experience trio. LCP, largest contentful paint, is loading: fix with server speed, image optimization, and preloading the hero. CLS, cumulative layout shift, is stability: fix by reserving dimensions for images, ads, and fonts. INP, interaction to next paint, replaced FID and measures responsiveness: fix by breaking up long main-thread tasks. Lab data diagnoses, field data decides.", probe: "Knowing INP replaced FID dates your knowledge correctly." },
+      { id: "w20", q: "How do you ship images responsibly?", a: "Modern formats first, AVIF or WebP with fallbacks, srcset and sizes so phones stop downloading desktop pixels, loading lazy on everything below the fold, and explicit width and height so the browser reserves space, which is a direct CLS fix. For the LCP hero, the opposite: eager, preloaded, prioritized. Images are usually the heaviest thing on a page, so this list is most of a performance audit.", probe: "The dimensions-prevent-CLS connection." },
+      { id: "w21", q: "Walk through the CSS position values.", a: "Static is the default flow. Relative nudges an element while its original space stays reserved, and, crucially, creates a positioning ancestor. Absolute removes it from flow and anchors to the nearest positioned ancestor, which is the trap: no positioned ancestor means it anchors to the page. Fixed pins to the viewport; sticky is relative until a scroll threshold, then pinned within its parent.", probe: "The absolute-anchors-to-nearest-positioned-ancestor trap." },
+      { id: "w22", q: "Why does z-index 9999 sometimes not work?", a: "Because z-index only competes within a stacking context, and many properties quietly create new ones: transform, opacity below one, filter, position fixed. An element in a lower context can never climb above a sibling context, no matter the number. Debugging is finding which ancestor created the context, then either restructuring or raising the context itself. This is also why modals render through portals.", probe: "Stacking contexts as the mechanism, portals as the corollary." },
+      { id: "w23", q: "How do you choose CSS units?", a: "Rem for type and spacing scales, because it respects the user's font-size settings, which is an accessibility position, not a style one. Em only for things that should scale with local font size, padding inside a button, watching for compounding in nested elements. Pixels for hairline borders. Viewport units for hero sizing, with the mobile-browser-chrome caveat, and ch for readable line lengths.", probe: "Rem-as-accessibility is the reasoning that elevates the answer." },
+      { id: "w24", q: "How do you keep CSS maintainable on a team?", a: "Kill global specificity wars structurally: CSS Modules or scoped styles so rules cannot leak, or a utility system like Tailwind where styling lives in markup and the design tokens are the constraint. BEM is the naming discipline when plain CSS is mandated. The shared principles underneath: flat specificity, design tokens over magic numbers, and deleting CSS must feel safe, which unscoped globals never allow.", probe: "Deleting-must-feel-safe is the maintainability test they want to hear." },
+      { id: "w25", q: "What does semantic HTML buy you?", a: "Free behavior and meaning: a real button is keyboard-operable and screen-reader-announced with zero JavaScript, a label focuses its input, nav and main give assistive tech a map, and headings give the document structure machines can walk. It is simultaneously the accessibility baseline, an SEO signal, and less code. Div-soup with click handlers is re-implementing the browser, badly.", probe: "Free-behavior framing: semantics as functionality, not tidiness." },
     ],
   },
   {
@@ -1321,6 +1398,23 @@ const QA_TRACKS = [
       { id: "ai6", q: "How do you evaluate or choose between models?", a: "Not from leaderboards. I build a small eval set from my actual tasks, twenty or thirty real prompts with known-good outputs, and run candidates against it, comparing quality, latency, cost, and context handling. Models genuinely differ: some are stronger at code, some at long documents, some at strict instruction-following. The eval set also catches regressions when a provider ships a new version.", probe: "The your-own-eval-set answer beats naming any specific model." },
       { id: "ai7", q: "What quality gates do you put on AI-generated code?", a: "The same ones as human code, applied without sentiment: types and linting immediately, tests written first or alongside, a real code review with extra suspicion on anything security-adjacent, injection paths, secrets handling, auth logic, plus license awareness on large verbatim-looking blocks. Generated code fails the same bar the same way. The gate is the point; the generator is just a fast typist.", probe: "Security-adjacent suspicion shows you have thought past the demo." },
       { id: "ai8", q: "Where would you not use an LLM?", a: "Anywhere the data cannot travel: on government programs, sensitive or classified material never enters an unapproved tool, full stop, only authorized environments. Beyond that: secrets, hard security boundaries, exact arithmetic and dates without tool support, and decisions that need an accountable human owner. Knowing where the tool stops is part of being trusted with it, and in federal work it is the whole ballgame.", probe: "In a government-contracting interview this answer can win you the room." },
+      { id: "ai9", q: "What are tokens and why do they matter?", a: "Models read and write in subword pieces, roughly three-quarters of a word each. They matter because everything is denominated in them: context limits, pricing, latency all scale with token count. Practical instincts: code and JSON are token-dense, so pasting a giant file burns budget fast, and output tokens typically cost more than input, so asking for concision is literally cheaper.", probe: "That your instincts about cost and limits are token-denominated." },
+      { id: "ai10", q: "What do temperature and top-p control?", a: "Sampling randomness. Low temperature makes output focused and repeatable, which is what you want for code, extraction, and anything tested; higher values buy variety for brainstorming and naming. Top-p trims the candidate pool to the most probable mass. My defaults: near-zero for engineering tasks, moderate for ideation, and even at zero I do not promise bit-identical determinism.", probe: "Low-for-code, higher-for-ideation, with the determinism caveat." },
+      { id: "ai11", q: "System prompt vs user prompt?", a: "The system prompt is standing policy: role, constraints, output format, tone, the things that should survive every turn. User messages carry the task at hand. Separating them matters for consistency, and for security: application rules live in the system layer, so user-supplied content is data to process, not instructions to obey, which is the first structural defense against injection.", probe: "The policy-versus-data separation, tied to injection." },
+      { id: "ai12", q: "Zero-shot, few-shot, chain-of-thought: when each?", a: "Zero-shot, just asking, covers capable models on clear tasks. Few-shot, showing two or three examples, is the highest-leverage upgrade when format or judgment matters, because examples beat adjectives. Chain-of-thought, asking the model to reason before answering, helps genuinely multi-step problems at the cost of tokens. My ladder: ask plainly, add examples if the shape is wrong, add reasoning if the logic is wrong.", probe: "The ladder, and examples-beat-adjectives." },
+      { id: "ai13", q: "What are embeddings?", a: "Vectors that encode meaning, so semantically similar text lands close together in the space. That turns fuzzy language problems into geometry: semantic search that finds relevant passages sharing no keywords, clustering, deduplication, recommendations. They are the substrate under RAG: embed the documents once, embed the question at runtime, nearest neighbors are your context.", probe: "Meaning-as-geometry, plus the RAG connection." },
+      { id: "ai14", q: "What does a vector database do?", a: "Stores embeddings and answers nearest-neighbor queries fast at scale, using approximate indexes because exact search over millions of vectors is too slow. Options range from pgvector inside Postgres, which I would default to when the data already lives there, to dedicated services. The underrated feature is metadata filtering: nearest neighbors within this program, this date range, this classification level.", probe: "pgvector-when-Postgres-exists shows pragmatism over hype." },
+      { id: "ai15", q: "Prompting vs RAG vs fine-tuning: how do you choose?", a: "In that order. Prompting is free and instant: exhaust it first. RAG when the model needs knowledge it was not trained on: your docs, current data, private code: retrieval keeps it current and citable. Fine-tuning when you need consistent behavior, style, or format at volume, and you accept the dataset and maintenance cost. The rule of thumb: RAG for knowledge, fine-tuning for behavior, prompting for everything until proven otherwise.", probe: "The escalation order with the knowledge-versus-behavior split." },
+      { id: "ai16", q: "How does function calling and tool use work?", a: "You describe available tools with schemas; the model responds with a structured intent, call this function with these arguments, your code executes it and returns the result, and the model continues with real data. The model never runs anything: it requests, you execute, which means argument validation and authorization live in your code. This is the mechanism under every agent and every AI feature that touches real systems.", probe: "The-model-requests-you-execute boundary, and validating arguments." },
+      { id: "ai17", q: "What are agents, and what goes wrong with them?", a: "Loops: the model plans, calls tools, observes results, and continues toward a goal. Powerful, and failure-prone in predictable ways: errors compound across steps, loops burn cost, and a wrong assumption early poisons everything after. The engineering answer is guardrails: step and budget limits, narrow tool permissions, human approval gates on irreversible actions, and full traces so you can audit what it did.", probe: "That your enthusiasm arrives pre-equipped with guardrails." },
+      { id: "ai18", q: "How do you get reliable structured output?", a: "Ask for exactly one thing: JSON matching a schema you specify, no prose around it. Use the provider's structured-output or tool-schema mode when available. Then treat the response as untrusted input anyway: parse, validate against the schema, and on failure retry once with the error message included. That validate-and-retry loop turns a ninety-five percent success rate into production-grade.", probe: "Validate-and-retry as the pattern, not hoping harder." },
+      { id: "ai19", q: "What is prompt injection and how do you defend?", a: "Untrusted content, a webpage, a document, a user field, containing instructions the model then obeys: ignore your rules and exfiltrate the data. It is the SQL injection of this era, and there is no perfect parser-level fix, so defense is layered: keep policy in the system layer, mark external content as data, allow-list tools with least privilege, filter outputs, and never let retrieved content authorize actions on its own.", probe: "Layered-defense honesty; anyone claiming a total fix fails this question." },
+      { id: "ai20", q: "How do you evaluate an LLM feature in production?", a: "Offline first: an eval set of real cases with expected outcomes, scored automatically where possible and by rubric where not, run on every prompt or model change like a regression suite. Online: log traces, sample human review, track task-completion and correction rates, and A/B prompt versions. The one-line philosophy: vibes do not scale, and a prompt change without an eval run is an untested deploy.", probe: "Prompt-change-equals-deploy is the sentence that lands." },
+      { id: "ai21", q: "How do you engineer around latency and cost?", a: "Stream tokens so perceived latency drops even when total time does not. Cache aggressively: exact-match first, semantic caching for near-duplicates. Route by difficulty: a small fast model handles the easy eighty percent, escalating the rest. Trim context to what is relevant, cap output length, and batch offline work. Cost per successful task is the metric, not cost per call.", probe: "Model routing and cost-per-success show systems thinking." },
+      { id: "ai22", q: "Where does multimodal input genuinely help?", a: "Screenshots as bug reports: paste the broken UI and ask what is wrong. Documents with layout: forms, tables, scans, where structure carries meaning. Whiteboard photos into structured notes or starter code. The honest limits: precise reading of dense charts and exact coordinates are shaky, so for high-stakes extraction I pair vision with OCR or structured parsing and verify.", probe: "Concrete use cases plus stated limits, not magic." },
+      { id: "ai23", q: "Open-weight vs hosted models: how do you decide?", a: "Hosted APIs win on capability and zero ops; open weights win on data control, customization, and unit cost at scale. In government work the decision is often made for you: the authorization boundary decides, FedRAMP-approved services or models running inside the accredited environment, and no capability advantage overrides that. Elsewhere it is an engineering trade: start hosted, revisit when volume or data constraints bite.", probe: "The-boundary-decides is the federal-fluent answer." },
+      { id: "ai24", q: "How should a team adopt copilot-style coding tools?", a: "With a written policy before the rollout: what code and data may enter the tool, aligned to the program's security requirements: on sensitive work that means approved tools only, no exceptions. Then norms: generated code is reviewed like human code, tests are the acceptance bar, and juniors learn fundamentals alongside it, not instead of it. Measure honestly: cycle time and defect rates, not lines generated.", probe: "Policy-before-rollout, and measuring outcomes not output." },
+      { id: "ai25", q: "How do you set stakeholder expectations about AI features?", a: "Plainly: it is probabilistic, so we design for the failure case up front: confidence thresholds, human review lanes, and easy correction, and we ship with an eval baseline so quality is a number, not an impression. It excels at drafts, transformation, and search; it does not replace accountable decisions. Framing it as a very fast junior colleague with infinite patience and no judgment usually lands.", probe: "The fast-junior-colleague framing plus quality-as-a-number." },
     ],
   },
 ];
@@ -4015,7 +4109,10 @@ function SkillsView({ progress, onSaveStory }) {
 
 // ---------------------------------------------------------------- questions views
 
-function QuestionsView({ progress, onOpenTrack }) {
+function QuestionsView({ progress, onOpenTrack, onOpenFlash }) {
+  const allQ = QA_TRACKS.flatMap((t) => t.questions);
+  const totalGot = allQ.filter((q) => progress.qa[q.id] === "got").length;
+  const totalReview = allQ.filter((q) => progress.qa[q.id] === "review").length;
   return (
     <div className="space-y-5">
       <div className="max-w-3xl">
@@ -4030,6 +4127,29 @@ function QuestionsView({ progress, onOpenTrack }) {
           you recognized it.
         </p>
       </div>
+
+      <Card style={{ borderLeft: "3px solid " + T.blue }}>
+        <div className="flex items-center gap-2">
+          <MessageSquare size={15} color={T.blue} />
+          <Eyebrow color={T.blue}>Flashcards</Eyebrow>
+        </div>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          Fifteen cards, all {allQ.length} questions shuffled together, flagged cards
+          first. No track label on the front, so nothing hints at the answer's
+          neighborhood. The closest thing here to a real screen.
+        </p>
+        <p className="text-xs mt-2" style={{ color: T.faint, fontFamily: MONO }}>
+          {totalGot}/{allQ.length} had it{totalReview > 0 ? " · " + totalReview + " flagged" : ""}
+        </p>
+        <button
+          onClick={onOpenFlash}
+          className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+          style={{ backgroundColor: T.brass, color: T.onBrass }}
+        >
+          Shuffle everything <ChevronRight size={15} />
+        </button>
+      </Card>
+
       <div className="grid gap-3 sm:grid-cols-2">
         {QA_TRACKS.map((t) => {
           const got = t.questions.filter((q) => progress.qa[q.id] === "got").length;
@@ -4184,8 +4304,8 @@ function QTrackView({ track, progress, onMark, onBack, onQuiz }) {
   );
 }
 
-function QuizOverlay({ track, progress, onMark, onClose }) {
-  const [order] = useState(() => {
+function FlashcardOverlay({ tracks, title, progress, onMark, onClose }) {
+  const buildDeck = () => {
     const shuffle = (arr) => {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -4194,21 +4314,30 @@ function QuizOverlay({ track, progress, onMark, onClose }) {
       }
       return a;
     };
-    const need = track.questions.filter((q) => progress.qa[q.id] !== "got");
-    const rest = track.questions.filter((q) => progress.qa[q.id] === "got");
-    return [...shuffle(need), ...shuffle(rest)].slice(0, 8);
-  });
+    const all = tracks.flatMap((t) => t.questions.map((q) => ({ ...q, trackName: t.name })));
+    const review = all.filter((q) => progress.qa[q.id] === "review");
+    const fresh = all.filter((q) => !progress.qa[q.id]);
+    const got = all.filter((q) => progress.qa[q.id] === "got");
+    return [...shuffle(review), ...shuffle(fresh), ...shuffle(got)].slice(0, 15);
+  };
+  const [deck, setDeck] = useState(buildDeck);
   const [step, setStep] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const [had, setHad] = useState(0);
-  const done = step >= order.length;
-  const item = done ? null : order[step];
+  const done = step >= deck.length;
+  const item = done ? null : deck[step];
 
   function grade(val) {
     onMark(item.id, val);
     if (val === "got") setHad((h) => h + 1);
-    setRevealed(false);
+    setFlipped(false);
     setStep((s) => s + 1);
+  }
+  function again() {
+    setDeck(buildDeck());
+    setStep(0);
+    setFlipped(false);
+    setHad(0);
   }
 
   return (
@@ -4217,15 +4346,15 @@ function QuizOverlay({ track, progress, onMark, onClose }) {
         <div className="flex items-center gap-2">
           <MessageSquare size={16} color={T.blue} />
           <span className="text-sm font-semibold" style={{ color: T.ivory }}>
-            {track.name} quiz
+            {title} flashcards
           </span>
           {!done && (
             <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
-              {step + 1} of {order.length}
+              {step + 1} of {deck.length}
             </span>
           )}
         </div>
-        <button onClick={onClose} aria-label="Close quiz" className="p-2 rounded-lg" style={{ color: T.ivory }}>
+        <button onClick={onClose} aria-label="Close flashcards" className="p-2 rounded-lg" style={{ color: T.ivory }}>
           <X size={20} />
         </button>
       </div>
@@ -4233,31 +4362,54 @@ function QuizOverlay({ track, progress, onMark, onClose }) {
       <div className="flex-1 w-full max-w-xl mx-auto px-4 py-6">
         {item && (
           <div>
-            <p className="ws-display text-xl leading-relaxed font-semibold" style={{ color: T.ivory }}>
-              {item.q}
-            </p>
-            {!revealed ? (
-              <div className="mt-5">
-                <p className="text-xs leading-relaxed mb-4" style={{ color: T.faint }}>
-                  Answer out loud first. Then check yourself.
-                </p>
+            <Bar value={step} max={deck.length} />
+            <div className="ws-scene mt-5" style={{ height: "400px" }}>
+              <div
+                className={"ws-card " + (flipped ? "ws-flipped" : "")}
+                onClick={() => setFlipped((f) => !f)}
+                role="button"
+                aria-label={flipped ? "Show question" : "Reveal answer"}
+              >
+                <div
+                  className="ws-face rounded-2xl p-6 flex flex-col"
+                  style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
+                >
+                  <div className="flex-1 flex items-center justify-center">
+                    <p className="ws-display text-xl sm:text-2xl leading-relaxed font-semibold text-center" style={{ color: T.ivory }}>
+                      {item.q}
+                    </p>
+                  </div>
+                  <p className="text-xs text-center" style={{ color: T.faint, fontFamily: MONO }}>
+                    answer out loud, then tap to flip
+                  </p>
+                </div>
+                <div
+                  className="ws-face ws-back rounded-2xl p-6 overflow-auto"
+                  style={{ backgroundColor: T.surfaceUp, border: "1px solid " + T.blue }}
+                >
+                  <div className="text-xs mb-2 uppercase" style={{ color: T.blue, fontFamily: MONO, letterSpacing: "0.14em" }}>
+                    {item.trackName}
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {item.a}
+                  </p>
+                  <p className="text-xs mt-2 italic leading-relaxed" style={{ color: T.blue }}>
+                    What they are probing: {item.probe}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              {!flipped ? (
                 <button
-                  onClick={() => setRevealed(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                  onClick={() => setFlipped(true)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
                   style={{ backgroundColor: T.brass, color: T.onBrass }}
                 >
-                  Reveal the answer
+                  Flip the card
                 </button>
-              </div>
-            ) : (
-              <div className="mt-5">
-                <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-                  {item.a}
-                </p>
-                <p className="text-xs mt-2 italic leading-relaxed" style={{ color: T.blue }}>
-                  What they are probing: {item.probe}
-                </p>
-                <div className="flex gap-2 mt-4">
+              ) : (
+                <>
                   <button
                     onClick={() => grade("got")}
                     className="flex-1 py-2.5 rounded-xl text-sm font-medium"
@@ -4272,29 +4424,30 @@ function QuizOverlay({ track, progress, onMark, onClose }) {
                   >
                     Needed it
                   </button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         )}
 
         {done && (
           <div className="text-center">
             <div className="ws-display font-bold" style={{ color: T.brass, fontSize: "64px" }}>
-              {had}/{order.length}
+              {had}/{deck.length}
             </div>
             <p className="text-sm mt-2" style={{ color: T.muted }}>
-              {had === order.length
-                ? "Clean sweep. Rotate to the next track."
-                : "The flagged ones resurface first next run. That is the system working."}
+              {had === deck.length
+                ? "Clean sweep. Shuffle again or rotate tracks."
+                : "Flagged cards lead the next shuffle. That is the system working."}
             </p>
-            <button
-              onClick={onClose}
-              className="mt-6 px-4 py-2.5 rounded-xl text-sm font-medium"
-              style={{ border: "1px solid " + T.edge, color: T.ivory }}
-            >
-              Done
-            </button>
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button onClick={again} className="px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: T.brass, color: T.onBrass }}>
+                Shuffle again
+              </button>
+              <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ border: "1px solid " + T.edge, color: T.ivory }}>
+                Done
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -4302,7 +4455,7 @@ function QuizOverlay({ track, progress, onMark, onClose }) {
   );
 }
 
-// ---------------------------------------------------------------- shell
+// ---------------------------------------------------------------- shell// ---------------------------------------------------------------- shell
 
 const TABS = [
   { id: "today", label: "Today", icon: Sun },
@@ -4323,6 +4476,12 @@ function GlobalStyle() {
       @media (prefers-reduced-motion: reduce) { .ws-fade { animation: none; } }
       .ws-root button:focus-visible, .ws-root a:focus-visible { outline: 2px solid #8CC084; outline-offset: 2px; border-radius: 6px; }
       .ws-root button { cursor: pointer; }
+      .ws-scene { perspective: 1400px; }
+      .ws-card { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 420ms cubic-bezier(.2,.75,.25,1); cursor: pointer; }
+      .ws-flipped { transform: rotateY(180deg); }
+      .ws-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+      .ws-back { transform: rotateY(180deg); }
+      @media (prefers-reduced-motion: reduce) { .ws-card { transition: none; } }
     `}</style>
   );
 }
@@ -4407,7 +4566,7 @@ export default function WoodshedApp() {
   const [drillMode, setDrillMode] = useState(null);
   const [mockOpen, setMockOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [quizTrack, setQuizTrack] = useState(null);
+  const [flashScope, setFlashScope] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -4769,6 +4928,7 @@ export default function WoodshedApp() {
               <QuestionsView
                 progress={progress}
                 onOpenTrack={(id) => setView({ name: "qtrack", id })}
+                onOpenFlash={() => setFlashScope("all")}
               />
             )}
             {view.name === "qtrack" && (
@@ -4777,7 +4937,7 @@ export default function WoodshedApp() {
                 progress={progress}
                 onMark={markQA}
                 onBack={() => setView({ name: "questions" })}
-                onQuiz={() => setQuizTrack(view.id)}
+                onQuiz={() => setFlashScope(view.id)}
               />
             )}
             {view.name === "concept" && (
@@ -4839,12 +4999,13 @@ export default function WoodshedApp() {
         <NotesOverlay progress={progress} onClose={() => setNotesOpen(false)} />
       )}
 
-      {quizTrack && (
-        <QuizOverlay
-          track={QA_TRACKS.find((t) => t.id === quizTrack)}
+      {flashScope && (
+        <FlashcardOverlay
+          tracks={flashScope === "all" ? QA_TRACKS : QA_TRACKS.filter((t) => t.id === flashScope)}
+          title={flashScope === "all" ? "All tracks" : (QA_TRACKS.find((t) => t.id === flashScope) || {}).name}
           progress={progress}
           onMark={markQA}
-          onClose={() => setQuizTrack(null)}
+          onClose={() => setFlashScope(null)}
         />
       )}
 
