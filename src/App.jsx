@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v7: backup, Big-O drill, field notes, interview countdown, story builder.
+// v8: the Questions tab — spoken answers for the conversational technical screen.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -7,7 +7,7 @@ import {
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
   ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
   CalendarDays, Play, Pause, TimerReset, Library, X, ChevronLeft, Upload, Trash2,
-  Brain, Trophy, Pencil, Download
+  Brain, Trophy, Pencil, Download, MessageSquare
 } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
@@ -1186,6 +1186,7 @@ const FRESH = {
   drill: { attempts: 0, correct: 0, byConcept: {} },
   interviewDate: null,
   stories: {},
+  qa: {},
 };
 
 function mergeSaved(saved) {
@@ -1202,6 +1203,7 @@ function mergeSaved(saved) {
     drill: saved.drill || { attempts: 0, correct: 0, byConcept: {} },
     interviewDate: saved.interviewDate || null,
     stories: saved.stories || {},
+    qa: saved.qa || {},
   };
 }
 
@@ -1219,6 +1221,109 @@ function reviewDueList(progress) {
   }
   return out;
 }
+
+// ---------------------------------------------------------------- question bank
+
+const QA_TRACKS = [
+  {
+    id: "js",
+    name: "JavaScript",
+    blurb: "The language round. Asked in every front-end and full-stack screen, no exceptions.",
+    questions: [
+      { id: "js1", q: "What is a closure?", a: "A closure is a function that remembers the variables from the scope where it was created, even after that scope has finished running. Every event handler that uses a variable from the surrounding component is a closure. They give you data privacy and function factories, and they explain the classic loop bug: with var, every callback closed over the same variable, while let gives each iteration its own binding.", probe: "Whether you understand scope, or just memorized a definition." },
+      { id: "js2", q: "Difference between == and ===?", a: "Triple equals compares value and type with no conversion. Double equals coerces types first, which produces the famous surprises, like empty string equaling false. My rule in production is always triple equals. The one semi-legitimate double-equals idiom is x == null, which catches both null and undefined in one check, and even that I would rather write explicitly.", probe: "Discipline. The right answer includes a rule you actually follow." },
+      { id: "js3", q: "var vs let vs const?", a: "var is function-scoped and hoists as undefined, which causes leaks out of blocks and silent bugs. let and const are block-scoped and live in the temporal dead zone until declared, so using them early throws instead of failing silently. const locks the binding, not the value, so a const object can still mutate. My default is const everywhere, let when I genuinely reassign, var never.", probe: "Whether your defaults are modern." },
+      { id: "js4", q: "Explain the event loop.", a: "JavaScript runs one call stack, single-threaded. Async work like timers and fetch is handed to the browser, and finished callbacks wait in queues. The event loop pushes them onto the stack only when it is empty. The senior detail: microtasks, meaning promise callbacks, drain before the next macrotask like setTimeout. That is why a resolved promise's then always beats a setTimeout of zero.", probe: "The microtask versus macrotask detail separates seniors from juniors." },
+      { id: "js5", q: "Promises vs async/await?", a: "Same machinery, different syntax. Async/await is sugar over promises that reads top to bottom and lets you use normal try/catch for errors. Await pauses the function, not the thread. The trap to mention: awaiting in sequence when the calls are independent. Fire them together and await Promise.all, and you have cut your latency in half.", probe: "Whether you know await serializes things that could be parallel." },
+      { id: "js6", q: "How does this work?", a: "It is decided by the call site, not where the function was written. Called as a method, this is the object. Called plain in strict mode, it is undefined. Called with new, it is the fresh instance. Arrow functions do not have their own this; they inherit it lexically from where they were defined, which is exactly why arrows are right for callbacks and wrong as object methods.", probe: "The arrow-function rule is the part they are listening for." },
+      { id: "js7", q: "Explain prototypal inheritance.", a: "Every object holds a link to a prototype object. When you read a property that is not on the object, the lookup walks up the prototype chain until it finds it or hits null. The class keyword is syntax sugar over exactly this mechanism, not a different model. Knowing that explains why you can patch behavior on a prototype and every instance sees it.", probe: "That you know class is sugar, not a new inheritance system." },
+      { id: "js8", q: "map, filter, reduce: when and why?", a: "Map transforms one array into another of the same length. Filter keeps the items that pass a test. Reduce folds everything into a single value. All three return new arrays or values instead of mutating, which matters for React state. My honest caveat: when a reduce needs a comment to be understood, I write a loop. Readability outranks cleverness.", probe: "The non-mutating point and the honest reduce caveat." },
+      { id: "js9", q: "Debounce vs throttle?", a: "Debounce waits for silence: reset the timer on every event and fire once things settle, perfect for search-as-you-type. Throttle guarantees a maximum rate: fire at most once per interval no matter how many events arrive, right for scroll and resize handlers. Debounce is about the last event, throttle is about a steady pace.", probe: "A crisp use case for each, not just definitions." },
+      { id: "js10", q: "Shallow vs deep copy?", a: "Spread and Object.assign copy one level, so nested objects are still shared references, and mutating them mutates the original. structuredClone is the modern built-in deep copy. The old JSON parse-stringify trick works but silently drops functions, undefined, and mangles dates. In React this is why you spread at each level you change rather than deep-copying everything.", probe: "Whether you have been bitten by shared nested references." },
+    ],
+  },
+  {
+    id: "react",
+    name: "React",
+    blurb: "Your home framework. These come rapid-fire in front-end screens.",
+    questions: [
+      { id: "r1", q: "What is the virtual DOM and why does it exist?", a: "It is a lightweight in-memory description of the UI. On every render React builds a new tree, diffs it against the previous one, and applies only the minimal set of real DOM operations, because touching the real DOM is the expensive part. Reconciliation is that diffing process, and keys are the hints that let it match list items across renders.", probe: "Connecting virtual DOM to reconciliation to keys in one thought." },
+      { id: "r2", q: "Explain useEffect and its dependency array.", a: "useEffect runs after render for side effects: subscriptions, fetches, timers. The dependency array controls when: no array means every render, empty array means once on mount, values mean when those values change. Return a cleanup function to tear down subscriptions. The classic bug is a stale closure from a missing dependency, and the honest fix is listening to the lint rule instead of fighting it.", probe: "The cleanup function and the stale-closure bug." },
+      { id: "r3", q: "Why do list items need keys, and why not the index?", a: "Keys give React a stable identity for each item so it can match old and new trees. Index works only if the list never reorders or inserts. The moment it does, React matches by position, and component state bleeds between rows: the classic bug is typing in row three, deleting row one, and your text jumps rows. Stable IDs from the data are the answer.", probe: "The state-bleeding failure mode, described concretely." },
+      { id: "r4", q: "Controlled vs uncontrolled components?", a: "Controlled means React state is the single source of truth: value from state, onChange updates it, so validation and conditional logic are trivial. Uncontrolled lets the DOM hold the value and you read it with a ref when needed, which is fine for simple forms and file inputs. My default is controlled for anything with validation, formatting, or dependent fields.", probe: "Having a default and a reason, not just definitions." },
+      { id: "r5", q: "What causes a component to re-render?", a: "Three things: its own state changes, its parent re-renders, or a context it consumes changes. Note what is missing: mutating a prop or an object in place does nothing, because React compares references. To stop unnecessary cascades you reach for React.memo, useMemo, and useCallback, but the senior move is measuring first; premature memoization adds complexity for wins that often are not there.", probe: "Reference equality and the measure-first instinct." },
+      { id: "r6", q: "useMemo vs useCallback?", a: "useMemo caches a computed value; useCallback caches the function itself, and is literally useMemo returning a function. They matter for referential equality: a memoized child or a dependency array only benefits if the thing you pass keeps its identity between renders. Without a memoized consumer downstream, wrapping everything in these is ceremony, not optimization.", probe: "That you know when they do nothing." },
+      { id: "r7", q: "Context vs prop drilling vs a state library?", a: "Prop drilling is fine for two or three levels and is the most explicit option. Context suits low-frequency, wide-reach values like theme, auth, and locale, but every consumer re-renders when it changes, so it is wrong for hot data. For frequently-changing state shared across distant components, a small store like Zustand or Redux Toolkit earns its keep with selective subscriptions.", probe: "The re-render cost of context is the differentiator." },
+      { id: "r8", q: "What are custom hooks and the rules of hooks?", a: "A custom hook is a function starting with use that composes other hooks, letting you share stateful logic without sharing UI: useDebounce, useLocalStorage, a data-fetching hook. The rules: call hooks only at the top level and only from components or other hooks. The reason is mechanical: React tracks hooks by call order, so a hook inside an if breaks the bookkeeping.", probe: "Knowing why the rules exist, not just that they do." },
+      { id: "r9", q: "What does lifting state up mean?", a: "When two components need the same data, the state moves to their closest common ancestor and flows down as props, with changes flowing up through callbacks. It keeps one source of truth. The counterweight I always mention: lift too eagerly and everything re-renders from the top, so sometimes the better refactor is composition, passing children instead of data.", probe: "The counterweight shows judgment, not just doctrine." },
+      { id: "r10", q: "Anything notable about React 18?", a: "Automatic batching, so multiple state updates in any context become one render, not just inside event handlers. Concurrent features like useTransition let urgent updates interrupt slow ones. And the one that bites people: StrictMode in development intentionally double-invokes renders and effects to surface impure code, so a double fetch in dev is a warning, not a bug in React.", probe: "The StrictMode double-invoke is a working-knowledge tell." },
+    ],
+  },
+  {
+    id: "java",
+    name: "Java & Spring Boot",
+    blurb: "The full-stack half. Federal shops love these, and you run this stack daily.",
+    questions: [
+      { id: "j1", q: "JDK vs JRE vs JVM?", a: "The JVM is the virtual machine that executes bytecode and does the memory management. The JRE is the JVM plus the class libraries needed to run applications. The JDK is the JRE plus the developer tools, the compiler and friends. You develop with the JDK, you ship something that needs a JRE, and the JVM is what is actually running your code.", probe: "A warm-up. Answer cleanly in fifteen seconds and move on." },
+      { id: "j2", q: "== vs .equals, and the hashCode contract?", a: "Double equals compares references for objects, so two equal strings can fail it. .equals compares logical value when overridden. The contract everyone forgets: if you override equals you must override hashCode so equal objects share a hash code, otherwise HashMap and HashSet quietly break, because they find the bucket by hash before ever calling equals.", probe: "The hashCode half. Stopping at equals is the junior answer." },
+      { id: "j3", q: "ArrayList vs LinkedList, and how does HashMap work?", a: "ArrayList is a resizable array: constant-time index reads, cheap appends, linear middle inserts. LinkedList trades that for cheap insertion at the ends, and in practice ArrayList wins almost everywhere because of cache locality. HashMap hashes the key to a bucket index; collisions chain in a list that becomes a tree in Java 8 plus, and the map resizes when it passes the load factor.", probe: "The buckets-and-collisions sentence for HashMap." },
+      { id: "j4", q: "Interface vs abstract class?", a: "An interface is a contract, and since default methods it can carry behavior, but no state. An abstract class can hold fields and partial implementation, but you only get one of them. My lean is interfaces first, because a class can implement many and it keeps coupling loose; an abstract class earns its place when subclasses genuinely share state and a template of behavior.", probe: "A default plus the exception that justifies the other choice." },
+      { id: "j5", q: "Checked vs unchecked exceptions?", a: "Checked exceptions must be declared or handled at compile time; unchecked, meaning RuntimeException and below, do not. The design intent was recoverable versus programming errors. The modern lean, and the Spring lean, is unchecked almost everywhere, because forced catch blocks breed swallowed exceptions. Spring even translates checked persistence exceptions into its unchecked DataAccessException family.", probe: "Having an opinion aligned with how modern frameworks behave." },
+      { id: "j6", q: "What are streams and when do you avoid them?", a: "Streams are declarative pipelines over collections: filter, map, collect, lazily evaluated until a terminal operation. They read beautifully for transformations. I avoid them when the logic needs checked exceptions, early exits with side effects, or debugging with breakpoints, and I treat parallelStream as a measured decision, not a free speed button, because splitting and merging has real overhead.", probe: "The parallelStream caution signals production experience." },
+      { id: "j7", q: "Explain dependency injection and IoC.", a: "Inversion of control means the framework constructs and wires your objects instead of you calling new everywhere. Dependency injection is the mechanism: you declare what a class needs, usually through its constructor, and the container provides it. The payoff is loose coupling and testability, because in a test you hand in a mock instead of fighting a hardwired dependency.", probe: "Testability is the why. Say it explicitly." },
+      { id: "j8", q: "Constructor injection vs @Autowired fields?", a: "Constructor injection, every time. The dependencies are explicit in the signature, the fields can be final so the object is never in a half-built state, and tests can construct the class directly with mocks, no reflection or Spring context needed. Field injection hides the dependency list and makes the class untestable without the container. Modern Spring does not even need the annotation on a single constructor.", probe: "This one question separates people who write Spring from people who read about it." },
+      { id: "j9", q: "What does Spring Boot add over Spring?", a: "Opinionated auto-configuration, starter dependencies that bundle compatible versions, an embedded server so the app is a runnable jar, and production plumbing like actuator endpoints. @SpringBootApplication is three annotations in one: configuration, auto-configuration, and component scanning. The mental model is convention over configuration, with properties and profiles as the escape hatch when the convention is wrong.", probe: "Auto-configuration plus the composite annotation." },
+      { id: "j10", q: "Walk a request through Spring MVC.", a: "Everything enters through the DispatcherServlet. It asks the handler mappings which controller method matches, invokes it with arguments resolved from the path, params, and body, and takes the return value. With @RestController, which is just @Controller plus @ResponseBody, a message converter like Jackson turns that return object into JSON. Exceptions route through @ControllerAdvice handlers for consistent error responses.", probe: "DispatcherServlet as the front door, converters as the exit." },
+    ],
+  },
+  {
+    id: "ng",
+    name: "Angular",
+    blurb: "On your target list, and interviewers will probe it against your React background.",
+    questions: [
+      { id: "a1", q: "What are Angular's building blocks?", a: "Components with their templates, services for shared logic and data access, dependency injection wiring them together, and historically NgModules grouping it all, though modern Angular leans on standalone components. Routing, forms, and the HTTP client come in the box, which is the core cultural difference from React: Angular is a full framework with opinions, not a rendering library.", probe: "The framework-versus-library framing shows you see the shape of it." },
+      { id: "a2", q: "How does dependency injection work in Angular?", a: "You declare a dependency in the constructor and Angular's hierarchical injector provides it. providedIn root gives you an app-wide singleton; providing at the component level scopes an instance to that subtree. It is the same IoC idea as Spring, which is exactly how I frame it: my backend habits transfer directly, just with injectors instead of a bean container.", probe: "Cross-stack fluency. The Spring parallel is a strong card for you." },
+      { id: "a3", q: "Observables vs promises?", a: "A promise delivers one value and is eager. An observable is a lazy stream of many values over time, cancellable by unsubscribing, and composable with RxJS operators like map, debounceTime, and switchMap. Angular's HTTP client returns observables. The practical discipline is the async pipe in templates, which subscribes and unsubscribes for you and kills the most common leak.", probe: "The async pipe answer signals you have actually shipped Angular." },
+      { id: "a4", q: "Structural vs attribute directives?", a: "Structural directives change the layout of the DOM, adding or removing elements: ngIf, ngFor, ngSwitch, written with the asterisk, which is sugar for wrapping the element in a template. Attribute directives change appearance or behavior of an existing element, like ngClass and ngStyle. If it adds or removes nodes it is structural, if it decorates a node it is attribute.", probe: "Knowing the asterisk is template sugar is the depth check." },
+      { id: "a5", q: "Key lifecycle hooks?", a: "The constructor is for injection only. ngOnInit is where initialization logic lives, once inputs are bound. ngOnChanges reacts to input changes, and ngOnDestroy is the cleanup hook where subscriptions get unsubscribed. The parallel I draw: ngOnInit and ngOnDestroy map closely to a useEffect with an empty array and its cleanup return in React.", probe: "Constructor-versus-ngOnInit is the classic trap." },
+      { id: "a6", q: "Explain change detection and OnPush.", a: "Zone.js patches async operations so Angular knows something happened, then it checks the component tree for changes to render. Default strategy checks everything. OnPush skips a component unless an input reference changed or an event fired inside it, which is why OnPush pairs with immutable update patterns, the same discipline React enforces. It is the main performance lever in big Angular apps.", probe: "OnPush plus immutability in the same breath." },
+      { id: "a7", q: "What is two-way binding really?", a: "The banana-in-a-box syntax on ngModel is sugar for two one-way bindings: a property binding pushing the value in, and an event binding pulling changes out. Knowing that demystifies it, and it means you can implement the same contract on your own components with an input plus an output named with the Change suffix.", probe: "Sugar-for-two-bindings is the whole answer they want." },
+      { id: "a8", q: "You come from React. How do you compare them?", a: "React is a rendering library where you assemble your own stack; Angular ships the decisions: DI, router, forms, HTTP. React puts logic in JavaScript with JSX; Angular puts structure in templates and logic in classes. The concepts, components, one-way data flow, immutability for performance, transfer completely. I am productive in both, and honestly the DI model feels familiar from Spring on my backend work.", probe: "They are checking for flexibility, not tribal loyalty. Give them neither tribe." },
+    ],
+  },
+  {
+    id: "web",
+    name: "Web, HTTP & CSS",
+    blurb: "The fundamentals layer under every front-end conversation.",
+    questions: [
+      { id: "w1", q: "What happens when you type a URL and hit enter?", a: "DNS resolves the name to an IP, the browser opens a TCP connection and negotiates TLS, sends the HTTP request, and gets a response. It parses HTML into the DOM, CSS into the CSSOM, combines them into a render tree, then layout and paint. Scripts block parsing unless deferred. The follow-ups hide in every step, so I go breadth-first and let the interviewer pick where to dive.", probe: "Structure under pressure. The last sentence is a power move: say it." },
+      { id: "w2", q: "REST fundamentals and idempotency?", a: "Resources named by URLs, verbs expressing intent: GET reads, POST creates, PUT replaces, PATCH partially updates, DELETE removes, all stateless. Idempotency means repeating the call leaves the same end state: GET, PUT, and DELETE are idempotent, POST is not, which is exactly why payment endpoints use idempotency keys, so a retry does not double-charge.", probe: "The idempotency-key example turns theory into production sense." },
+      { id: "w3", q: "Status codes that actually matter?", a: "200 OK, 201 created, 204 success with no body. 301 moved, 304 not modified for cache hits. 400 bad request, 401 you are not authenticated, 403 you are authenticated but not allowed, 404 not found, 409 conflict, 422 well-formed but semantically invalid. 500 server error, 502 bad gateway, 503 unavailable. The 401 versus 403 distinction gets asked constantly.", probe: "401 versus 403 is the pop quiz inside the question." },
+      { id: "w4", q: "Explain CORS.", a: "It is a browser security model, not a server error. By default scripts cannot read responses from a different origin; the server opts in with Access-Control-Allow-Origin headers, and non-simple requests trigger a preflight OPTIONS check first. The fix always lives on the server config, never in hiding the browser check. I root-caused a production CORS mismatch on my current program, so I usually tell that story.", probe: "That you know it is browser-enforced and server-fixed. Tell your FDP story." },
+      { id: "w5", q: "localStorage vs sessionStorage vs cookies?", a: "localStorage persists across sessions per origin, around five megabytes, synchronous. sessionStorage is the same but dies with the tab. Cookies are small and ride along with every request to the server, which is their point: server-set HttpOnly, Secure, SameSite cookies are the right home for auth tokens precisely because scripts cannot read HttpOnly, which blunts token theft via XSS.", probe: "The HttpOnly-for-auth reasoning is the senior tell." },
+      { id: "w6", q: "defer vs async on script tags?", a: "Both download in parallel with parsing. async executes the moment it arrives, in whatever order finishes first, right for independent things like analytics. defer waits until parsing is done and preserves document order, right for scripts that touch the DOM or depend on each other. Module scripts defer by default. One line: async is eager and unordered, defer is patient and ordered.", probe: "The one-liner at the end is worth memorizing verbatim." },
+      { id: "w7", q: "Flexbox vs Grid?", a: "Flexbox lays out along one dimension at a time, content-driven: navbars, toolbars, centering. Grid is two-dimensional and container-driven: page shells, card layouts, anything with rows and columns that must align. They compose; a grid page full of flex components is the normal shape of a modern layout, and gap works in both now.", probe: "One-dimensional versus two-dimensional, said plainly." },
+      { id: "w8", q: "How does CSS specificity work?", a: "The cascade weighs inline styles above IDs, IDs above classes and attributes, those above element selectors, with the later rule winning ties. Importance overrides all of it, which is why important is a smell: it is unwinnable arms-race territory. My practice is flat, class-based selectors, which is also why utility systems and CSS modules keep specificity fights from existing at all.", probe: "Connecting the theory to why your styling practice avoids the problem." },
+      { id: "w9", q: "How do you approach responsive design?", a: "Mobile-first: base styles for small screens, media queries layering complexity upward. Fluid layouts with flex, grid, and relative units doing most of the work so breakpoints are few and chosen by where the content breaks, not by device names. Rem for type, real-device testing at the end, and container queries where component-level response fits better than viewport-level.", probe: "Content-driven breakpoints over device-name breakpoints." },
+      { id: "w10", q: "Accessibility: what do you actually do?", a: "Semantic HTML first, because a real button and a real label do ninety percent of the work for free: keyboard focus, screen reader names, form association. Then alt text with intent, visible focus states, sufficient contrast, and keyboard-testing every flow. ARIA is the last resort for widgets HTML cannot express, not a coat of paint. On government work this is section 508, a requirement, not a virtue.", probe: "The 508 sentence lands hard in any federal interview." },
+    ],
+  },
+  {
+    id: "ai",
+    name: "AI-assisted development",
+    blurb: "The new screen. This job posting is a question list wearing a trench coat.",
+    questions: [
+      { id: "ai1", q: "How do you use LLMs in your workflow while ensuring quality?", a: "As an accelerant with a review gate. They draft boilerplate, tests, migrations, and unfamiliar-API code fast, and nothing merges unread: every generated line goes through the same review, linting, typing, and test bar as human code, because I own it the moment I commit it. The productivity is real, the accountability does not transfer. Small diffs and tests-first keep the leash short.", probe: "The phrase they want to hear is some form of: I own every line." },
+      { id: "ai2", q: "What prompt engineering techniques actually work?", a: "Specificity beats cleverness: state the role, the context, the constraints, and the exact output format. Show one or two examples of what good looks like, few-shot, because examples outperform adjectives. Break big tasks into steps rather than asking for the world at once. Iterate, because the second prompt informed by the first failure is where the quality is. And treat important prompts like code: versioned and tested against cases.", probe: "Few-shot examples and prompts-as-code are the two credibility markers." },
+      { id: "ai3", q: "Why do models hallucinate, and what do you do about it?", a: "They predict plausible next tokens; they have no internal fact-checker, so fluent and false ship in the same package. Mitigation is grounding: give the model the source material, retrieval for docs, the actual code for engineering, and demand answers tied to it. For code specifically, tests are the ground truth, so the loop is generate, run, verify. Confidence in the prose is never the signal; verification is.", probe: "That your mitigation is process, not hope." },
+      { id: "ai4", q: "What is a context window and why does it matter?", a: "It is the model's working memory: everything it can consider at once, the conversation plus whatever you stuffed in. It matters because it is finite: you cannot paste a whole codebase and expect coherence. The engineering response is selection: retrieve the relevant files, summarize the rest, and structure the important material early. Bigger windows help, but relevance beats volume at every size.", probe: "Relevance beats volume is the sentence to land." },
+      { id: "ai5", q: "Explain RAG in one breath.", a: "Retrieval-augmented generation: embed your documents into vectors, and at question time retrieve the most relevant chunks and place them in the context so the model answers from your material instead of its memory. It is how you get current, private, or citable knowledge without retraining. The rule of thumb: RAG for knowledge, fine-tuning for style and format, and RAG is almost always the first tool.", probe: "The knowledge-versus-style rule of thumb closes it cleanly." },
+      { id: "ai6", q: "How do you evaluate or choose between models?", a: "Not from leaderboards. I build a small eval set from my actual tasks, twenty or thirty real prompts with known-good outputs, and run candidates against it, comparing quality, latency, cost, and context handling. Models genuinely differ: some are stronger at code, some at long documents, some at strict instruction-following. The eval set also catches regressions when a provider ships a new version.", probe: "The your-own-eval-set answer beats naming any specific model." },
+      { id: "ai7", q: "What quality gates do you put on AI-generated code?", a: "The same ones as human code, applied without sentiment: types and linting immediately, tests written first or alongside, a real code review with extra suspicion on anything security-adjacent, injection paths, secrets handling, auth logic, plus license awareness on large verbatim-looking blocks. Generated code fails the same bar the same way. The gate is the point; the generator is just a fast typist.", probe: "Security-adjacent suspicion shows you have thought past the demo." },
+      { id: "ai8", q: "Where would you not use an LLM?", a: "Anywhere the data cannot travel: on government programs, sensitive or classified material never enters an unapproved tool, full stop, only authorized environments. Beyond that: secrets, hard security boundaries, exact arithmetic and dates without tool support, and decisions that need an accountable human owner. Knowing where the tool stops is part of being trusted with it, and in federal work it is the whole ballgame.", probe: "In a government-contracting interview this answer can win you the room." },
+    ],
+  },
+];
 
 // ---------------------------------------------------------------- drill and weak spots
 
@@ -3908,12 +4013,302 @@ function SkillsView({ progress, onSaveStory }) {
   );
 }
 
+// ---------------------------------------------------------------- questions views
+
+function QuestionsView({ progress, onOpenTrack }) {
+  return (
+    <div className="space-y-5">
+      <div className="max-w-3xl">
+        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+          Questions
+        </h1>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          The other technical interview: the conversation. These are the questions that
+          fill phone screens for front-end and full-stack roles, with answers written the
+          way you would actually say them in forty-five seconds. Read a track once, then
+          quiz yourself out loud and grade honestly. Had it means you said it, not that
+          you recognized it.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {QA_TRACKS.map((t) => {
+          const got = t.questions.filter((q) => progress.qa[q.id] === "got").length;
+          const review = t.questions.filter((q) => progress.qa[q.id] === "review").length;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onOpenTrack(t.id)}
+              className="text-left rounded-2xl p-4"
+              style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare size={14} color={T.blue} />
+                <span className="ws-display text-base font-semibold" style={{ color: T.ivory }}>
+                  {t.name}
+                </span>
+                <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                  {t.questions.length}
+                </span>
+              </div>
+              <div className="text-xs mt-1" style={{ color: T.faint }}>
+                {t.blurb}
+              </div>
+              <div className="mt-2.5 flex items-center gap-2">
+                <div className="flex-1">
+                  <Bar value={got} max={t.questions.length} />
+                </div>
+                <span
+                  className="text-xs shrink-0"
+                  style={{ color: got === t.questions.length ? T.accent : T.faint, fontFamily: MONO }}
+                >
+                  {got}/{t.questions.length}
+                </span>
+              </div>
+              {review > 0 && (
+                <div className="text-xs mt-1.5" style={{ color: T.gold, fontFamily: MONO }}>
+                  {review} flagged for review
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function QTrackView({ track, progress, onMark, onBack, onQuiz }) {
+  const [open, setOpen] = useState(null);
+  const got = track.questions.filter((q) => progress.qa[q.id] === "got").length;
+  return (
+    <div className="space-y-5 max-w-3xl">
+      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm" style={{ color: T.muted }}>
+        <ArrowLeft size={15} /> Questions
+      </button>
+      <div>
+        <Eyebrow color={T.blue}>Question track</Eyebrow>
+        <div className="flex items-start justify-between gap-3 mt-1">
+          <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+            {track.name}
+          </h1>
+          <button
+            onClick={onQuiz}
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold mt-1"
+            style={{ backgroundColor: T.brass, color: T.onBrass }}
+          >
+            Quiz me <ChevronRight size={15} />
+          </button>
+        </div>
+        <p className="text-sm mt-1" style={{ color: T.faint }}>
+          {track.blurb}
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex-1">
+            <Bar value={got} max={track.questions.length} />
+          </div>
+          <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+            {got}/{track.questions.length}
+          </span>
+        </div>
+      </div>
+      <Card>
+        {track.questions.map((item) => {
+          const mark = progress.qa[item.id];
+          const isOpen = open === item.id;
+          return (
+            <div key={item.id} style={{ borderBottom: HAIRLINE }}>
+              <button
+                onClick={() => setOpen(isOpen ? null : item.id)}
+                className="w-full flex items-center gap-3 py-3 text-left"
+              >
+                <span
+                  className="shrink-0 w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      mark === "got" ? T.accent : mark === "review" ? T.gold : "rgba(237,241,228,0.15)",
+                  }}
+                />
+                <span className="text-sm font-medium min-w-0 flex-1" style={{ color: T.ivory }}>
+                  {item.q}
+                </span>
+                <ChevronDown
+                  size={15}
+                  color={T.faint}
+                  className="shrink-0"
+                  style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 150ms" }}
+                />
+              </button>
+              {isOpen && (
+                <div className="pb-4 pl-5">
+                  <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                    {item.a}
+                  </p>
+                  <p className="text-xs mt-2 italic leading-relaxed" style={{ color: T.blue }}>
+                    What they are probing: {item.probe}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => onMark(item.id, "got")}
+                      className="text-xs px-3 py-1.5 rounded-full"
+                      style={
+                        mark === "got"
+                          ? { backgroundColor: T.accentSoft, color: T.accent, border: "1px solid " + T.accent }
+                          : { border: "1px solid " + T.edge, color: T.muted }
+                      }
+                    >
+                      Had it
+                    </button>
+                    <button
+                      onClick={() => onMark(item.id, "review")}
+                      className="text-xs px-3 py-1.5 rounded-full"
+                      style={
+                        mark === "review"
+                          ? { backgroundColor: "rgba(210,180,87,0.13)", color: T.gold, border: "1px solid " + T.gold }
+                          : { border: "1px solid " + T.edge, color: T.muted }
+                      }
+                    >
+                      Needed it
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </Card>
+      <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+        Say the answer out loud before you expand. Recognizing an answer and producing one
+        are different skills, and interviews only pay for the second.
+      </p>
+    </div>
+  );
+}
+
+function QuizOverlay({ track, progress, onMark, onClose }) {
+  const [order] = useState(() => {
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const need = track.questions.filter((q) => progress.qa[q.id] !== "got");
+    const rest = track.questions.filter((q) => progress.qa[q.id] === "got");
+    return [...shuffle(need), ...shuffle(rest)].slice(0, 8);
+  });
+  const [step, setStep] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [had, setHad] = useState(0);
+  const done = step >= order.length;
+  const item = done ? null : order[step];
+
+  function grade(val) {
+    onMark(item.id, val);
+    if (val === "got") setHad((h) => h + 1);
+    setRevealed(false);
+    setStep((s) => s + 1);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col overflow-auto" style={{ backgroundColor: "rgba(9,12,9,0.98)" }}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid " + T.edge }}>
+        <div className="flex items-center gap-2">
+          <MessageSquare size={16} color={T.blue} />
+          <span className="text-sm font-semibold" style={{ color: T.ivory }}>
+            {track.name} quiz
+          </span>
+          {!done && (
+            <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+              {step + 1} of {order.length}
+            </span>
+          )}
+        </div>
+        <button onClick={onClose} aria-label="Close quiz" className="p-2 rounded-lg" style={{ color: T.ivory }}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="flex-1 w-full max-w-xl mx-auto px-4 py-6">
+        {item && (
+          <div>
+            <p className="ws-display text-xl leading-relaxed font-semibold" style={{ color: T.ivory }}>
+              {item.q}
+            </p>
+            {!revealed ? (
+              <div className="mt-5">
+                <p className="text-xs leading-relaxed mb-4" style={{ color: T.faint }}>
+                  Answer out loud first. Then check yourself.
+                </p>
+                <button
+                  onClick={() => setRevealed(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                  style={{ backgroundColor: T.brass, color: T.onBrass }}
+                >
+                  Reveal the answer
+                </button>
+              </div>
+            ) : (
+              <div className="mt-5">
+                <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+                  {item.a}
+                </p>
+                <p className="text-xs mt-2 italic leading-relaxed" style={{ color: T.blue }}>
+                  What they are probing: {item.probe}
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => grade("got")}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                    style={{ backgroundColor: T.accentSoft, color: T.accent, border: "1px solid " + T.accent }}
+                  >
+                    Had it
+                  </button>
+                  <button
+                    onClick={() => grade("review")}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                    style={{ backgroundColor: "rgba(210,180,87,0.13)", color: T.gold, border: "1px solid " + T.gold }}
+                  >
+                    Needed it
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {done && (
+          <div className="text-center">
+            <div className="ws-display font-bold" style={{ color: T.brass, fontSize: "64px" }}>
+              {had}/{order.length}
+            </div>
+            <p className="text-sm mt-2" style={{ color: T.muted }}>
+              {had === order.length
+                ? "Clean sweep. Rotate to the next track."
+                : "The flagged ones resurface first next run. That is the system working."}
+            </p>
+            <button
+              onClick={onClose}
+              className="mt-6 px-4 py-2.5 rounded-xl text-sm font-medium"
+              style={{ border: "1px solid " + T.edge, color: T.ivory }}
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- shell
 
 const TABS = [
   { id: "today", label: "Today", icon: Sun },
   { id: "plan", label: "Plan", icon: CalendarDays },
   { id: "roadmap", label: "Roadmap", icon: Map },
+  { id: "questions", label: "Questions", icon: MessageSquare },
   { id: "skills", label: "Skills", icon: Mic },
 ];
 
@@ -4012,6 +4407,7 @@ export default function WoodshedApp() {
   const [drillMode, setDrillMode] = useState(null);
   const [mockOpen, setMockOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [quizTrack, setQuizTrack] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -4113,6 +4509,14 @@ export default function WoodshedApp() {
     setProgress((prev) => ({
       ...prev,
       stories: { ...(prev.stories || {}), [id]: (text || "").trim() },
+    }));
+  }
+
+  function markQA(qid, val) {
+    setProgress((prev) => ({
+      ...prev,
+      qa: { ...(prev.qa || {}), [qid]: val },
+      streak: bumpStreak({ ...prev.streak }),
     }));
   }
 
@@ -4229,7 +4633,7 @@ export default function WoodshedApp() {
     progress.streak.last === today || progress.streak.last === yesterdayYmd();
   const headerStreak = streakAlive ? progress.streak.count : 0;
   const solvedCount = Object.keys(progress.solved).length;
-  const activeTab = view.name === "concept" ? "roadmap" : view.name;
+  const activeTab = view.name === "concept" ? "roadmap" : view.name === "qtrack" ? "questions" : view.name;
 
   if (!loaded) {
     return (
@@ -4361,6 +4765,21 @@ export default function WoodshedApp() {
             {view.name === "roadmap" && (
               <RoadmapView progress={progress} onOpenConcept={openConcept} />
             )}
+            {view.name === "questions" && (
+              <QuestionsView
+                progress={progress}
+                onOpenTrack={(id) => setView({ name: "qtrack", id })}
+              />
+            )}
+            {view.name === "qtrack" && (
+              <QTrackView
+                track={QA_TRACKS.find((t) => t.id === view.id)}
+                progress={progress}
+                onMark={markQA}
+                onBack={() => setView({ name: "questions" })}
+                onQuiz={() => setQuizTrack(view.id)}
+              />
+            )}
             {view.name === "concept" && (
               <ConceptView
                 concept={conceptById(view.id)}
@@ -4394,7 +4813,7 @@ export default function WoodshedApp() {
             <button
               key={t.id}
               onClick={() => setView({ name: t.id })}
-              className="flex flex-col items-center gap-1 px-4 py-1 text-xs"
+              className="flex flex-col items-center gap-1 px-2 py-1 text-xs"
               style={{ color: activeTab === t.id ? T.accent : T.faint }}
             >
               <t.icon size={19} />
@@ -4418,6 +4837,15 @@ export default function WoodshedApp() {
 
       {notesOpen && (
         <NotesOverlay progress={progress} onClose={() => setNotesOpen(false)} />
+      )}
+
+      {quizTrack && (
+        <QuizOverlay
+          track={QA_TRACKS.find((t) => t.id === quizTrack)}
+          progress={progress}
+          onMark={markQA}
+          onClose={() => setQuizTrack(null)}
+        />
       )}
 
       {mockOpen && (
