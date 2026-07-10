@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v10: Job Fit — paste a JD, get strengths, gaps, a verdict, and pointers.
+// v11: quiet room — chrome removed, color made rare, Today rebuilt calm.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1774,7 +1774,7 @@ function Eyebrow({ children, color }) {
   return (
     <div
       className="text-xs uppercase"
-      style={{ color: color || T.accent, letterSpacing: "0.22em", fontFamily: MONO }}
+      style={{ color: color || T.faint, letterSpacing: "0.18em", fontFamily: MONO }}
     >
       {children}
     </div>
@@ -1793,11 +1793,15 @@ function DiffBadge({ diff }) {
   );
 }
 
-function Card({ children, style, className }) {
+function Card({ children, className = "", style = {} }) {
   return (
     <div
-      className={"rounded-2xl p-5 " + (className || "")}
-      style={{ backgroundColor: T.surface, border: "1px solid " + T.edge, ...style }}
+      className={"rounded-2xl p-5 " + className}
+      style={{
+        backgroundColor: T.surface,
+        boxShadow: "inset 0 1px 0 rgba(237,241,228,0.05)",
+        ...style,
+      }}
     >
       {children}
     </div>
@@ -1835,11 +1839,8 @@ function Bar({ value, max }) {
 function SectionHead({ icon: Icon, children, color }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <Icon size={15} color={color || T.accent} />
-      <h2
-        className="text-xs font-semibold uppercase"
-        style={{ letterSpacing: "0.14em", color: T.muted }}
-      >
+      {Icon ? <Icon size={14} color={color || T.faint} /> : null}
+      <h2 className="text-sm font-semibold" style={{ color: T.ivory }}>
         {children}
       </h2>
     </div>
@@ -1995,45 +1996,29 @@ function RepTimer() {
 
   const mm = String(Math.floor(left / 60)).padStart(2, "0");
   const ss = String(left % 60).padStart(2, "0");
+  const active = running || left !== TOTAL;
 
   return (
-    <Card>
-      <Eyebrow color={T.brass}>Rep timer</Eyebrow>
-      <div className="flex items-center justify-between mt-2">
-        <span
-          className="ws-display text-4xl font-bold"
-          style={{ color: left === 0 ? T.rust : running ? T.brass : T.ivory, fontVariantNumeric: "tabular-nums" }}
+    <div className="inline-flex items-center gap-1 rounded-xl pl-1.5 pr-1 py-1" style={{ backgroundColor: T.surfaceUp }}>
+      <button
+        onClick={() => left > 0 && setRunning(!running)}
+        aria-label={running ? "Pause timer" : "Start 35 minute rep timer"}
+        className="inline-flex items-center gap-2 px-2 py-1 text-sm font-medium"
+        style={{ color: left === 0 ? T.rust : running ? T.brass : T.muted, fontVariantNumeric: "tabular-nums" }}
+      >
+        {running ? <Pause size={14} /> : <Play size={14} />} {mm}:{ss}
+      </button>
+      {active && (
+        <button
+          onClick={() => { setRunning(false); setLeft(TOTAL); }}
+          aria-label="Reset timer"
+          className="p-1.5"
+          style={{ color: T.faint }}
         >
-          {mm}:{ss}
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => left > 0 && setRunning(!running)}
-            aria-label={running ? "Pause timer" : "Start timer"}
-            className="p-2.5 rounded-xl"
-            style={{ backgroundColor: T.brass, color: T.onBrass }}
-          >
-            {running ? <Pause size={16} /> : <Play size={16} />}
-          </button>
-          <button
-            onClick={() => {
-              setRunning(false);
-              setLeft(TOTAL);
-            }}
-            aria-label="Reset timer"
-            className="p-2.5 rounded-xl"
-            style={{ border: "1px solid " + T.edge, color: T.muted }}
-          >
-            <TimerReset size={16} />
-          </button>
-        </div>
-      </div>
-      <p className="text-xs mt-3 leading-relaxed" style={{ color: left === 0 ? T.rust : T.faint }}>
-        {left === 0
-          ? "Time. Read the top solution, understand it, close it, and re-code it from memory."
-          : "35 minutes per problem. When it rings, studying the solution is the next rep, not a defeat."}
-      </p>
-    </Card>
+          <TimerReset size={13} />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -2085,7 +2070,7 @@ function ReviewSection({ progress, onMarkReviewed }) {
   const show = ordered.slice(0, 5);
   return (
     <Card>
-      <SectionHead icon={RotateCcw} color={T.blue}>{"Review due (" + due.length + ")"}</SectionHead>
+      <SectionHead >{"Review due (" + due.length + ")"}</SectionHead>
       <p className="text-xs mb-2 leading-relaxed" style={{ color: T.faint }}>
         Solved a few days ago, due for a cold re-solve, weakest pattern first. If it flows,
         it is yours. No peeking first.
@@ -2985,7 +2970,7 @@ function StoryBuilder({ progress, onSaveStory }) {
 
   return (
     <div>
-      <SectionHead icon={Mic} color={T.brass}>Your five stories</SectionHead>
+      <SectionHead>Your five stories</SectionHead>
       <Card>
         <p className="text-xs mb-2 leading-relaxed" style={{ color: T.faint }}>
           Behavioral rounds are real scoring at your level. Write each once in a
@@ -3330,7 +3315,7 @@ function TodayView({
   progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
   resetArmed, onReset, onImport, onToggleTask, onStartPlan, onMarkReviewed,
   library, onOpenBook, onSolve, onSaveNote, onOpenDrill, onOpenMock,
-  onOpenBigO, onOpenNotes,
+  onOpenBigO, onOpenNotes, onOpenFlash,
 }) {
   const solvedCount = Object.keys(progress.solved).length;
   const total = ORDERED_PROBLEMS.length;
@@ -3341,306 +3326,205 @@ function TodayView({
   const firstUnread = ORDERED_CONCEPTS.find((c) => !progress.read[c.id]);
   const brandNew = solvedCount === 0 && Object.keys(progress.read).length === 0 && !progress.planStart;
   const planActive = !!progress.planStart;
-
-  const diffStats = ["Easy", "Medium", "Hard"].map((d) => {
-    const all = ORDERED_PROBLEMS.filter((p) => p.diff === d);
-    const done = all.filter((p) => progress.solved[p.slug]).length;
-    return { d, done, total: all.length };
-  });
-
+  const dayNum = planActive ? daysBetween(progress.planStart, today) + 1 : null;
   const weak = weakSpots(progress);
+  const noteCount = Object.keys(progress.notes || {}).length;
+  const drillPct =
+    progress.drill && progress.drill.attempts > 0
+      ? Math.round((progress.drill.correct / progress.drill.attempts) * 100)
+      : null;
+  const lastMocks = (progress.mocks || [])
+    .slice(-3)
+    .map((m) => m.scores.ps + m.scores.comm + m.scores.code + m.scores.verify)
+    .join(" -> ");
+
+  const strip = "px-3.5 py-2 rounded-xl text-sm font-medium";
+  const stripStyle = { backgroundColor: T.surfaceUp, color: T.muted };
 
   return (
-    <div className="lg:grid lg:grid-cols-5 lg:gap-5">
-      <div className="lg:col-span-3 space-y-4">
-        {brandNew && (
-          <Card>
-            <Eyebrow>How this works</Eyebrow>
-            <p className="text-sm leading-relaxed mt-2" style={{ color: T.ivory }}>
-              The Roadmap teaches you to recognize patterns, each explained like you have
-              never seen it before, because pattern recognition is the entire game. The
-              Plan turns all of it into one scheduled month. The Skills tab is the other
-              half: how to run the interview itself. Start the plan below, then do day one.
-            </p>
-          </Card>
-        )}
-
-        <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
-
-        {planActive ? (
-          <PlanTodayCard
-            progress={progress}
-            onToggleSolved={onToggleSolved}
-            onToggleTask={onToggleTask}
-            onOpenConcept={onOpenConcept}
-            library={library}
-            onOpenBook={onOpenBook}
-            onSolve={onSolve}
-            onSaveNote={onSaveNote}
-          />
-        ) : (
-          <StartPlanCard onStartPlan={onStartPlan} />
-        )}
-
-        {!planActive && nextUp && (
-          <Card>
-            <div className="flex items-center justify-between gap-3">
-              <Eyebrow>{"Or freestyle a rep - LC " + nextUp.num}</Eyebrow>
-              <DiffBadge diff={nextUp.diff} />
-            </div>
-            <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
-              {nextUp.title}
-            </h1>
-            <p className="text-sm mt-1" style={{ color: T.muted }}>
-              {nextUp.why}
-            </p>
-            <button
-              onClick={() => onOpenConcept(nextUp.conceptId)}
-              className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
-              style={{ color: T.accent }}
-            >
-              <BookOpen size={13} /> {nextUp.conceptTitle}: read the concept first
-              <ChevronRight size={13} />
-            </button>
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              <a
-                href={lc(nextUp.slug)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ backgroundColor: T.accent, color: T.onAccent }}
-              >
-                Open on LeetCode <ExternalLink size={15} />
-              </a>
-              <button
-                onClick={() => onSolve(nextUp.slug, "clean")}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                style={{ border: "1px solid " + T.edge, color: T.mint }}
-              >
-                <CheckCircle2 size={15} color={T.mint} /> Solved clean
-              </button>
-              <button
-                onClick={() => onSolve(nextUp.slug, "assisted")}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                style={{ border: "1px solid " + T.edge, color: T.gold }}
-              >
-                Used solution
-              </button>
-              <button
-                onClick={onShuffle}
-                className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
-                style={{ color: T.faint }}
-              >
-                <Shuffle size={13} /> Different rep
-              </button>
-            </div>
-          </Card>
-        )}
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Card>
-            <div className="flex items-center gap-2">
-              <Brain size={15} color={T.brass} />
-              <Eyebrow color={T.brass}>Pattern drill</Eyebrow>
-            </div>
-            <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-              Five blind prompts, no labels. Name the pattern before you flip. This is the
-              muscle interviews actually test.
-            </p>
-            {progress.drill && progress.drill.attempts > 0 && (
-              <p className="text-xs mt-2" style={{ color: T.faint, fontFamily: MONO }}>
-                lifetime {progress.drill.correct}/{progress.drill.attempts} ({Math.round((progress.drill.correct / progress.drill.attempts) * 100)}%)
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <button
-                onClick={onOpenDrill}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ backgroundColor: T.brass, color: T.onBrass }}
-              >
-                Pattern drill <ChevronRight size={15} />
-              </button>
-              <button
-                onClick={onOpenBigO}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-                style={{ border: "1px solid " + T.brass, color: T.brass }}
-              >
-                Big-O drill
-              </button>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-2">
-              <Trophy size={15} color={T.brass} />
-              <Eyebrow color={T.brass}>Mock interview</Eyebrow>
-            </div>
-            <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-              A surprise medium, a 40-minute clock with stage prompts, then an honest
-              self-score on the four axes.
-            </p>
-            {(progress.mocks || []).length > 0 && (
-              <p className="text-xs mt-2" style={{ color: T.faint, fontFamily: MONO }}>
-                last runs: {(progress.mocks || []).slice(-3).map((m) => m.scores.ps + m.scores.comm + m.scores.code + m.scores.verify).join(" -> ")} of 12
-              </p>
-            )}
-            <button
-              onClick={onOpenMock}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
-              style={{ border: "1px solid " + T.edge, color: T.ivory }}
-            >
-              Run a mock <ChevronRight size={15} color={T.brass} />
-            </button>
-          </Card>
-        </div>
-
-        <ReviewSection progress={progress} onMarkReviewed={onMarkReviewed} />
-
-        {!brandNew && firstUnread && (
-          <button
-            onClick={() => onOpenConcept(firstUnread.id)}
-            className="w-full text-left rounded-2xl p-5 flex items-center gap-4"
-            style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1">
+        <span className="inline-flex items-center gap-1.5">
+          <Flame size={14} color={streak > 0 ? T.brass : T.faint} />
+          <span
+            className="text-xs"
+            style={{ color: streak > 0 ? T.ivory : T.faint, fontFamily: MONO, fontVariantNumeric: "tabular-nums" }}
           >
-            <BookOpen size={18} color={T.blue} className="shrink-0" />
-            <div className="min-w-0 flex-1">
-              <Eyebrow color={T.blue}>Keep reading</Eyebrow>
-              <div className="ws-display text-base font-semibold mt-1" style={{ color: T.ivory }}>
-                {firstUnread.title}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: T.faint }}>
-                {firstUnread.tagline}
-              </div>
-            </div>
-            <ChevronRight size={16} color={T.faint} className="shrink-0" />
-          </button>
+            {streak} {streak === 1 ? "day" : "days"}
+          </span>
+        </span>
+        {planActive && dayNum && (
+          <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+            day {Math.min(dayNum, 30)} of 30
+          </span>
+        )}
+        <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+          {solvedCount}/{total} solved
+        </span>
+        {!doneToday && streak > 0 && (
+          <span className="text-xs" style={{ color: T.faint }}>
+            one rep keeps it alive
+          </span>
         )}
       </div>
 
-      <div className="lg:col-span-2 space-y-4 mt-4 lg:mt-0">
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <Eyebrow color={T.brass}>Streak</Eyebrow>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="ws-display text-4xl font-bold" style={{ color: streak > 0 ? T.brass : T.faint }}>
-                {streak}
-              </span>
-              <span className="text-xs" style={{ color: T.faint }}>
-                {streak === 1 ? "day" : "days"}
-              </span>
-              <Flame size={18} color={streak > 0 ? T.brass : T.faint} />
-            </div>
-            <p className="text-xs mt-2" style={{ color: T.faint }}>
-              {doneToday ? "You showed up today." : streak > 0 ? "One rep keeps it alive." : "One rep starts it."}
-            </p>
-          </Card>
-          <Card>
-            <Eyebrow>Progress</Eyebrow>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="ws-display text-4xl font-bold" style={{ color: T.ivory }}>
-                {solvedCount}
-              </span>
-              <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
-                / {total}
-              </span>
-            </div>
-            <div className="mt-3">
-              <Bar value={solvedCount} max={total} />
-            </div>
-          </Card>
-        </div>
-
-        <RepTimer />
-        <Heatmap progress={progress} />
-
+      {brandNew && (
         <Card>
-          <Eyebrow>By difficulty</Eyebrow>
-          <div className="mt-3 space-y-3">
-            {diffStats.map((s) => (
-              <div key={s.d} className="flex items-center gap-3">
-                <span className="text-xs w-16 shrink-0" style={{ color: DIFF[s.d].color, fontFamily: MONO }}>
-                  {s.d}
-                </span>
-                <div className="flex-1">
-                  <Bar value={s.done} max={s.total} />
-                </div>
-                <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
-                  {s.done}/{s.total}
-                </span>
-              </div>
-            ))}
+          <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+            The Roadmap teaches the patterns, the Plan turns them into one scheduled
+            month, and Questions rehearses the conversation. Start below; day one is
+            twenty minutes.
+          </p>
+        </Card>
+      )}
+
+      <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
+
+      {planActive ? (
+        <PlanTodayCard
+          progress={progress}
+          onToggleSolved={onToggleSolved}
+          onToggleTask={onToggleTask}
+          onOpenConcept={onOpenConcept}
+          library={library}
+          onOpenBook={onOpenBook}
+          onSolve={onSolve}
+          onSaveNote={onSaveNote}
+        />
+      ) : (
+        <StartPlanCard onStartPlan={onStartPlan} />
+      )}
+
+      {!planActive && nextUp && (
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+              {"Freestyle rep · LC " + nextUp.num}
+            </span>
+            <DiffBadge diff={nextUp.diff} />
+          </div>
+          <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
+            {nextUp.title}
+          </h1>
+          <p className="text-sm mt-1" style={{ color: T.muted }}>
+            {nextUp.why}
+          </p>
+          <button
+            onClick={() => onOpenConcept(nextUp.conceptId)}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
+            style={{ color: T.accent }}
+          >
+            {nextUp.conceptTitle}: read the concept first <ChevronRight size={13} />
+          </button>
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <a
+              href={lc(nextUp.slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+              style={{ backgroundColor: T.accent, color: T.onAccent }}
+            >
+              Open on LeetCode <ExternalLink size={15} />
+            </a>
+            <button onClick={() => onSolve(nextUp.slug, "clean")} className={strip} style={stripStyle}>
+              Solved clean
+            </button>
+            <button onClick={() => onSolve(nextUp.slug, "assisted")} className={strip} style={stripStyle}>
+              Used solution
+            </button>
+            <button
+              onClick={onShuffle}
+              className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
+              style={{ color: T.faint }}
+            >
+              <Shuffle size={13} /> Different rep
+            </button>
           </div>
         </Card>
+      )}
 
-        {Object.keys(progress.notes || {}).length > 0 && (
-          <Card>
-            <Eyebrow color={T.blue}>Field notes</Eyebrow>
-            <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-              {Object.keys(progress.notes).length} takeaways, in your own words.
-            </p>
-            <button
-              onClick={onOpenNotes}
-              className="mt-3 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: T.blueSoft, color: T.blue }}
-            >
-              Open the notebook <ChevronRight size={13} />
-            </button>
-          </Card>
-        )}
-
-        {weak.length > 0 && (
-          <Card>
-            <Eyebrow color={T.gold}>Weak spots</Eyebrow>
-            <div className="mt-1">
-              {weak.slice(0, 3).map((w) => {
-                const c = conceptById(w.cid);
-                return (
-                  <button
-                    key={w.cid}
-                    onClick={() => onOpenConcept(w.cid)}
-                    className="w-full flex items-center gap-3 py-2.5 text-left"
-                    style={{ borderBottom: HAIRLINE }}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium" style={{ color: T.ivory }}>{c.title}</div>
-                      <div className="text-xs mt-0.5" style={{ color: T.faint, fontFamily: MONO }}>
-                        {w.assisted > 0 ? w.assisted + " assisted" : ""}
-                        {w.assisted > 0 && w.miss > 0 ? " · " : ""}
-                        {w.miss > 0 ? w.miss + " drill " + (w.miss === 1 ? "miss" : "misses") : ""}
-                      </div>
-                    </div>
-                    <ChevronRight size={15} color={T.faint} className="shrink-0" />
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs mt-3" style={{ color: T.faint }}>
-              Shuffle and the review queue now lean here.
-            </p>
-          </Card>
-        )}
-
-        <div className="pt-2 text-center">
-          <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
-            The woodshed is where jazz musicians go to practice. Nobody performs in the
-            shed. You build the hands that perform.
-          </p>
-          <SyncPanel progress={progress} onImport={onImport} />
-          <BackupPanel progress={progress} onImport={onImport} />
-          <button
-            onClick={onReset}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs"
-            style={{ color: resetArmed ? T.rust : T.faint }}
-          >
-            <RotateCcw size={12} />
-            {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <RepTimer />
+          <button onClick={onOpenDrill} className={strip} style={stripStyle}>
+            Pattern drill
+          </button>
+          <button onClick={onOpenBigO} className={strip} style={stripStyle}>
+            Big-O
+          </button>
+          <button onClick={onOpenMock} className={strip} style={stripStyle}>
+            Mock
+          </button>
+          <button onClick={onOpenFlash} className={strip} style={stripStyle}>
+            Flashcards
           </button>
         </div>
+        {(drillPct !== null || lastMocks) && (
+          <p className="text-xs mt-2 px-1" style={{ color: T.faint, fontFamily: MONO }}>
+            {drillPct !== null ? "drill " + drillPct + "% lifetime" : ""}
+            {drillPct !== null && lastMocks ? " · " : ""}
+            {lastMocks ? "mocks " + lastMocks + " of 12" : ""}
+          </p>
+        )}
+      </div>
+
+      <ReviewSection progress={progress} onMarkReviewed={onMarkReviewed} />
+
+      {(firstUnread && !brandNew) || noteCount > 0 || weak.length > 0 ? (
+        <div className="space-y-2 px-1">
+          {!brandNew && firstUnread && (
+            <button
+              onClick={() => onOpenConcept(firstUnread.id)}
+              className="flex items-center gap-1.5 text-sm text-left"
+            >
+              <span style={{ color: T.faint }}>Continue reading:</span>
+              <span className="font-medium" style={{ color: T.ivory }}>
+                {firstUnread.title}
+              </span>
+              <ChevronRight size={14} color={T.faint} />
+            </button>
+          )}
+          {noteCount > 0 && (
+            <button onClick={onOpenNotes} className="flex items-center gap-1.5 text-xs" style={{ color: T.faint }}>
+              {noteCount} field notes in your own words <ChevronRight size={12} />
+            </button>
+          )}
+          {weak.length > 0 && (
+            <button
+              onClick={() => onOpenConcept(weak[0].cid)}
+              className="flex items-center gap-1.5 text-xs"
+              style={{ color: T.faint }}
+            >
+              Weak spot to revisit:
+              <span style={{ color: T.muted }}>{conceptById(weak[0].cid).title}</span>
+              {weak.length > 1 ? "(+" + (weak.length - 1) + ")" : ""}
+              <ChevronRight size={12} />
+            </button>
+          )}
+        </div>
+      ) : null}
+
+      <Heatmap progress={progress} />
+
+      <div className="pt-2 text-center">
+        <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+          The woodshed is where jazz musicians go to practice. Nobody performs in the
+          shed. You build the hands that perform.
+        </p>
+        <SyncPanel progress={progress} onImport={onImport} />
+        <BackupPanel progress={progress} onImport={onImport} />
+        <button
+          onClick={onReset}
+          className="mt-3 inline-flex items-center gap-1.5 text-xs"
+          style={{ color: resetArmed ? T.rust : T.faint }}
+        >
+          <RotateCcw size={12} />
+          {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
+        </button>
       </div>
     </div>
   );
 }
-
-// ---------------------------------------------------------------- plan view
 
 function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed, library, onAttachBook, onRemoveBook, onOpenBook, onSolve, onSaveNote, onSetDate }) {
   const n = currentPlanDay(progress);
@@ -3650,7 +3534,7 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
   return (
     <div className="space-y-5 max-w-3xl">
       <div>
-        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+        <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
           The 30-day plan
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
@@ -3664,11 +3548,11 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
       </div>
 
       <div>
-        <SectionHead icon={Library} color={T.blue}>Your bookshelf, and how it fits</SectionHead>
+        <SectionHead >Your bookshelf, and how it fits</SectionHead>
         <div className="grid gap-3 lg:grid-cols-3">
           {Object.entries(BOOKS).map(([id, b]) => (
             <Card key={id}>
-              <Eyebrow color={T.blue}>{b.short}</Eyebrow>
+              <div className="text-sm font-semibold" style={{ color: T.ivory }}>{b.short}</div>
               <div className="ws-display text-base font-semibold mt-1.5" style={{ color: T.ivory }}>
                 {b.title}
               </div>
@@ -3887,7 +3771,7 @@ function BookRefsCard({ conceptId, library, onOpenBook }) {
   const refs = BOOK_REFS[conceptId] || [];
   return (
     <Card>
-      <SectionHead icon={Library} color={T.blue}>In your books</SectionHead>
+      <SectionHead >In your books</SectionHead>
       {refs.length > 0 ? (
         <ul className="space-y-2.5">
           {refs.map((r, i) => {
@@ -3945,7 +3829,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
       <div>
         <Eyebrow>{phase.name}</Eyebrow>
         <div className="flex items-start justify-between gap-3 mt-1">
-          <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+          <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
             {concept.title}
           </h1>
           <button
@@ -3969,7 +3853,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
       <div className="lg:grid lg:grid-cols-5 lg:gap-5 space-y-5 lg:space-y-0">
         <div className="lg:col-span-3 space-y-5">
           <Card>
-            <SectionHead icon={Lightbulb} color={T.blue}>ELI5 — the idea</SectionHead>
+            <SectionHead >ELI5 — the idea</SectionHead>
             <div className="space-y-3">
               {concept.eli5.map((para, i) => (
                 <p key={i} className="text-sm leading-relaxed" style={{ color: T.ivory }}>
@@ -3980,7 +3864,7 @@ function ConceptView({ concept, progress, onToggleSolved, onToggleRead, onBack, 
           </Card>
 
           <Card>
-            <SectionHead icon={Radar} color={T.blue}>Spot it when</SectionHead>
+            <SectionHead >Spot it when</SectionHead>
             <ul className="space-y-2.5">
               {concept.spotIt.map((s, i) => (
                 <li key={i} className="flex gap-2.5">
@@ -4086,7 +3970,7 @@ function SkillsView({ progress, onSaveStory }) {
   return (
     <div className="space-y-5">
       <div className="max-w-3xl">
-        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+        <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
           Interview skills
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
@@ -4197,7 +4081,7 @@ function SkillsView({ progress, onSaveStory }) {
       </div>
 
       <div>
-        <SectionHead icon={Flame} color={T.brass}>Big tech, specifically</SectionHead>
+        <SectionHead >Big tech, specifically</SectionHead>
         <Card>
           <ul className="space-y-3">
             {BIGTECH.map((b, i) => (
@@ -4236,7 +4120,7 @@ function SkillsView({ progress, onSaveStory }) {
 
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
         <div>
-          <SectionHead icon={BookOpen} color={T.blue}>LeetCode, for someone starting cold</SectionHead>
+          <SectionHead >LeetCode, for someone starting cold</SectionHead>
           <Card>
             <ul className="space-y-2.5">
               {QUICKSTART.map((q, i) => (
@@ -4307,7 +4191,7 @@ function QuestionsView({ progress, onOpenTrack, onOpenFlash }) {
   return (
     <div className="space-y-5">
       <div className="max-w-3xl">
-        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+        <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
           Questions
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
@@ -4320,10 +4204,7 @@ function QuestionsView({ progress, onOpenTrack, onOpenFlash }) {
       </div>
 
       <Card style={{ borderLeft: "3px solid " + T.blue }}>
-        <div className="flex items-center gap-2">
-          <MessageSquare size={15} color={T.blue} />
-          <Eyebrow color={T.blue}>Flashcards</Eyebrow>
-        </div>
+        <h2 className="text-sm font-semibold" style={{ color: T.ivory }}>Flashcards</h2>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
           Fifteen cards, all {allQ.length} questions shuffled together, flagged cards
           first. No track label on the front, so nothing hints at the answer's
@@ -4335,7 +4216,7 @@ function QuestionsView({ progress, onOpenTrack, onOpenFlash }) {
         <button
           onClick={onOpenFlash}
           className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-          style={{ backgroundColor: T.brass, color: T.onBrass }}
+          style={{ backgroundColor: T.accent, color: T.onAccent }}
         >
           Shuffle everything <ChevronRight size={15} />
         </button>
@@ -4353,12 +4234,8 @@ function QuestionsView({ progress, onOpenTrack, onOpenFlash }) {
               style={{ backgroundColor: T.surface, border: "1px solid " + T.edge }}
             >
               <div className="flex items-center gap-2">
-                <MessageSquare size={14} color={T.blue} />
                 <span className="ws-display text-base font-semibold" style={{ color: T.ivory }}>
                   {t.name}
-                </span>
-                <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
-                  {t.questions.length}
                 </span>
               </div>
               <div className="text-xs mt-1" style={{ color: T.faint }}>
@@ -4397,15 +4274,14 @@ function QTrackView({ track, progress, onMark, onBack, onQuiz }) {
         <ArrowLeft size={15} /> Questions
       </button>
       <div>
-        <Eyebrow color={T.blue}>Question track</Eyebrow>
         <div className="flex items-start justify-between gap-3 mt-1">
-          <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+          <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
             {track.name}
           </h1>
           <button
             onClick={onQuiz}
             className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold mt-1"
-            style={{ backgroundColor: T.brass, color: T.onBrass }}
+            style={{ backgroundColor: T.accent, color: T.onAccent }}
           >
             Quiz me <ChevronRight size={15} />
           </button>
@@ -4712,7 +4588,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
   return (
     <div className="space-y-5 max-w-3xl">
       <div>
-        <h1 className="ws-display text-3xl font-semibold" style={{ color: T.ivory }}>
+        <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
           Job fit
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
@@ -4824,7 +4700,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
           {r.data.strengths && r.data.strengths.length > 0 && (
             <Card>
-              <SectionHead icon={CheckCircle2}>Your strengths for this role</SectionHead>
+              <SectionHead>Your strengths for this role</SectionHead>
               <ul className="space-y-2.5">
                 {r.data.strengths.map((s, i) => (
                   <li key={i} className="flex gap-2.5">
@@ -4840,7 +4716,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
           {r.data.gaps && r.data.gaps.length > 0 && (
             <Card>
-              <SectionHead icon={Radar} color={T.gold}>Gaps, and the bridge for each</SectionHead>
+              <SectionHead>Gaps, and the bridge for each</SectionHead>
               <ul className="space-y-2.5">
                 {r.data.gaps.map((g, i) => (
                   <li key={i} className="flex gap-2.5">
@@ -4856,7 +4732,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
           {r.data.pointers && r.data.pointers.length > 0 && (
             <Card>
-              <SectionHead icon={Mic} color={T.brass}>Interview pointers</SectionHead>
+              <SectionHead>Interview pointers</SectionHead>
               <ol className="space-y-3">
                 {r.data.pointers.map((p, i) => (
                   <li key={i} className="flex gap-3">
@@ -4874,7 +4750,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
           {r.data.askThem && r.data.askThem.length > 0 && (
             <Card>
-              <SectionHead icon={MessageSquare} color={T.blue}>Ask them</SectionHead>
+              <SectionHead>Ask them</SectionHead>
               <ul className="space-y-2.5">
                 {r.data.askThem.map((q, i) => (
                   <li key={i} className="flex gap-2.5">
@@ -4890,7 +4766,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
           {r.data.tracks && r.data.tracks.length > 0 && (
             <Card>
-              <SectionHead icon={ListChecks} color={T.blue}>Rehearse before the screen</SectionHead>
+              <SectionHead>Rehearse before the screen</SectionHead>
               <div className="flex flex-wrap gap-2">
                 {r.data.tracks.map((t) => (
                   <button
@@ -4925,20 +4801,28 @@ const TABS = [
 function GlobalStyle() {
   return (
     <style>{`
-      .ws-display { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
-      .ws-root { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; background-image: radial-gradient(1100px 520px at 18% -8%, rgba(140,192,132,0.07), transparent 62%), radial-gradient(900px 480px at 108% 112%, rgba(225,169,78,0.05), transparent 60%); background-attachment: fixed; }
+      .ws-display { font-family: 'Fraunces', Georgia, 'Times New Roman', serif;  letter-spacing: -0.015em; }
+      .ws-root { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"), radial-gradient(1100px 520px at 18% -8%, rgba(140,192,132,0.06), transparent 62%); background-attachment: fixed; }
       .ws-root ::selection { background: rgba(140,192,132,0.35); }
       .ws-fade { animation: wsfade 240ms ease both; }
       @keyframes wsfade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
       @media (prefers-reduced-motion: reduce) { .ws-fade { animation: none; } }
       .ws-root button:focus-visible, .ws-root a:focus-visible { outline: 2px solid #8CC084; outline-offset: 2px; border-radius: 6px; }
-      .ws-root button { cursor: pointer; }
+      .ws-root button { cursor: pointer; transition: transform 120ms ease, opacity 120ms ease; }
+      .ws-root button:active { transform: scale(0.985); }
+      .ws-root :focus-visible { outline: 2px solid #8CC084; outline-offset: 2px; border-radius: 6px; }
+      .ws-root *::selection { background: rgba(140,192,132,0.28); color: #EDF1E4; }
+      .ws-root ::-webkit-scrollbar { width: 10px; height: 10px; }
+      .ws-root ::-webkit-scrollbar-thumb { background: #2B372B; border-radius: 8px; border: 3px solid #101410; }
+      .ws-root ::-webkit-scrollbar-track { background: transparent; }
+      .ws-view { animation: wsRise 260ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+      @keyframes wsRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
       .ws-scene { perspective: 1400px; }
       .ws-card { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 420ms cubic-bezier(.2,.75,.25,1); cursor: pointer; }
       .ws-flipped { transform: rotateY(180deg); }
       .ws-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
       .ws-back { transform: rotateY(180deg); }
-      @media (prefers-reduced-motion: reduce) { .ws-card { transition: none; } }
+      @media (prefers-reduced-motion: reduce) { .ws-card { transition: none; } .ws-view { animation: none; } .ws-root button { transition: none; } .ws-root button:active { transform: none; } }
     `}</style>
   );
 }
@@ -5340,7 +5224,7 @@ export default function WoodshedApp() {
             ))}
           </nav>
 
-          <main key={view.name + (view.id || "")} className="ws-fade mt-6 lg:mt-0">
+          <main key={view.name + (view.id || "")} className="ws-view mt-6 lg:mt-0">
             {view.name === "today" && (
               <TodayView
                 progress={progress}
@@ -5362,6 +5246,7 @@ export default function WoodshedApp() {
                 onOpenBigO={() => setDrillMode("bigo")}
                 onOpenMock={() => setMockOpen(true)}
                 onOpenNotes={() => setNotesOpen(true)}
+                onOpenFlash={() => setFlashScope("all")}
               />
             )}
             {view.name === "plan" && (
