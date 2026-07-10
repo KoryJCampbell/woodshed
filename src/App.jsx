@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v11: quiet room — chrome removed, color made rare, Today rebuilt calm.
+// v11.1: responsive quiet — single column on mobile, rail restored on desktop.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1799,6 +1799,7 @@ function Card({ children, className = "", style = {} }) {
       className={"rounded-2xl p-5 " + className}
       style={{
         backgroundColor: T.surface,
+        border: "1px solid rgba(43,55,43,0.55)",
         boxShadow: "inset 0 1px 0 rgba(237,241,228,0.05)",
         ...style,
       }}
@@ -3342,185 +3343,222 @@ function TodayView({
   const stripStyle = { backgroundColor: T.surfaceUp, color: T.muted };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1">
-        <span className="inline-flex items-center gap-1.5">
-          <Flame size={14} color={streak > 0 ? T.brass : T.faint} />
-          <span
-            className="text-xs"
-            style={{ color: streak > 0 ? T.ivory : T.faint, fontFamily: MONO, fontVariantNumeric: "tabular-nums" }}
-          >
-            {streak} {streak === 1 ? "day" : "days"}
-          </span>
-        </span>
-        {planActive && dayNum && (
-          <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
-            day {Math.min(dayNum, 30)} of 30
-          </span>
-        )}
-        <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
-          {solvedCount}/{total} solved
-        </span>
-        {!doneToday && streak > 0 && (
-          <span className="text-xs" style={{ color: T.faint }}>
-            one rep keeps it alive
-          </span>
-        )}
-      </div>
-
-      {brandNew && (
-        <Card>
-          <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-            The Roadmap teaches the patterns, the Plan turns them into one scheduled
-            month, and Questions rehearses the conversation. Start below; day one is
-            twenty minutes.
-          </p>
-        </Card>
-      )}
-
-      <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
-
-      {planActive ? (
-        <PlanTodayCard
-          progress={progress}
-          onToggleSolved={onToggleSolved}
-          onToggleTask={onToggleTask}
-          onOpenConcept={onOpenConcept}
-          library={library}
-          onOpenBook={onOpenBook}
-          onSolve={onSolve}
-          onSaveNote={onSaveNote}
-        />
-      ) : (
-        <StartPlanCard onStartPlan={onStartPlan} />
-      )}
-
-      {!planActive && nextUp && (
-        <Card>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
-              {"Freestyle rep · LC " + nextUp.num}
+    <div className="lg:grid lg:grid-cols-5 lg:gap-8">
+      <div className="lg:col-span-3 space-y-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 lg:hidden">
+          <span className="inline-flex items-center gap-1.5">
+            <Flame size={14} color={streak > 0 ? T.brass : T.faint} />
+            <span
+              className="text-xs"
+              style={{ color: streak > 0 ? T.ivory : T.faint, fontFamily: MONO, fontVariantNumeric: "tabular-nums" }}
+            >
+              {streak} {streak === 1 ? "day" : "days"}
             </span>
-            <DiffBadge diff={nextUp.diff} />
-          </div>
-          <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
-            {nextUp.title}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: T.muted }}>
-            {nextUp.why}
-          </p>
-          <button
-            onClick={() => onOpenConcept(nextUp.conceptId)}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
-            style={{ color: T.accent }}
-          >
-            {nextUp.conceptTitle}: read the concept first <ChevronRight size={13} />
-          </button>
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <a
-              href={lc(nextUp.slug)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: T.accent, color: T.onAccent }}
-            >
-              Open on LeetCode <ExternalLink size={15} />
-            </a>
-            <button onClick={() => onSolve(nextUp.slug, "clean")} className={strip} style={stripStyle}>
-              Solved clean
-            </button>
-            <button onClick={() => onSolve(nextUp.slug, "assisted")} className={strip} style={stripStyle}>
-              Used solution
-            </button>
-            <button
-              onClick={onShuffle}
-              className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
-              style={{ color: T.faint }}
-            >
-              <Shuffle size={13} /> Different rep
-            </button>
-          </div>
-        </Card>
-      )}
-
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <RepTimer />
-          <button onClick={onOpenDrill} className={strip} style={stripStyle}>
-            Pattern drill
-          </button>
-          <button onClick={onOpenBigO} className={strip} style={stripStyle}>
-            Big-O
-          </button>
-          <button onClick={onOpenMock} className={strip} style={stripStyle}>
-            Mock
-          </button>
-          <button onClick={onOpenFlash} className={strip} style={stripStyle}>
-            Flashcards
-          </button>
+          </span>
+          {planActive && dayNum && (
+            <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+              day {Math.min(dayNum, 30)} of 30
+            </span>
+          )}
+          <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+            {solvedCount}/{total} solved
+          </span>
+          {!doneToday && streak > 0 && (
+            <span className="text-xs" style={{ color: T.faint }}>
+              one rep keeps it alive
+            </span>
+          )}
         </div>
-        {(drillPct !== null || lastMocks) && (
-          <p className="text-xs mt-2 px-1" style={{ color: T.faint, fontFamily: MONO }}>
-            {drillPct !== null ? "drill " + drillPct + "% lifetime" : ""}
-            {drillPct !== null && lastMocks ? " · " : ""}
-            {lastMocks ? "mocks " + lastMocks + " of 12" : ""}
-          </p>
+
+        {brandNew && (
+          <Card>
+            <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
+              The Roadmap teaches the patterns, the Plan turns them into one scheduled
+              month, and Questions rehearses the conversation. Start below; day one is
+              twenty minutes.
+            </p>
+          </Card>
         )}
+
+        <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
+
+        {planActive ? (
+          <PlanTodayCard
+            progress={progress}
+            onToggleSolved={onToggleSolved}
+            onToggleTask={onToggleTask}
+            onOpenConcept={onOpenConcept}
+            library={library}
+            onOpenBook={onOpenBook}
+            onSolve={onSolve}
+            onSaveNote={onSaveNote}
+          />
+        ) : (
+          <StartPlanCard onStartPlan={onStartPlan} />
+        )}
+
+        {!planActive && nextUp && (
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                {"Freestyle rep · LC " + nextUp.num}
+              </span>
+              <DiffBadge diff={nextUp.diff} />
+            </div>
+            <h1 className="ws-display text-2xl font-semibold mt-2" style={{ color: T.ivory }}>
+              {nextUp.title}
+            </h1>
+            <p className="text-sm mt-1" style={{ color: T.muted }}>
+              {nextUp.why}
+            </p>
+            <button
+              onClick={() => onOpenConcept(nextUp.conceptId)}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium"
+              style={{ color: T.accent }}
+            >
+              {nextUp.conceptTitle}: read the concept first <ChevronRight size={13} />
+            </button>
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <a
+                href={lc(nextUp.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ backgroundColor: T.accent, color: T.onAccent }}
+              >
+                Open on LeetCode <ExternalLink size={15} />
+              </a>
+              <button onClick={() => onSolve(nextUp.slug, "clean")} className={strip} style={stripStyle}>
+                Solved clean
+              </button>
+              <button onClick={() => onSolve(nextUp.slug, "assisted")} className={strip} style={stripStyle}>
+                Used solution
+              </button>
+              <button
+                onClick={onShuffle}
+                className="inline-flex items-center gap-1.5 px-2 py-2.5 text-xs"
+                style={{ color: T.faint }}
+              >
+                <Shuffle size={13} /> Different rep
+              </button>
+            </div>
+          </Card>
+        )}
+
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <RepTimer />
+            <button onClick={onOpenDrill} className={strip} style={stripStyle}>
+              Pattern drill
+            </button>
+            <button onClick={onOpenBigO} className={strip} style={stripStyle}>
+              Big-O
+            </button>
+            <button onClick={onOpenMock} className={strip} style={stripStyle}>
+              Mock
+            </button>
+            <button onClick={onOpenFlash} className={strip} style={stripStyle}>
+              Flashcards
+            </button>
+          </div>
+          {(drillPct !== null || lastMocks) && (
+            <p className="text-xs mt-2 px-1" style={{ color: T.faint, fontFamily: MONO }}>
+              {drillPct !== null ? "drill " + drillPct + "% lifetime" : ""}
+              {drillPct !== null && lastMocks ? " · " : ""}
+              {lastMocks ? "mocks " + lastMocks + " of 12" : ""}
+            </p>
+          )}
+        </div>
+
+        <ReviewSection progress={progress} onMarkReviewed={onMarkReviewed} />
+
+        {(firstUnread && !brandNew) || noteCount > 0 || weak.length > 0 ? (
+          <div className="space-y-2 px-1">
+            {!brandNew && firstUnread && (
+              <button
+                onClick={() => onOpenConcept(firstUnread.id)}
+                className="flex items-center gap-1.5 text-sm text-left"
+              >
+                <span style={{ color: T.faint }}>Continue reading:</span>
+                <span className="font-medium" style={{ color: T.ivory }}>
+                  {firstUnread.title}
+                </span>
+                <ChevronRight size={14} color={T.faint} />
+              </button>
+            )}
+            {noteCount > 0 && (
+              <button onClick={onOpenNotes} className="flex items-center gap-1.5 text-xs" style={{ color: T.faint }}>
+                {noteCount} field notes in your own words <ChevronRight size={12} />
+              </button>
+            )}
+            {weak.length > 0 && (
+              <button
+                onClick={() => onOpenConcept(weak[0].cid)}
+                className="flex items-center gap-1.5 text-xs"
+                style={{ color: T.faint }}
+              >
+                Weak spot to revisit:
+                <span style={{ color: T.muted }}>{conceptById(weak[0].cid).title}</span>
+                {weak.length > 1 ? "(+" + (weak.length - 1) + ")" : ""}
+                <ChevronRight size={12} />
+              </button>
+            )}
+          </div>
+        ) : null}
       </div>
 
-      <ReviewSection progress={progress} onMarkReviewed={onMarkReviewed} />
-
-      {(firstUnread && !brandNew) || noteCount > 0 || weak.length > 0 ? (
-        <div className="space-y-2 px-1">
-          {!brandNew && firstUnread && (
-            <button
-              onClick={() => onOpenConcept(firstUnread.id)}
-              className="flex items-center gap-1.5 text-sm text-left"
-            >
-              <span style={{ color: T.faint }}>Continue reading:</span>
-              <span className="font-medium" style={{ color: T.ivory }}>
-                {firstUnread.title}
+      <div className="lg:col-span-2 space-y-6 mt-6 lg:mt-0">
+        <Card className="hidden lg:block">
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
+              <Flame size={16} color={streak > 0 ? T.brass : T.faint} className="self-center" />
+              <span
+                className="ws-display text-3xl font-bold"
+                style={{ color: streak > 0 ? T.ivory : T.faint, fontVariantNumeric: "tabular-nums" }}
+              >
+                {streak}
               </span>
-              <ChevronRight size={14} color={T.faint} />
-            </button>
-          )}
-          {noteCount > 0 && (
-            <button onClick={onOpenNotes} className="flex items-center gap-1.5 text-xs" style={{ color: T.faint }}>
-              {noteCount} field notes in your own words <ChevronRight size={12} />
-            </button>
-          )}
-          {weak.length > 0 && (
-            <button
-              onClick={() => onOpenConcept(weak[0].cid)}
-              className="flex items-center gap-1.5 text-xs"
-              style={{ color: T.faint }}
-            >
-              Weak spot to revisit:
-              <span style={{ color: T.muted }}>{conceptById(weak[0].cid).title}</span>
-              {weak.length > 1 ? "(+" + (weak.length - 1) + ")" : ""}
-              <ChevronRight size={12} />
-            </button>
-          )}
+              <span className="text-xs" style={{ color: T.faint }}>
+                day streak
+              </span>
+            </div>
+            {planActive && dayNum && (
+              <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+                day {Math.min(dayNum, 30)} / 30
+              </span>
+            )}
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <div className="flex-1">
+              <Bar value={solvedCount} max={total} />
+            </div>
+            <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+              {solvedCount}/{total}
+            </span>
+          </div>
+          <p className="text-xs mt-3" style={{ color: T.faint }}>
+            {doneToday ? "You showed up today." : streak > 0 ? "One rep keeps it alive." : "One rep starts it."}
+          </p>
+        </Card>
+
+        <Heatmap progress={progress} />
+
+        <div className="pt-2 text-center">
+          <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+            The woodshed is where jazz musicians go to practice. Nobody performs in the
+            shed. You build the hands that perform.
+          </p>
+          <SyncPanel progress={progress} onImport={onImport} />
+          <BackupPanel progress={progress} onImport={onImport} />
+          <button
+            onClick={onReset}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs"
+            style={{ color: resetArmed ? T.rust : T.faint }}
+          >
+            <RotateCcw size={12} />
+            {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
+          </button>
         </div>
-      ) : null}
-
-      <Heatmap progress={progress} />
-
-      <div className="pt-2 text-center">
-        <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
-          The woodshed is where jazz musicians go to practice. Nobody performs in the
-          shed. You build the hands that perform.
-        </p>
-        <SyncPanel progress={progress} onImport={onImport} />
-        <BackupPanel progress={progress} onImport={onImport} />
-        <button
-          onClick={onReset}
-          className="mt-3 inline-flex items-center gap-1.5 text-xs"
-          style={{ color: resetArmed ? T.rust : T.faint }}
-        >
-          <RotateCcw size={12} />
-          {resetArmed ? "Tap again to erase all progress" : "Reset progress"}
-        </button>
       </div>
     </div>
   );
