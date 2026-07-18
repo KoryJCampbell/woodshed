@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v12: friendlier answers, 210 questions, iOS home-screen hardening.
+// v12.1: the whole DSA lane speaks Python — concepts, drills, Big-O.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -79,25 +79,13 @@ const CONCEPTS = [
         "Better: remember what you have seen. A Set answers 'have I seen this?' instantly, so one pass does it.",
         "That is the whole game. Most interview improvements are exactly this move: replace an inner search loop with a hash lookup.",
       ],
-      code: `// O(n^2) time, O(1) space: check every pair
-function hasDuplicateSlow(nums) {
-  for (let i = 0; i < nums.length; i++) {
-    for (let j = i + 1; j < nums.length; j++) {
-      if (nums[i] === nums[j]) return true;
-    }
-  }
-  return false;
-}
-
-// O(n) time, O(n) space: trade memory for speed
-function hasDuplicateFast(nums) {
-  const seen = new Set();
-  for (const n of nums) {
-    if (seen.has(n)) return true;
-    seen.add(n);
-  }
-  return false;
-}`,
+      code: `# O(n^2) time, O(1) space: check every pair
+def has_duplicate(nums):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] == nums[j]:
+                return True
+    return False`,
       complexity:
         "Slow version: O(n squared) time, O(1) space. Fast version: O(n) time, O(n) space. Being able to say that sentence is the win.",
     },
@@ -111,7 +99,7 @@ function hasDuplicateFast(nums) {
     eli5: [
       "An array is a row of numbered parking spots. Jumping straight to spot 47 is instant, because the number tells you exactly where it is. That is why reading by index is O(1).",
       "But inserting a car into the middle of a full row means every car after it has to shuffle down one spot. That is why inserting or removing in the middle is O(n). Adding at the end is cheap; adding at the front is not.",
-      "A string is just an array of characters wearing a trench coat. In JavaScript strings are immutable, so every 'edit' secretly builds a brand new string. When you need to build a big string piece by piece, push parts into an array and join once at the end.",
+      "A string is just an array of characters wearing a trench coat. In Python strings are immutable, so every 'edit' secretly builds a brand new string. When you need to build a big string piece by piece, collect the parts in a list and ''.join them once at the end.",
       "You already live in arrays daily as a React dev. The interview twist is being deliberate about what each operation costs instead of reaching for whatever method comes to mind.",
     ],
     spotIt: [
@@ -128,15 +116,15 @@ function hasDuplicateFast(nums) {
         "Walk left to right carrying two facts: the cheapest price seen so far, and the best profit seen so far.",
         "At each day ask: if I sold today, having bought at the cheapest day so far, is that a new best? One pass, done.",
       ],
-      code: `function maxProfit(prices) {
-  let cheapest = Infinity;
-  let best = 0;
-  for (const price of prices) {
-    cheapest = Math.min(cheapest, price); // best day to have bought
-    best = Math.max(best, price - cheapest); // what if I sold today?
-  }
-  return best;
-}`,
+      code: `def max_profit(prices):
+    best = 0
+    cheapest = prices[0]
+    for price in prices[1:]:
+        if price < cheapest:
+            cheapest = price          # new best day to buy
+        else:
+            best = max(best, price - cheapest)
+    return best`,
       complexity: "O(n) time, O(1) space. One pass, two variables.",
     },
     problems: [
@@ -173,14 +161,13 @@ function hasDuplicateFast(nums) {
         "Reframe each number: I am nums[i], I need target minus nums[i]. Call it my complement.",
         "Walk the array once. At each number, ask the map: has my complement already walked past? If yes, done. If no, file myself under my value and keep walking.",
       ],
-      code: `function twoSum(nums, target) {
-  const seen = new Map(); // value -> index
-  for (let i = 0; i < nums.length; i++) {
-    const need = target - nums[i];
-    if (seen.has(need)) return [seen.get(need), i];
-    seen.set(nums[i], i);
-  }
-}`,
+      code: `def two_sum(nums, target):
+    seen = {}                         # value -> index
+    for i, x in enumerate(nums):
+        need = target - x
+        if need in seen:
+            return [seen[need], i]
+        seen[x] = i`,
       complexity: "O(n) time, O(n) space. One pass, one map.",
     },
     problems: [
@@ -217,19 +204,18 @@ function hasDuplicateFast(nums) {
         "Compare the two characters, lowercased. Mismatch means no. Match means step both fingers inward.",
         "Fingers cross without a mismatch: it is a palindrome.",
       ],
-      code: `function isPalindrome(s) {
-  const isAlnum = (c) => /[a-z0-9]/i.test(c);
-  let left = 0;
-  let right = s.length - 1;
-  while (left < right) {
-    while (left < right && !isAlnum(s[left])) left++;
-    while (left < right && !isAlnum(s[right])) right--;
-    if (s[left].toLowerCase() !== s[right].toLowerCase()) return false;
-    left++;
-    right--;
-  }
-  return true;
-}`,
+      code: `def is_palindrome(s):
+    left, right = 0, len(s) - 1
+    while left < right:
+        while left < right and not s[left].isalnum():
+            left += 1
+        while left < right and not s[right].isalnum():
+            right -= 1
+        if s[left].lower() != s[right].lower():
+            return False
+        left += 1
+        right -= 1
+    return True`,
       complexity: "O(n) time, O(1) space. Each finger touches each character at most once.",
     },
     problems: [
@@ -266,20 +252,16 @@ function hasDuplicateFast(nums) {
         "If the new character is already in the frame, shrink from the left until it is not. The frame is always legal.",
         "After every step, record the frame size if it is a new best.",
       ],
-      code: `function lengthOfLongestSubstring(s) {
-  const window = new Set();
-  let left = 0;
-  let best = 0;
-  for (let right = 0; right < s.length; right++) {
-    while (window.has(s[right])) {
-      window.delete(s[left]); // shrink until legal again
-      left++;
-    }
-    window.add(s[right]);
-    best = Math.max(best, right - left + 1);
-  }
-  return best;
-}`,
+      code: `def length_of_longest_substring(s):
+    last_seen = {}                    # char -> last index
+    left = 0
+    best = 0
+    for right, ch in enumerate(s):
+        if ch in last_seen and last_seen[ch] >= left:
+            left = last_seen[ch] + 1  # jump past the repeat
+        last_seen[ch] = right
+        best = max(best, right - left + 1)
+    return best`,
       complexity:
         "O(n) time, O(k) space where k is the alphabet size. Each character enters and leaves the window at most once.",
     },
@@ -315,17 +297,17 @@ function hasDuplicateFast(nums) {
         "Middle too small: the answer lives strictly right of mid, so lo becomes mid + 1. Too big: hi becomes mid - 1.",
         "The plus one and minus one matter. They guarantee the zone shrinks every loop, which is what prevents infinite loops.",
       ],
-      code: `function search(nums, target) {
-  let lo = 0;
-  let hi = nums.length - 1;
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (nums[mid] === target) return mid;
-    if (nums[mid] < target) lo = mid + 1; // toss the left half
-    else hi = mid - 1; // toss the right half
-  }
-  return -1;
-}`,
+      code: `def search(nums, target):
+    lo, hi = 0, len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[mid] < target:
+            lo = mid + 1              # answer lives right of mid
+        else:
+            hi = mid - 1              # answer lives left of mid
+    return -1`,
       complexity: "O(log n) time, O(1) space. Halving is the whole story.",
     },
     problems: [
@@ -344,7 +326,7 @@ function hasDuplicateFast(nums) {
     eli5: [
       "A stack is a stack of plates: the last plate you put on is the first one you take off. Last in, first out. It is how undo works, how the browser back button works, and how function calls work.",
       "A queue is the line at a coffee shop: first in, first out. Printer jobs, task processing, and the engine inside breadth-first search.",
-      "In JavaScript an array is both: push and pop give you a stack, push and shift give you a queue. Worth saying in an interview: shift is technically O(n), and a real system would use a proper deque, but for interview-sized inputs it is fine.",
+      "In Python a list is your stack: append and pop are both O(1). For a queue, list.pop(0) is O(n) — reach for collections.deque, where append and popleft are both O(1). Saying that tradeoff out loud in an interview is a free point.",
       "The magic of a stack in problems: it remembers unfinished business in exactly the reverse order you will need to finish it.",
     ],
     spotIt: [
@@ -362,18 +344,16 @@ function hasDuplicateFast(nums) {
         "Mismatch, or popping an empty stack: invalid.",
         "End of string with an empty stack: everything got closed. Valid.",
       ],
-      code: `function isValid(s) {
-  const pairs = { ")": "(", "]": "[", "}": "{" };
-  const stack = [];
-  for (const ch of s) {
-    if (ch === "(" || ch === "[" || ch === "{") {
-      stack.push(ch);
-    } else if (stack.pop() !== pairs[ch]) {
-      return false;
-    }
-  }
-  return stack.length === 0;
-}`,
+      code: `def is_valid(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for ch in s:
+        if ch in pairs:               # a closer must match the top
+            if not stack or stack.pop() != pairs[ch]:
+                return False
+        else:
+            stack.append(ch)
+    return len(stack) == 0`,
       complexity: "O(n) time, O(n) space. Each bracket is pushed and popped at most once.",
     },
     problems: [
@@ -410,17 +390,15 @@ function hasDuplicateFast(nums) {
         "Flip the arrow: curr.next = prev.",
         "Step both fingers forward. When curr falls off the end, prev is standing on the new head.",
       ],
-      code: `function reverseList(head) {
-  let prev = null;
-  let curr = head;
-  while (curr) {
-    const next = curr.next; // save the rest of the chain
-    curr.next = prev; // flip this arrow backward
-    prev = curr; // step forward
-    curr = next;
-  }
-  return prev; // the new head
-}`,
+      code: `def reverse_list(head):
+    prev = None
+    curr = head
+    while curr:
+        nxt = curr.next               # save the rest
+        curr.next = prev              # flip the arrow
+        prev = curr                   # walk both forward
+        curr = nxt
+    return prev`,
       complexity: "O(n) time, O(1) space. One pass, three pointer variables.",
     },
     problems: [
@@ -458,10 +436,10 @@ function hasDuplicateFast(nums) {
         "My depth is 1 (me) plus the deeper of the two.",
         "Three lines. Most tree problems are this shape with different combining logic.",
       ],
-      code: `function maxDepth(root) {
-  if (root === null) return 0; // empty tree
-  return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
-}`,
+      code: `def max_depth(root):
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))`,
       complexity: "O(n) time, every node visited once. O(h) space for the call stack, where h is tree height.",
     },
     problems: [
@@ -500,31 +478,25 @@ function hasDuplicateFast(nums) {
         "The sink function is four recursive calls, one per neighbor, with bounds checks as the base case.",
         "Say out loud that you are mutating the input to mark visited, and that a visited set is the alternative. Interviewers love hearing the trade-off.",
       ],
-      code: `function numIslands(grid) {
-  const rows = grid.length;
-  const cols = grid[0].length;
-  let count = 0;
+      code: `def num_islands(grid):
+    rows, cols = len(grid), len(grid[0])
 
-  function sink(r, c) {
-    if (r < 0 || c < 0 || r >= rows || c >= cols) return;
-    if (grid[r][c] !== "1") return;
-    grid[r][c] = "0"; // mark visited by sinking
-    sink(r + 1, c);
-    sink(r - 1, c);
-    sink(r, c + 1);
-    sink(r, c - 1);
-  }
+    def sink(r, c):
+        if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] != "1":
+            return
+        grid[r][c] = "0"              # mark visited by sinking it
+        sink(r + 1, c)
+        sink(r - 1, c)
+        sink(r, c + 1)
+        sink(r, c - 1)
 
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (grid[r][c] === "1") {
-        count++;
-        sink(r, c);
-      }
-    }
-  }
-  return count;
-}`,
+    count = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == "1":
+                count += 1            # found a new island
+                sink(r, c)            # erase all of it
+    return count`,
       complexity: "O(rows times cols) time, each cell touched a constant number of times. O(rows times cols) space worst case for the recursion.",
     },
     problems: [
@@ -544,7 +516,7 @@ function hasDuplicateFast(nums) {
       "An emergency room does not serve patients in arrival order. Whoever is most urgent is always seen next. That is a priority queue, and a heap is the data structure that makes it cheap.",
       "The deal a heap offers: I will not keep everything sorted, but I guarantee the most important item is always sitting on top, and adding or removing costs only O(log n). Full sorting costs n log n; a heap gives you just-enough order for less.",
       "The classic play for 'top k of a huge stream': keep a min-heap of size k. Anything better than the worst of your current top k kicks it out. You never sort the whole thing.",
-      "JavaScript has no built-in heap. In interviews, say 'I will assume a MinHeap class with push and pop, both O(log n)' and either sketch it or sort for small inputs. Interviewers accept this constantly; knowing the costs is what matters.",
+      "Python ships a real heap: the heapq module is a min-heap with heappush and heappop, both O(log n). Need a max-heap? Push negatives and flip the sign on the way out — say that trick out loud and it reads as fluency.",
     ],
     spotIt: [
       "Top k anything, kth largest, kth smallest, k closest: heap alarm bells.",
@@ -560,16 +532,15 @@ function hasDuplicateFast(nums) {
         "Follow-up answer: keep a min-heap of size k while scanning. If the heap grows past k, pop the smallest. Survivors are the top k, and the heap top is the kth largest.",
         "That improves to O(n log k), which matters when n is a billion and k is 10. Saying both versions and the trade-off is a strong interview moment.",
       ],
-      code: `function findKthLargest(nums, k) {
-  // Interview-honest v1: sort. O(n log n).
-  nums.sort((a, b) => b - a);
-  return nums[k - 1];
-}
+      code: `import heapq
 
-// Follow-up to say out loud:
-// Keep a min-heap of size k while scanning; pop when it
-// exceeds k. Top of heap is the answer. O(n log k) time,
-// O(k) space. In JS, assume a MinHeap class exists.`,
+def find_kth_largest(nums, k):
+    heap = []                         # min-heap of the k biggest so far
+    for x in nums:
+        heapq.heappush(heap, x)
+        if len(heap) > k:
+            heapq.heappop(heap)       # evict the smallest
+    return heap[0]`,
       complexity: "Sort: O(n log n). Heap: O(n log k) time, O(k) space.",
     },
     problems: [
@@ -605,22 +576,19 @@ function hasDuplicateFast(nums) {
         "Loop over the remaining choices from a start index (so you never go backwards, which kills duplicates).",
         "Choose (push), explore (recurse with i + 1), un-choose (pop). The pop is the backtrack.",
       ],
-      code: `function subsets(nums) {
-  const result = [];
-  const path = [];
+      code: `def subsets(nums):
+    result = []
+    path = []
 
-  function explore(start) {
-    result.push([...path]); // every path is a valid subset
-    for (let i = start; i < nums.length; i++) {
-      path.push(nums[i]); // choose
-      explore(i + 1); // explore
-      path.pop(); // un-choose
-    }
-  }
+    def backtrack(start):
+        result.append(path[:])        # snapshot the current path
+        for i in range(start, len(nums)):
+            path.append(nums[i])      # choose
+            backtrack(i + 1)          # explore
+            path.pop()                # undo
 
-  explore(0);
-  return result;
-}`,
+    backtrack(0)
+    return result`,
       complexity: "O(2 to the n) subsets exist, so O(n times 2 to the n) time. Exponential because the output itself is exponential.",
     },
     problems: [
@@ -655,17 +623,15 @@ function hasDuplicateFast(nums) {
         "So keep a map of every running total seen and how many times. At each step, add how many times (total minus k) has appeared.",
         "Seed the map with 0 seen once, so stretches starting at index 0 count too. That seed is the classic forgotten detail.",
       ],
-      code: `function subarraySum(nums, k) {
-  const seen = new Map([[0, 1]]); // running total -> times seen
-  let total = 0;
-  let count = 0;
-  for (const n of nums) {
-    total += n;
-    count += seen.get(total - k) || 0; // stretches ending here
-    seen.set(total, (seen.get(total) || 0) + 1);
-  }
-  return count;
-}`,
+      code: `def subarray_sum(nums, k):
+    count = 0
+    running = 0
+    seen = {0: 1}                     # prefix sum -> times seen
+    for x in nums:
+        running += x
+        count += seen.get(running - k, 0)
+        seen[running] = seen.get(running, 0) + 1
+    return count`,
       complexity: "O(n) time, O(n) space. One pass, one map.",
     },
     problems: [
@@ -701,17 +667,11 @@ function hasDuplicateFast(nums) {
         "Base cases: one way to be on step 1, two ways to be on step 2.",
         "You only ever look two entries back, so two variables replace the whole table. Saying that space optimization out loud is a strong finish.",
       ],
-      code: `function climbStairs(n) {
-  if (n <= 2) return n;
-  let twoBack = 1; // ways to reach step 1
-  let oneBack = 2; // ways to reach step 2
-  for (let i = 3; i <= n; i++) {
-    const current = oneBack + twoBack;
-    twoBack = oneBack;
-    oneBack = current;
-  }
-  return oneBack;
-}`,
+      code: `def climb_stairs(n):
+    a, b = 1, 1                       # ways to stand on steps 0 and 1
+    for _ in range(n - 1):
+        a, b = b, a + b               # slide the window up one step
+    return b`,
       complexity: "O(n) time, O(1) space after the two-variable trick. The memoized recursion is O(n) time, O(n) space.",
     },
     problems: [
@@ -748,14 +708,13 @@ function hasDuplicateFast(nums) {
         "Otherwise extend the reach: furthest = max(furthest, here plus jump length).",
         "Why greedy is safe here: keeping the reach as large as possible can never hurt you later. That one-sentence argument is the actual answer.",
       ],
-      code: `function canJump(nums) {
-  let furthest = 0;
-  for (let i = 0; i < nums.length; i++) {
-    if (i > furthest) return false; // stranded before reaching i
-    furthest = Math.max(furthest, i + nums[i]); // extend the reach
-  }
-  return true;
-}`,
+      code: `def can_jump(nums):
+    reach = 0                         # farthest index we can touch
+    for i, jump in enumerate(nums):
+        if i > reach:
+            return False              # stranded before this square
+        reach = max(reach, i + jump)
+    return True`,
       complexity: "O(n) time, O(1) space. One pass, one variable.",
     },
     problems: [
@@ -788,20 +747,15 @@ function hasDuplicateFast(nums) {
         "For each next interval: if it starts at or before the current block ends, they overlap, so extend the block end to the max of the two ends.",
         "Otherwise there is a gap: push it as a fresh block. The sweep never looks backward.",
       ],
-      code: `function merge(intervals) {
-  intervals.sort((a, b) => a[0] - b[0]); // sort by start
-  const merged = [intervals[0]];
-  for (let i = 1; i < intervals.length; i++) {
-    const last = merged[merged.length - 1];
-    const [start, end] = intervals[i];
-    if (start <= last[1]) {
-      last[1] = Math.max(last[1], end); // overlap: extend
-    } else {
-      merged.push([start, end]); // gap: new block
-    }
-  }
-  return merged;
-}`,
+      code: `def merge(intervals):
+    intervals.sort(key=lambda it: it[0])
+    merged = [intervals[0]]
+    for start, end in intervals[1:]:
+        if start <= merged[-1][1]:    # overlaps the last one
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return merged`,
       complexity: "O(n log n) time for the sort, then an O(n) sweep. O(n) space for the output.",
     },
     problems: [
@@ -1754,20 +1708,20 @@ const BIGO_OPTIONS = [
 ];
 
 const BIGO_BANK = [
-  { a: "c1", why: "Index math and arithmetic, no loops. Same cost at any size.", code: "function last(nums) {\n  return nums[nums.length - 1];\n}" },
-  { a: "n", why: "One pass, constant work per element.", code: "function total(nums) {\n  let sum = 0;\n  for (const x of nums) sum += x;\n  return sum;\n}" },
-  { a: "n2", why: "A loop inside a loop over the same input: the handshake shape.", code: "function hasDup(nums) {\n  for (let i = 0; i < nums.length; i++) {\n    for (let j = i + 1; j < nums.length; j++) {\n      if (nums[i] === nums[j]) return true;\n    }\n  }\n  return false;\n}" },
-  { a: "logn", why: "The search space halves every iteration.", code: "function f(n) {\n  let steps = 0;\n  while (n > 1) {\n    n = Math.floor(n / 2);\n    steps++;\n  }\n  return steps;\n}" },
-  { a: "nlogn", why: "The sort dominates; everything after is cheaper.", code: "function range(nums) {\n  nums.sort((a, b) => a - b);\n  return nums[nums.length - 1] - nums[0];\n}" },
-  { a: "n2", why: "includes is a hidden linear scan inside a linear loop.", code: "function hasPair(nums, k) {\n  for (const a of nums) {\n    if (nums.includes(k - a)) return true;\n  }\n  return false;\n}" },
-  { a: "n", why: "Same problem, but the Set lookup is O(1): the classic trade.", code: "function hasPair(nums, k) {\n  const seen = new Set();\n  for (const a of nums) {\n    if (seen.has(k - a)) return true;\n    seen.add(a);\n  }\n  return false;\n}" },
-  { a: "exp", why: "Each call spawns two more: the tree doubles every level.", code: "function fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}" },
-  { a: "n", why: "Sequential loops add, they do not multiply: n plus n is still O(n).", code: "function f(nums) {\n  let a = 0;\n  for (const x of nums) a += x;\n  let b = 1;\n  for (const x of nums) b *= x;\n  return a + b;\n}" },
-  { a: "n", why: "The inner loop is a fixed 10 regardless of n: constants drop.", code: "function f(nums) {\n  let out = 0;\n  for (const x of nums) {\n    for (let k = 0; k < 10; k++) out += x * k;\n  }\n  return out;\n}" },
-  { a: "exp", why: "The output itself has 2 to the n entries; you cannot beat writing them down.", code: "function subsets(nums) {\n  let res = [[]];\n  for (const x of nums) {\n    res = res.concat(res.map((s) => [...s, x]));\n  }\n  return res;\n}" },
-  { a: "n2", why: "The triangle is half of n squared, and half of n squared is still O(n^2).", code: "function f(nums) {\n  let out = 0;\n  for (let i = 0; i < nums.length; i++) {\n    for (let j = i; j < nums.length; j++) out += nums[j];\n  }\n  return out;\n}" },
-  { a: "logn", why: "Classic binary search: toss half the zone each loop.", code: "function find(nums, t) {\n  let lo = 0, hi = nums.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (nums[mid] === t) return mid;\n    if (nums[mid] < t) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}" },
-  { a: "nlogn", why: "n elements, each costing a log n heap operation.", code: "function process(jobs, heap) {\n  for (const j of jobs) {\n    heap.push(j); // O(log n)\n    heap.pop();   // O(log n)\n  }\n}" },
+  { a: "c1", why: "Index math, no loops. Same cost at any size.", code: "def last(nums):\n    return nums[-1]" },
+  { a: "c1", why: "A dict lookup is constant time on average, no matter how big the menu.", code: "def price(menu, item):\n    return menu.get(item, 0)" },
+  { a: "n", why: "One pass, constant work per element.", code: "def total(nums):\n    s = 0\n    for x in nums:\n        s += x\n    return s" },
+  { a: "n", why: "Two separate passes is still O(n): constants drop.", code: "def spread(nums):\n    hi = max(nums)\n    lo = min(nums)\n    return hi - lo" },
+  { a: "n", why: "Same pair problem, but the in check on a set is O(1): the classic trade.", code: "def has_pair(nums, k):\n    seen = set()\n    for a in nums:\n        if k - a in seen:\n            return True\n        seen.add(a)\n    return False" },
+  { a: "n2", why: "A loop inside a loop over the same input: the handshake shape.", code: "def has_dup(nums):\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] == nums[j]:\n                return True\n    return False" },
+  { a: "n2", why: "The in check on a list is a hidden linear scan, inside a linear loop.", code: "def has_pair(nums, k):\n    for a in nums:\n        if k - a in nums:\n            return True\n    return False" },
+  { a: "n2", why: "insert at index 0 shifts every element over: a hidden linear cost each time.", code: "def reverse_copy(nums):\n    out = []\n    for x in nums:\n        out.insert(0, x)\n    return out" },
+  { a: "logn", why: "The problem halves every iteration.", code: "def steps(n):\n    count = 0\n    while n > 1:\n        n = n // 2\n        count += 1\n    return count" },
+  { a: "logn", why: "Binary search: every comparison throws away half the remaining space.", code: "def search(nums, target):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1" },
+  { a: "nlogn", why: "The sort dominates; the single pass after it is cheaper.", code: "def spread(nums):\n    nums.sort()\n    return nums[-1] - nums[0]" },
+  { a: "nlogn", why: "Sort first, then one linear pass: n log n plus n is still n log n.", code: "def closest_gap(nums):\n    nums.sort()\n    best = nums[1] - nums[0]\n    for i in range(2, len(nums)):\n        best = min(best, nums[i] - nums[i - 1])\n    return best" },
+  { a: "exp", why: "Each call spawns two more: the tree doubles every level.", code: "def fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)" },
+  { a: "exp", why: "Every element branches into keep-it or skip-it: two choices, n times.", code: "def count_subsets(nums, i=0):\n    if i == len(nums):\n        return 1\n    keep = count_subsets(nums, i + 1)\n    skip = count_subsets(nums, i + 1)\n    return keep + skip" }
 ];
 
 function weakSpots(progress) {
