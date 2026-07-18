@@ -56,24 +56,25 @@ const CONCEPTS = [
     id: "py-reading",
     phase: "p0",
     title: "Reading Python",
-    tagline: "The rules of the notation",
+    tagline: "How to read the words",
     eli5: [
-      "Python has no braces and no semicolons. Indentation is the structure: everything indented under a line belongs to it, the way an outline works. Your eyes already read code this way — Python just makes it official.",
-      "A colon opens a block. def, if, for, while all end their line with one, and the body lives indented underneath. Four spaces is the convention everywhere.",
-      "Names use snake_case: two_sum, max_profit, left. True, False and None are capitalized. Comments start with a hash mark.",
-      "The payoff: Python reads almost exactly like the pseudocode interviewers scribble on whiteboards. Less punctuation between your idea and the screen.",
+      "Python has no curly braces. It uses spaces instead. Everything pushed to the right belongs to the line above it. Like an outline, or a family tree.",
+      "See a colon at the end of a line? A block is starting. The stuff under it, pushed right, lives inside that block.",
+      "Names look like this: two_sum, max_profit. Little words joined by underscores. Comments start with a hash mark. The computer skips them. They are notes for you.",
+      "The best part: Python reads like plain English notes. Fewer symbols between your idea and the screen.",
     ],
     spotIt: [
-      "Every solution in this app. If a snippet looks strange right now, come back after this chapter and it will not.",
-      "The error you will meet first is IndentationError. It is never mysterious: some line is not lined up with its block.",
+      "Every code card in this app. If one looks scary now, read this chapter and look again. It will not be scary.",
+      "Your first error will say IndentationError. It just means: one line is not pushed right the correct amount. Line it up. Done.",
     ],
     example: {
       title: "One function, every rule at once",
-      prompt: "A tiny function using def, if, a loop and return. This is the whole grammar you need to start.",
+      prompt:
+        "One tiny function. It uses everything from this chapter: def, if, a loop, and return.",
       steps: [
-        "def opens the function, the colon opens the block, the body indents.",
-        "The if and the for indent one more level each time they nest.",
-        "No braces close anything. Un-indenting is the closing brace.",
+        "def starts the function. The colon opens it. The body sits pushed right.",
+        "Each new block pushes right one more step.",
+        "Nothing closes a block. Moving back left IS the closing.",
       ],
       code: `def first_even(nums):          # def, name, args, colon
     for x in nums:             # for-each, no index needed
@@ -81,7 +82,7 @@ const CONCEPTS = [
             return x           # found it, hand it back
     return None                # Python's null`,
       complexity:
-        "No complexity lesson here — just notation. Once your eyes accept indentation-as-structure, everything else in this app is readable.",
+        "No speed math here. Just learn to see the shape. After that, every card in this app is readable.",
     },
     problems: [],
   },
@@ -89,25 +90,26 @@ const CONCEPTS = [
     id: "py-variables",
     phase: "p0",
     title: "Variables, numbers, strings",
-    tagline: "Dynamic types and honest math",
+    tagline: "Boxes, numbers, and text",
     eli5: [
-      "No type declarations. x = 5 just works; a name points at a value, and it can point at something else later. The interpreter keeps track so you do not have to.",
-      "Two divisions, and the difference matters: / always gives a decimal, 7 / 2 is 3.5. Double slash floors it: 7 // 2 is 3. That double slash is the one you want for a binary search midpoint.",
-      "Strings work with either quote style and are immutable — every 'edit' builds a new one. f-strings put values inside text: f'count is {n}'. That is your debugging voice.",
-      "Slicing is the superpower: s[1:4] takes characters one through three, s[-1] is the last one, s[::-1] is the whole thing reversed. It works identically on lists, and it never crashes on out-of-range bounds — it just gives you what exists.",
+      "A variable is a name pointing at a thing. Write x = 5 and now x means 5. No setup. No announcing types. Python figures it out.",
+      "Python has two kinds of division. One slash gives the exact answer: 7 / 2 is 3.5. Two slashes drops the leftover: 7 // 2 is 3. The two-slash one matters — you use it to find the middle of a list.",
+      "Text lives in quotes. You cannot change a string. Every 'edit' secretly makes a new one. Want a value inside text? Put f before the quote: f'day {n}'. The {n} fills itself in.",
+      "Slicing cuts pieces out. word[1:4] takes letters one, two, three. word[-1] is the last letter. word[::-1] is the whole thing backwards. It never crashes. It just gives you what exists.",
     ],
     spotIt: [
-      "The // shows up in every binary search in this app: mid = (lo + hi) // 2.",
-      "s[::-1] is the one-line reverse — a legitimate party trick for palindrome warm-ups.",
-      "nums[:] copies a list, which is exactly the snapshot move the backtracking solutions use.",
+      "The // shows up in every binary search: mid = (lo + hi) // 2. It keeps the answer a whole number.",
+      "word[::-1] flips a word in one move. Great party trick for palindrome problems.",
+      "nums[:] makes a copy of a list. You will use that trick later, promise.",
     ],
     example: {
       title: "Division, slices, f-strings",
-      prompt: "The handful of expressions you will type hundreds of times.",
+      prompt:
+        "The little moves you will type a hundred times: division, slices, and text with values inside.",
       steps: [
-        "Floor division for midpoints, so the index stays a whole number.",
-        "Negative indexes count from the end; no length arithmetic needed.",
-        "Slices copy — the original is untouched.",
+        "Two slashes for a middle point. Whole number out.",
+        "Minus one counts from the back. No length math needed.",
+        "A slice is a copy. The original stays safe.",
       ],
       code: `mid = (0 + 9) // 2        # 4, floor division
 word = "woodshed"
@@ -117,7 +119,7 @@ flipped = word[::-1]      # "dehsdoow"
 n = 3
 line = f"day {n} of 30"   # f-string: values inside text`,
       complexity:
-        "One honest cost: a slice copies, so s[1:4] is O(k) for the piece you take. Saying that out loud earns a nod.",
+        "One honest cost: cutting a slice copies that piece. Small piece, small cost. Say it out loud and interviewers nod.",
     },
     problems: [],
   },
@@ -125,26 +127,27 @@ line = f"day {n} of 30"   # f-string: values inside text`,
     id: "py-lists",
     phase: "p0",
     title: "Lists",
-    tagline: "Your array, but friendlier",
+    tagline: "One box that holds many things",
     eli5: [
-      "The list is Python's array, and it grows on its own: nums = [1, 2, 3], nums.append(4), nums.pop(). Append and pop at the end are O(1) — which means a plain list is already a stack.",
-      "len(nums) is the length. Checking 'x in nums' works but walks the whole list — O(n). Remember that feeling; the dicts-and-sets chapter is the cure.",
-      "Two sorts, and the difference is the same lesson every language teaches: nums.sort() changes the list in place, sorted(nums) hands back a new one and leaves the original alone.",
-      "A list comprehension builds a list in one readable line: [x * 2 for x in nums]. You will read them constantly; write them when they stay simple, and use a normal loop the moment logic gets thick.",
-      "enumerate(nums) gives you index and value together — for i, x in enumerate(nums) — so you never write the index-counter ceremony by hand.",
+      "A list is a row of boxes: nums = [1, 2, 3]. It grows when you add. nums.append(4) puts one on the end. nums.pop() takes the last one off. Both are instant.",
+      "Wait — add and remove at the end, both instant? Then a list is already a stack. You get a whole data structure for free.",
+      "len(nums) counts the boxes. Asking 'is 5 in nums' works, but Python walks every box to check. Slow on big lists. Remember that itch. The dicts chapter scratches it.",
+      "Two ways to sort. nums.sort() rearranges YOUR list. sorted(nums) hands you a NEW sorted copy and leaves yours alone. Mixing these up causes real bugs.",
+      "for i, x in enumerate(nums) walks the list and gives you the position AND the value. No counting by hand.",
     ],
     spotIt: [
-      "Everywhere. Almost every problem in this app holds its data in a list.",
-      "The trap the Big-O drill teaches: insert(0, x) and pop(0) shift every element — O(n) each. Front-of-list work wants a deque, which the idioms chapter covers.",
-      "path[:] in the subsets solution is the copy-a-snapshot move from the slicing chapter, earning its keep.",
+      "Almost every problem in this app keeps its stuff in a list.",
+      "The trap: adding or removing at the FRONT makes every other box scoot over. Slow. There is a special tool for front-work in the idioms chapter.",
+      "path[:] copies the list. The backtracking chapter uses that exact move to take snapshots.",
     ],
     example: {
       title: "The list in one breath",
-      prompt: "Build, walk, transform, copy — the four motions you repeat forever.",
+      prompt:
+        "The four list moves you repeat forever: build it, walk it, transform it, copy it.",
       steps: [
-        "append and pop make the stack motions.",
-        "enumerate kills index bookkeeping.",
-        "The comprehension is a loop that fits in your eye.",
+        "append and pop work the end. That is your stack.",
+        "enumerate hands you position and value together.",
+        "The one-line loop builds a new list while you watch.",
       ],
       code: `nums = [3, 1, 4]
 nums.append(1)             # [3, 1, 4, 1]
@@ -157,7 +160,7 @@ doubled = [x * 2 for x in nums]   # [6, 2, 8]
 copy = nums[:]             # new list, same values
 nums.sort()                # in place: [1, 3, 4]`,
       complexity:
-        "append and pop from the end: O(1). insert(0) or pop(0): O(n). 'in' on a list: O(n). Three facts that answer half of all follow-up questions.",
+        "End of the list: instant. Front of the list: slow, everything shifts. Checking 'is it in there': walks every box. Three facts, half your follow-ups answered.",
     },
     problems: [],
   },
@@ -165,25 +168,26 @@ nums.sort()                # in place: [1, 3, 4]`,
     id: "py-dicts-sets",
     phase: "p0",
     title: "Dicts and sets",
-    tagline: "The O(1) power tools",
+    tagline: "The instant-lookup cubbies",
     eli5: [
-      "The dict is Python's hash map, and it is the single most important structure in interviews. seen = {}, seen[key] = value stores, seen[key] reads, 'key in seen' answers instantly. All O(1) on average.",
-      "Reading a missing key with brackets crashes. seen.get(key, 0) does not — it hands back your default. That one method is the difference between clean code and try-except noise.",
-      "The counting pattern you will write fifty times: counts[x] = counts.get(x, 0) + 1. Tallying in one line.",
-      "A set is a dict that only keeps the keys: unique members, instant lookup. seen = set(), seen.add(x), 'x in seen'. And set(nums) deduplicates an entire list in one move.",
-      "Here is the number one interview move in existence, now in your hands: any time you catch yourself searching inside a loop, a dict or set lookup probably turns O(n squared) into O(n).",
+      "A dict is a wall of labeled cubbies. seen['kory'] = 5 puts 5 in the cubby labeled kory. Reading it back: instant. Checking if a label exists: instant. This is the most important tool in interviews. Not close.",
+      "Reading a label that does not exist crashes. So use seen.get('kory', 0). That means: give me kory's cubby, and if there is none, just hand me 0. No crash, ever.",
+      "The counting trick you will write fifty times: counts[x] = counts.get(x, 0) + 1. It tallies anything. One line.",
+      "A set is a cubby wall with labels only — nothing inside. It answers one question instantly: have I seen this before? seen.add(x) remembers. 'x in seen' checks.",
+      "Now the biggest move in interviewing: when you catch yourself SEARCHING inside a loop, stop. Remember things in a dict or set instead. The slow search becomes an instant check.",
     ],
     spotIt: [
-      "two_sum in the hash map chapter is a pure dict play — the seen dictionary is this chapter applied.",
-      "The Big-O drill has the exact pair: 'in' on a list inside a loop is quadratic, the same check against a set is linear. Feel the difference once and you own it.",
+      "two_sum, the most famous interview problem alive, is this chapter in action.",
+      "The Big-O drill has the exact pair: checking a list inside a loop is slow, checking a set is instant. Feel that difference once and you own it forever.",
     ],
     example: {
       title: "Trade the loop for a lookup",
-      prompt: "First repeated number in a list — the smallest possible demo of the biggest possible idea.",
+      prompt:
+        "Find the first repeated number. The smallest possible demo of the biggest possible idea.",
       steps: [
-        "The set remembers everything seen so far, at O(1) a glance.",
-        "One pass, no inner search. That is the whole trade.",
-        "The counting variant with .get is the same muscle.",
+        "The set remembers everything you have walked past.",
+        "Each new number, one instant question: seen you before?",
+        "One pass. No searching inside the loop. That is the whole trade.",
       ],
       code: `def first_repeat(nums):
     seen = set()
@@ -199,7 +203,7 @@ def tally(words):
         counts[w] = counts.get(w, 0) + 1
     return counts`,
       complexity:
-        "Average O(1) insert and lookup for both dict and set. The word 'average' shows you know hashing has rare bad days — cheap credibility.",
+        "Dict and set: instant to add, instant to check, on average. Saying 'on average' out loud is free credibility.",
     },
     problems: [],
   },
@@ -207,24 +211,26 @@ def tally(words):
     id: "py-flow",
     phase: "p0",
     title: "Loops and functions",
-    tagline: "for-in, while, def, unpack",
+    tagline: "Walking, deciding, little machines",
     eli5: [
-      "for x in nums walks the values directly — no counter, no length check. When you truly need positions, range(n) counts 0 up to n-1, and range(2, n) starts at 2. It always stops one before the end number; internalize that and a whole species of off-by-one dies.",
-      "while is for loops whose length you cannot know up front — binary search shrinking its window, a linked list walking to its end.",
-      "def name(args): plus return. A function can return two things at once — return lo, hi — and the caller unpacks them: low, high = f(). Same trick swaps variables with no temp: a, b = b, a.",
-      "Functions nest. A def inside a def sees the outer function's variables — Python closures, the same idea you know from JavaScript. It is how the num_islands solution keeps its sink helper private and clean.",
+      "for x in nums walks the list and hands you each thing. No counter. No length check. Just: for each thing, do this.",
+      "Need actual numbers? range(5) counts 0, 1, 2, 3, 4. It stops one BEFORE the number you give it. Burn that in. It kills a whole family of off-by-one bugs.",
+      "while keeps going until something changes. Use it when you cannot know how many steps it takes. Binary search shrinking its window is a while.",
+      "def builds a little machine. return sends the answer back. A machine can return TWO things: return lo, hi. Catch them both: low, high = my_machine(). Same trick swaps variables: a, b = b, a. No temp box.",
+      "Machines can live inside machines. The inner one can see the outer one's variables. That is how big solutions keep little helpers close and private.",
     ],
     spotIt: [
-      "The nested sink function inside num_islands is this chapter's closure point, live.",
-      "a, b = b, a is the reverse-a-linked-list feel in one line of variable work.",
-      "range stopping early is behind most beginner off-by-ones — when a loop misses the last item, look there first.",
+      "The sink helper inside num_islands is an inner machine. Watch for it.",
+      "a, b = b, a is the swap. You will use it reversing a linked list.",
+      "A loop missing its last item? Check range first. It stops early on purpose.",
     ],
     example: {
       title: "Small moves, whole vocabulary",
-      prompt: "One function returning two values, one nested helper, one swap.",
+      prompt:
+        "One machine that returns two answers, one inner helper, one swap.",
       steps: [
-        "Track two things, return both, unpack at the call site.",
-        "The helper reads its parent's variables without being handed them.",
+        "Track two things. Return both. Catch both at the call.",
+        "The inner helper reads its parent's variables. Nobody hands them over.",
       ],
       code: `def min_and_max(nums):
     lo = hi = nums[0]
@@ -249,7 +255,7 @@ def outer(nums):
 a, b = 1, 2
 a, b = b, a                    # the no-temp swap`,
       complexity:
-        "Nothing scary: range(n) is O(n), the unpacking and swap are free. These are style points that make your code read like you live here.",
+        "Nothing scary. range(n) touches n things, so O(n). The swap and the double-return are free style points.",
     },
     problems: [],
   },
@@ -257,24 +263,25 @@ a, b = b, a                    # the no-temp swap`,
     id: "py-idioms",
     phase: "p0",
     title: "The interview idioms",
-    tagline: "Six moves that finish solutions",
+    tagline: "Six power moves",
     eli5: [
-      "float('inf') is bigger than everything — the honest starting value when hunting a minimum. Its negative starts a maximum hunt.",
-      "min, max and sort all accept key=, a function deciding what to compare by. lambda is just a tiny unnamed function: intervals.sort(key=lambda it: it[0]) sorts by first element. That one line opens the merge-intervals pattern.",
-      "''.join(parts) glues a list of strings into one, fast. Paired with the strings chapter: collect pieces in a list, join once at the end.",
-      "collections.deque is the real queue: append at the back, popleft from the front, both O(1) — exactly what a plain list cannot do cheaply. Every BFS you ever write starts with it.",
-      "heapq turns a plain list into a min-heap: heappush and heappop, both O(log n). Need the biggest instead? Push negatives and flip the sign on the way out — say that trick out loud in an interview and it reads as fluency.",
+      "float('inf') means infinity. Bigger than everything. Start your 'smallest so far' hunt there and the first real number always wins.",
+      "min, max, and sort can take a helper called key=. It says WHAT to compare by. lambda p: p[0] is a tiny unnamed machine meaning 'look at the first thing.' So pairs.sort(key=lambda p: p[0]) sorts pairs by their first number.",
+      "''.join(parts) glues a list of words into one string, fast. Collect pieces in a list. Glue once at the end.",
+      "collections.deque is a line at the store, done right. Join at the back. Leave from the front. Both instant. Every BFS you ever write starts with one.",
+      "heapq turns a plain list into a magic pile where the smallest sits on top. heappush adds. heappop grabs the smallest. Want the BIGGEST on top? Push negatives, flip the sign coming out. Say that trick in an interview and watch the nod.",
     ],
     spotIt: [
-      "merge intervals uses the key=lambda sort. find_kth_largest is heapq working a size-k heap. The BFS problems ahead all open with deque.",
-      "When a follow-up asks 'can you do the front removal faster?', deque is the answer being fished for.",
+      "merge intervals uses the key=lambda sort. find_kth_largest is heapq at work. Every BFS opens with deque.",
+      "When they ask 'can you take from the front faster?' — deque is the answer they are fishing for.",
     ],
     example: {
       title: "The idioms, back to back",
-      prompt: "Every move on one card — this is the reference you will reopen the night before.",
+      prompt:
+        "All six moves on one card. This is the page you reopen the night before.",
       steps: [
-        "inf for a running best, key= for custom order.",
-        "join for strings, deque for queues, heapq for priority.",
+        "Infinity for a running best. key= for custom order.",
+        "join for strings. deque for lines. heapq for always-smallest.",
       ],
       code: `from collections import deque
 import heapq
@@ -296,7 +303,7 @@ heapq.heappush(heap, 5)
 heapq.heappush(heap, 2)
 smallest = heapq.heappop(heap) # 2`,
       complexity:
-        "deque popleft is O(1) where list pop(0) is O(n); heap push and pop are O(log n). Those two sentences answer most follow-ups this side of graphs.",
+        "deque leaves from the front instantly; a plain list cannot. The heap's add and grab cost log n each. Those two sentences answer most follow-ups.",
     },
     problems: [],
   },
@@ -304,31 +311,30 @@ smallest = heapq.heappop(heap) # 2`,
     id: "big-o",
     phase: "p1",
     title: "Big O notation",
-    tagline: "The growth label on every solution",
+    tagline: "The speed label",
     eli5: [
-      "Big O answers one question: how much slower does this get as the input grows? It is a growth label, not a stopwatch. Nobody cares about milliseconds in an interview; they care about the shape of the curve.",
-      "Making toast: one slice takes a minute, a hundred slices take about a hundred minutes. Work grows in a straight line with input. That is O(n), linear time.",
-      "A party where every guest shakes hands with every other guest: 10 guests is 45 handshakes, 100 guests is 4,950. Double the guests, roughly quadruple the work. That is O(n squared), and it is the shape of a loop inside a loop.",
-      "Finding a name in a paper phone book: open to the middle, decide left or right, repeat. A million names takes about 20 splits. That is O(log n). Halving is absurdly powerful, and it is the entire reason binary search exists.",
-      "O(1) is the vending machine: press B4, get the snack. Same effort whether the machine holds 10 items or 10,000.",
+      "Big O is a label that answers one question: when the pile gets bigger, how much slower do you get? It is not a stopwatch. It is a shape.",
+      "Making toast: one slice, one minute. A hundred slices, about a hundred minutes. Work grows in a straight line. That is O(n). Linear.",
+      "A party where everyone shakes hands with everyone: 10 people is 45 shakes. 100 people is almost 5,000. Double the guests, four times the work. That is O(n squared). It is the shape of a loop inside a loop.",
+      "Finding a name in a paper phone book: open the middle. Wrong half? Throw it away. A million names takes about 20 flips. That is O(log n). Halving is a superpower.",
+      "O(1) is the vending machine. Press B4, get the snack. Same effort with 10 items or 10,000.",
     ],
     spotIt: [
-      "Every single interview. After you code, they will ask for the complexity. Say it before they ask and you look prepared instead of prompted.",
-      "The hierarchy to memorize, fastest to slowest: O(1), O(log n), O(n), O(n log n), O(n squared), O(2 to the n).",
-      "Rules of thumb: one pass is n. Nested loops over the same input is n squared. Halving each step is log n. Sorting is n log n. A fixed number of steps is 1.",
-      "Space complexity is the same idea for memory. A hash map holding all n items is O(n) space; a couple of counter variables is O(1) space.",
-      "Nested does not automatically mean n squared. An inner loop that only ever advances a shared pointer forward is amortized O(n) — the two-pointer shape. And nesting over two different inputs is O(n times m), not n squared.",
-      "O(log n) is also the height of a balanced tree — the same halving, standing upright. And the factorial wall is real: generating every ordering of n items is O(n!), which is why brute-forcing permutations dies around ten.",
-      "Two memory bills people forget: BFS pays in queue, which can hold an entire level at once — O(n) worst case. Recursion pays in call stack, one frame per open call.",
+      "Every interview ends with 'what is the complexity?' Say it BEFORE they ask. You look ready instead of prompted.",
+      "The ladder, fastest to slowest: O(1), O(log n), O(n), O(n log n), O(n squared), O(2 to the n). Memorize the ladder.",
+      "Quick reads: one pass is n. A loop in a loop over the SAME stuff is n squared. Halving each step is log n. Sorting is n log n.",
+      "Careful — nested does not always mean n squared. If the inner loop only pushes one shared pointer forward, the total work is still n. And a loop over apples inside a loop over oranges is n times m. Different piles, different letters.",
+      "Space is the same idea for memory. Holding all n things: O(n) space. A couple of counters: O(1). BFS holds a whole level in its line, so its memory is O(n) too. Recursion pays in stacked-up calls.",
+      "One more wall: making every possible ORDERING of n things is O(n!). It dies around ten. Nobody brute-forces permutations.",
     ],
     example: {
       title: "Same problem, two shapes",
       prompt:
-        "Does this array contain a duplicate? Here is the exact trade you will make over and over in interviews: spend memory to buy speed.",
+        "Does this list have a duplicate? Here is the trade you will make forever: spend a little memory, buy a lot of speed.",
       steps: [
-        "Brute force: compare every pair. Correct, easy to write, O(n squared). Always worth naming out loud as your starting point.",
-        "Better: remember what you have seen. A set answers 'have I seen this?' instantly, so one pass does it.",
-        "That is the whole game. Most interview improvements are exactly this move: replace an inner search loop with a hash lookup.",
+        "Slow way: compare every pair. Works. Easy. O(n squared). Always name it first.",
+        "Fast way: remember what you have seen in a set. Each check is instant. One pass.",
+        "That swap — search loop becomes instant lookup — is most of interviewing.",
       ],
       code: `# O(n^2) time, O(1) space: check every pair
 def has_duplicate(nums):
@@ -338,7 +344,7 @@ def has_duplicate(nums):
                 return True
     return False`,
       complexity:
-        "Slow version: O(n squared) time, O(1) space. Fast version: O(n) time, O(n) space. Being able to say that sentence is the win.",
+        "Slow version: n squared time, no extra memory. Fast version: n time, n memory. Saying that one sentence out loud is the win.",
     },
     problems: [],
   },
@@ -346,26 +352,26 @@ def has_duplicate(nums):
     id: "arrays-strings",
     phase: "p1",
     title: "Arrays and strings",
-    tagline: "Numbered parking spots in a row",
+    tagline: "Rows of boxes, rows of letters",
     eli5: [
-      "An array is a row of numbered parking spots. Jumping straight to spot 47 is instant, because the number tells you exactly where it is. That is why reading by index is O(1).",
-      "But inserting a car into the middle of a full row means every car after it has to shuffle down one spot. That is why inserting or removing in the middle is O(n). Adding at the end is cheap; adding at the front is not.",
-      "A string is just an array of characters wearing a trench coat. In Python strings are immutable, so every 'edit' secretly builds a brand new string. When you need to build a big string piece by piece, collect the parts in a list and ''.join them once at the end.",
-      "You already live in arrays daily as a React dev. The interview twist is being deliberate about what each operation costs instead of reaching for whatever method comes to mind.",
+      "An array is a row of numbered boxes: box 0, box 1, box 2. Jumping straight to box 7 is instant. Python calls this a list.",
+      "The end of the row is friendly: add or remove there, instant. The FRONT is not. Put something in box 0 and every other box scoots over. Slow.",
+      "A string is a row of letters you cannot change. Every 'edit' quietly builds a brand new string. Building a big one piece by piece? Collect pieces in a list. Glue once with join.",
+      "Most array problems are secretly asking: can you do this in ONE pass? Keep a little running memory — biggest so far, total so far — and one walk is enough.",
     ],
     spotIt: [
-      "Arrays are the default container. Almost every problem starts as one, and the question is which pattern you layer on top.",
-      "The costs to know cold: index read O(1), push and pop at the end O(1), shift and unshift at the front O(n), search unsorted O(n), slice O(n).",
-      "If your solution checks 'in' on a list inside a loop, alarm bells: that is a hidden O(n squared). A set or dict usually fixes it.",
+      "Words like 'contiguous', 'subarray', or 'in place' mean array thinking is coming.",
+      "Checking 'is it in this list' inside a loop? Alarm bells. Hidden slow scan. A set fixes it.",
+      "Running totals unlock a whole family: 'sum between here and there' becomes one subtraction.",
     ],
     example: {
       title: "Best Time to Buy and Sell Stock",
       prompt:
-        "Given daily prices, pick one day to buy and a later day to sell for maximum profit. The classic single-pass array scan.",
+        "Buy low, sell high, one pass. Track the cheapest day so far. Every new day ask: what if I sold today?",
       steps: [
-        "Brute force: try every buy day paired with every later sell day. O(n squared). Name it, then improve it.",
-        "Walk left to right carrying two facts: the cheapest price seen so far, and the best profit seen so far.",
-        "At each day ask: if I sold today, having bought at the cheapest day so far, is that a new best? One pass, done.",
+        "Keep two memories: cheapest so far, best profit so far.",
+        "New price lower than cheapest? New cheapest.",
+        "Otherwise: today minus cheapest. Better than best? New best.",
       ],
       code: `def max_profit(prices):
     best = 0
@@ -376,7 +382,8 @@ def has_duplicate(nums):
         else:
             best = max(best, price - cheapest)
     return best`,
-      complexity: "O(n) time, O(1) space. One pass, two variables.",
+      complexity:
+        "One walk down the list: O(n) time. Two little memory boxes: O(1) space. The dream combo.",
     },
     problems: [
       { slug: "concatenation-of-array", num: 1929, title: "Concatenation of Array", diff: "Easy", why: "Gentle first win, pure index work" },
@@ -392,25 +399,24 @@ def has_duplicate(nums):
     title: "Hash maps and sets",
     tagline: "The coat check",
     eli5: [
-      "A hash map is a coat check. Hand over your coat, get ticket 47. Later you hand back ticket 47 and get your exact coat instantly. Nobody walks the racks searching. Lookup, insert and delete are all O(1) on average.",
-      "In Python the dict is exactly this coat check, and a set is a hash map that only keeps the tickets — membership without the coats.",
-      "The number one interview move in existence: can I trade a loop for a lookup? Any time you catch yourself searching inside a loop, a hash map probably turns O(n squared) into O(n).",
-      "Counting things is the other superpower. A frequency map is a tally sheet: one pass to count, then answer questions from the tally.",
+      "A hash map is a coat check. Hand over your coat, get ticket 47. Later, ticket 47 gets your exact coat back. Instantly. Nobody walks the racks searching.",
+      "In Python, the dict IS this coat check. And a set is a coat check that keeps only tickets — perfect for 'have I seen this?'",
+      "Here is the number one move in all of interviewing: trade a loop for a lookup. Searching inside a loop? Stop. Store things in a dict instead. The slow search becomes an instant ticket-check.",
+      "The trade has a price: memory. You keep a copy of what you saw. Almost always worth it. n squared becomes n.",
     ],
     spotIt: [
-      "The words 'have I seen this before' anywhere in your thinking: Set.",
-      "Counting, frequencies, duplicates, anagrams: frequency map.",
-      "Pairs that sum, match, or complement each other: store what you need, look it up as you go.",
-      "Grouping things by a shared key: map from key to list.",
+      "'Have I seen this before?' — set. 'What goes WITH this?' — dict.",
+      "Counting anything: counts[x] = counts.get(x, 0) + 1. One-line tally.",
+      "Grouping things that match, like anagram words: the dict label IS the group. Sort the letters — that is your label.",
     ],
     example: {
       title: "Two Sum",
       prompt:
-        "Find two numbers in an array that add up to a target, return their indices. The most famous interview problem ever written, and it is a pure hash map play.",
+        "Find two numbers that add to a target. The most famous interview problem ever written. Pure coat check.",
       steps: [
-        "Brute force: check every pair, O(n squared).",
-        "Reframe each number: I am nums[i], I need target minus nums[i]. Call it my complement.",
-        "Walk the array once. At each number, ask the map: has my complement already walked past? If yes, done. If no, file myself under my value and keep walking.",
+        "Walk the list once. For each number ask: what PARTNER do I need?",
+        "Partner already in my dict? Done. Return both spots.",
+        "Not there? File THIS number under its ticket. Keep walking.",
       ],
       code: `def two_sum(nums, target):
     seen = {}                         # value -> index
@@ -419,7 +425,8 @@ def has_duplicate(nums):
         if need in seen:
             return [seen[need], i]
         seen[x] = i`,
-      complexity: "O(n) time, O(n) space. One pass, one map.",
+      complexity:
+        "One pass, instant checks: O(n) time. The dict holds up to n tickets: O(n) space. Say both halves.",
     },
     problems: [
       { slug: "contains-duplicate", num: 217, title: "Contains Duplicate", diff: "Easy", why: "The Set move in its purest form" },
@@ -433,27 +440,27 @@ def has_duplicate(nums):
     id: "two-pointers",
     phase: "p2",
     title: "Two pointers",
-    tagline: "Two people in a hallway",
+    tagline: "Two fingers on the page",
     eli5: [
-      "Picture two people at opposite ends of a hallway walking toward each other, or a slow walker and a fast runner on the same track. Two fingers on the data, each moving with purpose.",
-      "The brute force way to examine pairs is to compare everything with everything: O(n squared). Two pointers replaces that with one coordinated pass, because each step uses what you know to move one finger intelligently.",
-      "The converging version (ends moving inward) shines on sorted arrays and palindromes. The fast-and-slow version (same direction, different speeds) shines on in-place cleanup and linked list tricks.",
+      "Put one finger at each end of a row. Walk them toward each other. That is the whole trick.",
+      "Why bother? Checking every pair the dumb way means comparing everything with everything. Slow. Two fingers walk the row ONCE, together, and still find the answer.",
+      "Two flavors. Fingers walking toward each other: great for sorted rows and palindromes. A slow finger and a fast finger going the same way: great for cleaning a list in place, or finding the middle of a chain.",
+      "The magic word is 'sorted'. When a row is sorted, moving a finger tells you something FOR SURE. Sum too small? The left finger must move right. That certainty is the speed.",
     ],
     spotIt: [
-      "Sorted array plus 'find a pair': converge from both ends. Sum too small, move left finger right. Too big, move right finger left.",
-      "Palindrome checks: compare outside-in.",
-      "Remove or move items in place without extra memory: slow pointer marks where clean data ends, fast pointer scans ahead.",
-      "The word 'sorted' in a pairs problem is practically a flashing sign for this pattern.",
+      "Sorted row plus 'find a pair': fingers at both ends, walk inward.",
+      "Palindrome check: compare outside-in.",
+      "'Remove stuff in place, no extra memory': slow finger marks the clean part, fast finger scouts ahead.",
+      "The word 'sorted' in a pairs problem is a flashing sign for this pattern.",
     ],
     example: {
       title: "Valid Palindrome",
       prompt:
-        "Ignoring punctuation, spaces and case, does the string read the same forwards and backwards?",
+        "Ignore spaces, punctuation, and big-vs-small letters. Does it read the same forwards and backwards?",
       steps: [
-        "Put one finger at each end.",
-        "Skip anything that is not a letter or digit.",
-        "Compare the two characters, lowercased. Mismatch means no. Match means step both fingers inward.",
-        "Fingers cross without a mismatch: it is a palindrome.",
+        "One finger at each end.",
+        "Skip anything that is not a letter or number.",
+        "Compare the two, lowercased. Different? No. Same? Both fingers step inward.",
       ],
       code: `def is_palindrome(s):
     left, right = 0, len(s) - 1
@@ -467,7 +474,8 @@ def has_duplicate(nums):
         left += 1
         right -= 1
     return True`,
-      complexity: "O(n) time, O(1) space. Each finger touches each character at most once.",
+      complexity:
+        "Each finger crosses the row once: O(n) time. Just two fingers: O(1) space. No extra memory at all.",
     },
     problems: [
       { slug: "valid-palindrome", num: 125, title: "Valid Palindrome", diff: "Easy", why: "Converging pointers, straight from the example" },
@@ -482,26 +490,26 @@ def has_duplicate(nums):
     id: "sliding-window",
     phase: "p2",
     title: "Sliding window",
-    tagline: "Scenery from a train",
+    tagline: "A stretchy picture frame",
     eli5: [
-      "Watching scenery from a train window: the frame slides along, and you never re-inspect the whole world. You just note what entered the frame and what left it.",
-      "That is the trick. To evaluate every contiguous chunk of an array, brute force rebuilds each chunk from scratch: O(n squared) or worse. A window updates incrementally: add the new right edge, drop the old left edge, O(1) per step.",
-      "Fixed windows (size k) just slide. Stretchy windows grow the right edge greedily and shrink the left edge only when a rule breaks, like 'no repeated characters allowed inside'.",
+      "Imagine a picture frame sliding along a row. It can stretch wider or squeeze narrower. It never jumps backward. That frame is your answer zone.",
+      "The slow way to find 'the best stretch' is to test every possible start and end. That is n squared. The frame does it in one trip: grow the right edge, and when a rule breaks, shrink the left edge until it is happy again.",
+      "The deep magic: nothing ever moves backward. Right edge only goes right. Left edge only goes right. So even with a loop inside a loop, the TOTAL work is one trip each. Still O(n).",
+      "The frame usually carries a little notebook — a count, a set, a dict — describing what is inside it right now. Grow: add to the notebook. Shrink: cross it out.",
     ],
     spotIt: [
-      "The words longest, shortest, maximum or minimum next to substring, subarray or 'contiguous': window.",
-      "'Of size k' means a fixed window. A condition to maintain means a stretchy window.",
-      "The mechanics are always: expand right, and while the rule is broken, shrink left. Track the best as you go.",
-      "Contiguity is the requirement. If the elements can be scattered, this is not your pattern.",
+      "The words 'longest', 'shortest', or 'best' next to 'substring', 'subarray', or 'streak': frame time.",
+      "A rule like 'at most two different letters' or 'sum under a limit': that rule decides when to shrink.",
+      "Fixed-size window ('every group of 3 days'): same frame, just slide it, no stretching.",
     ],
     example: {
       title: "Longest Substring Without Repeating Characters",
-      prompt: "Find the length of the longest run of characters with no repeats.",
+      prompt:
+        "Find the longest run of letters with no repeats inside it.",
       steps: [
-        "Keep a Set of what is currently inside the frame.",
-        "Slide the right edge forward one character at a time.",
-        "If the new character is already in the frame, shrink from the left until it is not. The frame is always legal.",
-        "After every step, record the frame size if it is a new best.",
+        "Slide the right edge one letter at a time.",
+        "Notebook says this letter is already inside the frame? Jump the left edge past the old copy.",
+        "After every step, check: is this frame the biggest yet?",
       ],
       code: `def length_of_longest_substring(s):
     last_seen = {}                    # char -> last index
@@ -514,7 +522,7 @@ def has_duplicate(nums):
         best = max(best, right - left + 1)
     return best`,
       complexity:
-        "O(n) time, O(k) space where k is the alphabet size. Each character enters and leaves the window at most once.",
+        "Each edge crosses the string once: O(n) time. The notebook holds the letters in the frame: O(n) at worst.",
     },
     problems: [
       { slug: "maximum-average-subarray-i", num: 643, title: "Maximum Average Subarray I", diff: "Easy", why: "Fixed-size window warmup" },
@@ -527,26 +535,27 @@ def has_duplicate(nums):
     id: "binary-search",
     phase: "p2",
     title: "Binary search",
-    tagline: "Higher or lower",
+    tagline: "Cut the phone book in half",
     eli5: [
-      "The guessing game: I am thinking of a number between 1 and 100, you get told higher or lower. You guess 50, then 75 or 25, and you always win within 7 guesses. A million numbers? About 20 guesses. That is O(log n).",
-      "The only requirement is that every guess gets a reliable 'too high or too low' answer, so half the remaining space can be thrown away. Sorted arrays give you that for free.",
-      "The deeper version: binary search works on any yes-no question that flips exactly once as a value grows. 'Can Koko finish the bananas at speed s?' is no, no, no, yes, yes, yes. Binary search finds the flip point.",
+      "Find a name in a paper phone book. You do not read page one. You open the MIDDLE. Wrong half? Rip it off and throw it away. Repeat.",
+      "That is binary search. Look at the middle. Decide which half holds your answer. Throw the other half away. Every look kills half the problem.",
+      "It only works on something SORTED. Sorted is what makes the throw-away safe — you know for certain which side your answer lives on.",
+      "The famous bug: the middle math. In Python, mid = (lo + hi) // 2 — the two slashes keep it a whole number. And your two walls, lo and hi, must always shrink, or you loop forever.",
+      "One more superpower: you can binary search an ANSWER, not just a list. 'What is the slowest speed that still works?' Guess a speed. Too slow? Throw away the slow half. Same halving, bigger stage.",
     ],
     spotIt: [
-      "The word sorted plus the word find: almost always this.",
-      "An interviewer asking for better than O(n) on a search: this.",
-      "Minimize the maximum, or find the smallest value that satisfies a condition: binary search on the answer itself.",
-      "Off-by-one bugs live here. Memorize one template (lo, hi, while lo is at most hi, mid, move past mid) and never improvise the boundaries.",
+      "The word 'sorted' plus the word 'find': start here.",
+      "A million items in about 20 looks. A billion in about 30. That is why halving wins.",
+      "'Minimum speed', 'least capacity', 'first bad one': you are binary searching on the answer itself.",
     ],
     example: {
       title: "Classic binary search",
-      prompt: "Find the index of a target in a sorted array, or return -1.",
+      prompt:
+        "A sorted list. A target. Find its spot in as few looks as possible.",
       steps: [
-        "Two boundaries, lo and hi, marking the still-possible zone.",
-        "Check the middle. Found it, done.",
-        "Middle too small: the answer lives strictly right of mid, so lo becomes mid + 1. Too big: hi becomes mid - 1.",
-        "The plus one and minus one matter. They guarantee the zone shrinks every loop, which is what prevents infinite loops.",
+        "Two walls: lo at the start, hi at the end.",
+        "Look at the middle. Found it? Done.",
+        "Middle too small? The answer lives right — move lo. Too big? Move hi. Repeat until the walls cross.",
       ],
       code: `def search(nums, target):
     lo, hi = 0, len(nums) - 1
@@ -559,7 +568,8 @@ def has_duplicate(nums):
         else:
             hi = mid - 1              # answer lives left of mid
     return -1`,
-      complexity: "O(log n) time, O(1) space. Halving is the whole story.",
+      complexity:
+        "Each look halves the pile: O(log n) time. Two walls and a middle: O(1) space.",
     },
     problems: [
       { slug: "binary-search", num: 704, title: "Binary Search", diff: "Easy", why: "Burn the template into muscle memory" },
@@ -573,27 +583,27 @@ def has_duplicate(nums):
     id: "stacks-queues",
     phase: "p2",
     title: "Stacks and queues",
-    tagline: "Plates and coffee lines",
+    tagline: "The plate pile and the store line",
     eli5: [
-      "A stack is a stack of plates: the last plate you put on is the first one you take off. Last in, first out. It is how undo works, how the browser back button works, and how function calls work.",
-      "A queue is the line at a coffee shop: first in, first out. Printer jobs, task processing, and the engine inside breadth-first search.",
-      "In Python a list is your stack: append and pop are both O(1). For a queue, list.pop(0) is O(n) — reach for collections.deque, where append and popleft are both O(1). Saying that tradeoff out loud in an interview is a free point.",
-      "The magic of a stack in problems: it remembers unfinished business in exactly the reverse order you will need to finish it.",
+      "A stack is a pile of plates. You put a plate on TOP. You take a plate off the TOP. Last one in is first one out.",
+      "A queue is the line at a store. Join at the BACK. Leave from the FRONT. First one in is first one out.",
+      "That is genuinely it. In Python, a plain list is your plate pile: append puts on top, pop takes off top. For the store line, use collections.deque: append joins the back, popleft leaves the front. Both instant.",
+      "When do you WANT a plate pile? Any time the most RECENT thing matters most: matching brackets, undo buttons, walking back out of somewhere. When do you want the line? Any time order of arrival matters: processing things fairly, exploring level by level.",
     ],
     spotIt: [
-      "Matching or nesting anything: brackets, tags, quotes. Stack.",
-      "'Most recent unresolved thing': stack. The monotonic stack variant crushes next-greater-element and daily-temperatures style problems.",
-      "Process in arrival order, level by level, or shortest path in an unweighted world: queue.",
-      "Reversing without recursion, undo history, evaluating expressions: stack.",
+      "Brackets, parentheses, matching pairs, undo: plate pile.",
+      "'Most recent thing I have not dealt with yet': plate pile. That covers a shocking number of problems.",
+      "Level-by-level, first-come-first-served, BFS: store line, with deque.",
+      "Warning: pop(0) on a plain list makes everyone scoot. Use deque for lines.",
     ],
     example: {
       title: "Valid Parentheses",
-      prompt: "Given a string of brackets, is every opener closed by the right closer in the right order?",
+      prompt:
+        "A string of brackets. Is every opener properly closed, in the right order?",
       steps: [
-        "See an opener: push it. It is unfinished business.",
-        "See a closer: the most recent unfinished opener must match it. Pop and compare.",
-        "Mismatch, or popping an empty stack: invalid.",
-        "End of string with an empty stack: everything got closed. Valid.",
+        "See an opener? Put it on the pile.",
+        "See a closer? The top plate MUST be its partner. Pop it and check.",
+        "Wrong partner or empty pile: broken. Pile empty at the end: perfect.",
       ],
       code: `def is_valid(s):
     pairs = {")": "(", "]": "[", "}": "{"}
@@ -605,7 +615,8 @@ def has_duplicate(nums):
         else:
             stack.append(ch)
     return len(stack) == 0`,
-      complexity: "O(n) time, O(n) space. Each bracket is pushed and popped at most once.",
+      complexity:
+        "One pass over the string: O(n) time. The pile can hold all the openers: O(n) space.",
     },
     problems: [
       { slug: "valid-parentheses", num: 20, title: "Valid Parentheses", diff: "Easy", why: "The canonical stack problem, straight from the example" },
@@ -619,27 +630,27 @@ def has_duplicate(nums):
     id: "linked-lists",
     phase: "p2",
     title: "Linked lists",
-    tagline: "A scavenger hunt",
+    tagline: "A treasure hunt of notes",
     eli5: [
-      "A linked list is a scavenger hunt: each clue tells you where the next clue is, and that is all you get. There is no jumping to clue 5. You follow the chain.",
-      "The trade versus arrays: no O(1) index access, but splicing a new clue into the middle is one pointer change instead of shuffling everything down.",
-      "Every linked list problem is pointer choreography. The failure mode is always the same: you overwrite a next pointer before saving where it pointed, and the rest of the chain floats away forever.",
-      "The non-negotiable habit: draw boxes and arrows on paper before writing a line of code. Every senior engineer doing these problems draws. It is not a beginner crutch.",
+      "A linked list is a treasure hunt. Each note holds one value and one clue: where the NEXT note is. You cannot jump to note 7. You follow the clues, note by note.",
+      "Why would anyone want that? Because inserting is cheap. In an array, squeezing something into the middle makes everything scoot. In a chain of notes, you just rewrite two clues.",
+      "Almost every linked list problem is one of three moves: walk it, flip the clues around, or run two walkers at different speeds.",
+      "The two-walker trick is beautiful. A slow walker takes one step, a fast walker takes two. Fast one hits the end? Slow one is at the MIDDLE. They meet each other? The chain has a loop.",
     ],
     spotIt: [
-      "The problem hands you a ListNode class: welcome to pointer land.",
-      "Cycle detection, finding the middle: fast and slow pointers (the runner laps the walker).",
-      "Delete the nth node from the end: two pointers, n apart, walked together.",
-      "A dummy node in front of the head makes edge cases (empty list, removing the head) melt away. Reach for it early.",
+      "'Reverse the list': flip each clue to point backwards. Three variables. Practice until boring.",
+      "'Find the middle' or 'is there a cycle': slow walker, fast walker.",
+      "'Remove the nth from the end': two walkers, one given a head start of n.",
+      "Losing the rest of the chain is THE bug. Always save the next note before you rewrite a clue.",
     ],
     example: {
       title: "Reverse Linked List",
-      prompt: "Flip every arrow in the chain so it runs the other way. The rite of passage.",
+      prompt:
+        "Reverse the whole chain, so every clue points the other way.",
       steps: [
-        "Walk the chain with two fingers: prev (starts at null) and curr (starts at head).",
-        "At each node, first save curr.next. That is the rest of the chain, do not lose it.",
-        "Flip the arrow: curr.next = prev.",
-        "Step both fingers forward. When curr falls off the end, prev is standing on the new head.",
+        "Three hands: prev (nothing yet), curr (where you stand), and a saved copy of next.",
+        "Save next. Flip curr's clue to point at prev.",
+        "Shuffle everyone one step forward. When curr runs off the end, prev holds the new front.",
       ],
       code: `def reverse_list(head):
     prev = None
@@ -650,7 +661,8 @@ def has_duplicate(nums):
         prev = curr                   # walk both forward
         curr = nxt
     return prev`,
-      complexity: "O(n) time, O(1) space. One pass, three pointer variables.",
+      complexity:
+        "One walk down the chain: O(n) time. Three hands: O(1) space. No new notes made.",
     },
     problems: [
       { slug: "reverse-linked-list", num: 206, title: "Reverse Linked List", diff: "Easy", why: "The rite of passage, straight from the example" },
@@ -665,33 +677,35 @@ def has_duplicate(nums):
     id: "trees",
     phase: "p3",
     title: "Trees and BSTs",
-    tagline: "Org charts and filing systems",
+    tagline: "A family photo, upside down",
     eli5: [
-      "A tree is an org chart: one root at the top, everyone else reporting up to exactly one parent. A binary tree just means nobody has more than two direct reports.",
-      "A binary search tree adds one filing rule: everything smaller lives down the left, everything bigger lives down the right. Every question has an obvious direction, so search on a balanced BST is O(log n), the phone book trick in tree form.",
-      "The secret to tree problems: almost all of them are recursion in a costume. A tree is a node with two smaller trees hanging off it, so you answer for the small trees and combine. The base case is nearly always the empty tree.",
-      "The leap of faith is the skill: trust that maxDepth(root.left) returns the right answer for the left subtree, and just use it. Do not mentally trace the whole recursion. Trust the contract.",
+      "A tree is a family chart flipped upside down. One box on top (the root). Each box can have children below. A box with no children is a leaf.",
+      "The special kind is the binary search tree. Two rules: at any box, everything LEFT is smaller, everything RIGHT is bigger. Those rules mean finding a value works like the phone book — go left or right, throw half away.",
+      "Here is the secret that unlocks all tree problems: a tree is made of smaller trees. Every child is the root of its own little tree. So you solve the big tree by asking each child to solve their little tree, then combining.",
+      "That is why tree code is short and recursive: handle the empty case, ask the left kid, ask the right kid, combine. Four lines, most of the time.",
+      "Three walking orders to know by name: in-order (left, me, right — on a BST this comes out SORTED), pre-order (me first), post-order (me last). Level-by-level walking is BFS with a line.",
     ],
     spotIt: [
-      "You get a TreeNode with left and right: think 'answer for left, answer for right, combine'.",
-      "Level by level, or anything about tree width: BFS with a queue.",
-      "The letters BST in the problem: use the ordering. In-order traversal of a BST visits values in sorted order. That fact alone solves several problems.",
-      "Depth, height, count, sum, mirror: all one-liner recursions once you see the shape.",
+      "'Depth', 'height', 'balanced', 'same tree', 'invert': ask the kids, combine, done.",
+      "'Validate a BST': the trap is that EVERY box on the left must be smaller, not just the child. Pass down allowed ranges.",
+      "'Level order' or 'by rows': that is the store line (BFS), not recursion.",
+      "In-order traversal of a BST comes out sorted. Interviewers love that fact.",
     ],
     example: {
       title: "Maximum Depth of Binary Tree",
-      prompt: "How many levels does the tree have? The perfect first tree problem.",
+      prompt:
+        "How tall is the tree? Count the longest path from the root down to a leaf.",
       steps: [
-        "Base case: an empty tree has depth 0.",
-        "Leap of faith: assume the function correctly returns the depth of my left subtree and my right subtree.",
-        "My depth is 1 (me) plus the deeper of the two.",
-        "Three lines. Most tree problems are this shape with different combining logic.",
+        "Empty spot? Height zero. That is the floor.",
+        "Ask the left kid their height. Ask the right kid theirs.",
+        "My height: one, plus the taller kid. Done.",
       ],
       code: `def max_depth(root):
     if not root:
         return 0
     return 1 + max(max_depth(root.left), max_depth(root.right))`,
-      complexity: "O(n) time, every node visited once. O(h) space for the call stack, where h is tree height.",
+      complexity:
+        "You visit every box once: O(n) time. The stacked-up calls go as deep as the tree: O(height) space.",
     },
     problems: [
       { slug: "maximum-depth-of-binary-tree", num: 104, title: "Maximum Depth of Binary Tree", diff: "Easy", why: "The leap of faith, straight from the example" },
@@ -706,28 +720,29 @@ def has_duplicate(nums):
     id: "graphs",
     phase: "p3",
     title: "Graphs, DFS and BFS",
-    tagline: "Maze runners and pond ripples",
+    tagline: "Cities and roads",
     eli5: [
-      "A graph is anything with things and connections: a friend network, a subway map, a dependency chart. Nodes and edges. Trees are just graphs with no loops.",
-      "DFS, depth-first search, is exploring a maze: pick a direction, go as deep as it takes, and when you hit a dead end, backtrack to the last fork and try the next option. Naturally recursive.",
-      "BFS, breadth-first search, is a stone dropped in a pond: explore in rings, everything one step away, then everything two steps away. Powered by a queue. Because it moves in rings, the first time BFS reaches something is via a shortest path, which is its superpower on unweighted graphs.",
-      "Two facts that unlock half of graph interviews: a grid is secretly a graph (each cell is a node, its four neighbors are edges), and you must mark nodes as visited or you will orbit a loop forever.",
+      "A graph is cities and roads. Dots, and lines between dots. Friends on a social network. Rooms and doors. Islands in a grid of water.",
+      "In code, keep a dict: each city's cubby holds the list of cities you can drive to. That is called an adjacency list, but it is just a dict of neighbor-lists.",
+      "Two ways to explore. DFS is the hallway wanderer: pick a door, go deep, hit a dead end, walk back, try the next door. BFS is the ripple in a pond: visit everything one step away, then two steps, then three.",
+      "The one law of graph walking: keep a visited set. Cities can connect in circles. Without 'have I been here?', you loop forever.",
+      "Which one when? Shortest path in equal steps: BFS, always — the ripple reaches things in order of distance. Just 'explore everything' or 'count the pieces': either works, DFS is shorter to write.",
+      "A grid IS a graph. Each cell is a city. Its roads go up, down, left, right. Half of all graph interview problems are secretly grids.",
     ],
     spotIt: [
-      "Shortest path, fewest steps, minimum moves on an unweighted graph or grid: BFS, no exceptions.",
-      "Explore everything reachable, count regions or islands, does a path exist: DFS is usually less code.",
-      "Prerequisites, dependencies, 'must come before': a directed graph, likely topological sort or cycle detection (Course Schedule).",
-      "Any 2D grid problem about regions or spreading: graph traversal wearing a costume.",
+      "'Islands', 'regions', 'connected pieces', 'flood fill': explore-and-mark, count how many times you start fresh.",
+      "'Shortest path', 'fewest steps', 'minimum moves': BFS with the store line.",
+      "'Can these courses be finished' or 'does it depend on itself': cycle hunting.",
+      "The visited set is not optional. Ever.",
     ],
     example: {
       title: "Number of Islands",
       prompt:
-        "A grid of land (1) and water (0). Count the islands. The most-asked graph problem in interviews.",
+        "A grid of land and water. Count the islands. Touching land is the same island.",
       steps: [
-        "Scan every cell. Unvisited land means you just discovered a new island: count it.",
-        "Then sink the whole island so you never count it twice: DFS floods outward, turning every connected 1 into a 0.",
-        "The sink function is four recursive calls, one per neighbor, with bounds checks as the base case.",
-        "Say out loud that you are mutating the input to mark visited, and that a visited set is the alternative. Interviewers love hearing the trade-off.",
+        "Walk every cell. Find unvisited land? That is one new island. Count it.",
+        "Now sink the WHOLE island: from that cell, spread up, down, left, right, turning land to water.",
+        "Sinking marks it visited, so you never count it twice. Keep walking.",
       ],
       code: `def num_islands(grid):
     rows, cols = len(grid), len(grid[0])
@@ -748,7 +763,8 @@ def has_duplicate(nums):
                 count += 1            # found a new island
                 sink(r, c)            # erase all of it
     return count`,
-      complexity: "O(rows times cols) time, each cell touched a constant number of times. O(rows times cols) space worst case for the recursion.",
+      complexity:
+        "You touch every cell a couple of times: O(rows times cols) time. The spreading calls can stack up: same order of space.",
     },
     problems: [
       { slug: "flood-fill", num: 733, title: "Flood Fill", diff: "Easy", why: "The paint bucket tool is just DFS" },
@@ -762,26 +778,27 @@ def has_duplicate(nums):
     id: "heaps",
     phase: "p3",
     title: "Heaps and priority queues",
-    tagline: "The emergency room",
+    tagline: "The always-smallest pile",
     eli5: [
-      "An emergency room does not serve patients in arrival order. Whoever is most urgent is always seen next. That is a priority queue, and a heap is the data structure that makes it cheap.",
-      "The deal a heap offers: I will not keep everything sorted, but I guarantee the most important item is always sitting on top, and adding or removing costs only O(log n). Full sorting costs n log n; a heap gives you just-enough order for less.",
-      "The classic play for 'top k of a huge stream': keep a min-heap of size k. Anything better than the worst of your current top k kicks it out. You never sort the whole thing.",
-      "Python ships a real heap: the heapq module is a min-heap with heappush and heappop, both O(log n). Need a max-heap? Push negatives and flip the sign on the way out — say that trick out loud and it reads as fluency.",
+      "A heap is a magic pile with one promise: the smallest thing is ALWAYS sitting on top. Add something, the pile reshuffles a little. Take the top, it reshuffles again. Each reshuffle is cheap.",
+      "Why is that great? Because 'give me the smallest' over and over is a very common need — and the pile answers it without ever sorting everything.",
+      "Python ships it: heapq. heappush adds, heappop grabs the smallest. Want the biggest instead? Push NEGATIVE numbers, flip the sign coming out. Old trick, always works.",
+      "The heavyweight move: the k biggest things. Keep a small pile of size k. Every newcomer joins; if the pile grows past k, pop the smallest off. Whoever survives IS the top k. You never sorted the big list.",
     ],
     spotIt: [
-      "Top k anything, kth largest, kth smallest, k closest: heap alarm bells.",
-      "Repeatedly grab the min or max while items keep arriving: heap.",
-      "Merge k sorted lists: heap of the current front items.",
-      "Median of a stream: the famous two-heap sandwich, a max-heap for the lower half and a min-heap for the upper half.",
+      "'Kth largest', 'top k', 'k closest', 'k most frequent': small pile of size k.",
+      "'Keep giving me the smallest as things arrive': that is literally what a heap is.",
+      "Merging many sorted lists: a heap of the front items picks the next smallest each time.",
+      "Say the sizes: pile of k, so each add costs log k, not log n. Interviewers hear that.",
     ],
     example: {
       title: "Kth Largest Element in an Array",
-      prompt: "Find the kth largest value. Great because the sort answer and the heap answer are both worth saying.",
+      prompt:
+        "Find the kth largest number without sorting the whole list.",
       steps: [
-        "First answer, always acceptable: sort descending, take index k minus 1. O(n log n), three lines.",
-        "Follow-up answer: keep a min-heap of size k while scanning. If the heap grows past k, pop the smallest. Survivors are the top k, and the heap top is the kth largest.",
-        "That improves to O(n log k), which matters when n is a billion and k is 10. Saying both versions and the trade-off is a strong interview moment.",
+        "Keep a pile, never bigger than k.",
+        "Every number joins. Pile too big? Pop the smallest off the top.",
+        "At the end, the top of the pile is exactly the kth largest.",
       ],
       code: `import heapq
 
@@ -792,7 +809,8 @@ def find_kth_largest(nums, k):
         if len(heap) > k:
             heapq.heappop(heap)       # evict the smallest
     return heap[0]`,
-      complexity: "Sort: O(n log n). Heap: O(n log k) time, O(k) space.",
+      complexity:
+        "n numbers each doing a log k reshuffle: O(n log k) time. The pile holds k things: O(k) space.",
     },
     problems: [
       { slug: "last-stone-weight", num: 1046, title: "Last Stone Weight", diff: "Easy", why: "Repeatedly grab the two biggest" },
@@ -805,27 +823,27 @@ def find_kth_largest(nums, k):
     id: "backtracking",
     phase: "p4",
     title: "Recursion and backtracking",
-    tagline: "Nesting dolls and breadcrumbs",
+    tagline: "Try it, then untry it",
     eli5: [
-      "Recursion is Russian nesting dolls: to deal with the big doll, deal with the slightly smaller doll inside, and keep going until you reach a doll so tiny the answer is obvious. That tiny doll is the base case, and forgetting it is why programs recurse forever.",
-      "Backtracking is exploring a maze with breadcrumbs: try a path, and when it dead-ends, walk back to the last fork and take the next option. You systematically try everything without ever getting lost.",
-      "The entire pattern is three beats: choose, explore, un-choose. Add something to your path, recurse deeper, then remove it so the next option starts clean. That pop after the recursive call is the 'backtrack', and forgetting it is the classic bug.",
-      "These solutions are slow on purpose, often O(2 to the n) or O(n factorial), because the problem literally asks for all combinations. Say that. Knowing when exponential is unavoidable is a senior signal, not a weakness.",
+      "Backtracking is exploring a maze with a pencil. Take a step, draw the line. Dead end? ERASE the line, walk back, try the next hallway.",
+      "In code that is three beats, always the same: choose (add it to your path), explore (recurse deeper), un-choose (pop it back off). Choose, explore, undo. Say it like a drumline.",
+      "Why the undo? Because you want EVERY possibility, and paths share a pencil. Cleaning up after each try leaves the pencil ready for the next one.",
+      "This is the pattern for 'all combinations', 'all subsets', 'all orderings'. The answers explode fast — that is not your code being bad, that is the problem being big. Two to the n subsets exist. You are visiting all of them on purpose.",
     ],
     spotIt: [
-      "All combinations, all permutations, all subsets, all valid ways: backtracking.",
-      "Generate everything that satisfies rules (phone letters, parentheses, board words): backtracking.",
-      "Puzzles with constraints, like Sudoku or N-Queens: backtracking with pruning.",
-      "The template never changes: base case, then loop over choices, choose, recurse, un-choose.",
+      "'All', 'every', 'generate the combinations', 'list the permutations': choose, explore, undo.",
+      "Snapshot rule: when you save a path, save a COPY — path[:] — or every saved answer changes later. Classic bug.",
+      "Pruning: if a path already breaks the rules, stop early. That one if-statement can cut hours.",
+      "Word search in a grid: same drumline, plus mark the cell used, then unmark it on the way out.",
     ],
     example: {
       title: "Subsets",
-      prompt: "Return every possible subset of an array of unique numbers. The cleanest possible backtracking skeleton.",
+      prompt:
+        "List every possible subset of the numbers. Every one. Including empty.",
       steps: [
-        "Carry a path, the subset built so far.",
-        "Every state of the path is itself a valid subset, so record a copy at each call.",
-        "Loop over the remaining choices from a start index (so you never go backwards, which kills duplicates).",
-        "Choose (push), explore (recurse with i + 1), un-choose (pop). The pop is the backtrack.",
+        "At each spot: snapshot the current path into the answers.",
+        "Then for each remaining number: add it (choose), go deeper (explore), pop it (undo).",
+        "The recursion tries every branch. The undo keeps the pencil clean between branches.",
       ],
       code: `def subsets(nums):
     result = []
@@ -840,7 +858,8 @@ def find_kth_largest(nums, k):
 
     backtrack(0)
     return result`,
-      complexity: "O(2 to the n) subsets exist, so O(n times 2 to the n) time. Exponential because the output itself is exponential.",
+      complexity:
+        "There are 2 to the n subsets and you visit each: O(2 to the n) time. That is the problem's size, not your fault.",
     },
     problems: [
       { slug: "subsets", num: 78, title: "Subsets", diff: "Medium", why: "The skeleton, straight from the example" },
@@ -854,25 +873,27 @@ def find_kth_largest(nums, k):
     id: "prefix-sums",
     phase: "p2",
     title: "Prefix sums",
-    tagline: "The running odometer",
+    tagline: "The running total trick",
     eli5: [
-      "A prefix sum is a running total, like a car odometer. Write down the total-so-far at every position once, and the sum of any middle stretch of the trip becomes two lookups: odometer at the end minus odometer just before the start.",
-      "Pay O(n) once to build the running totals, then answer every range-sum question in O(1) forever. Brute force re-adds the stretch every time.",
-      "The killer combo is prefix sums plus the coat check: while walking, ask 'have I seen a running total of current minus k before?' Every yes is a stretch that sums to exactly k. Two patterns snapped together.",
+      "Keep a running total as you walk: after each number, write down 'total so far'. That list of totals is a prefix sum.",
+      "Now the magic. The sum BETWEEN any two spots is just: total-so-far at the end, minus total-so-far before the start. A whole range, answered by one subtraction.",
+      "It is like a car odometer. Miles driven between two towns? Reading at town B minus reading at town A. You never re-add the road.",
+      "Level up: pair it with a dict. Walking along, ask: have I ever seen a running total that is exactly (current total minus k)? If yes, a chunk summing to k just ended here. The dict remembers every total you have passed.",
     ],
     spotIt: [
-      "Sum of a range, lots of range queries on data that does not change: precompute the running totals.",
-      "Count or find subarrays that sum to k: running total plus a hash map of totals seen.",
-      "Equal splits, pivot points, balance questions: compare left total to right total via the running total.",
+      "'Sum of a range', asked many times: build totals once, subtract forever.",
+      "'How many chunks sum to exactly k': running total plus a dict of totals seen.",
+      "'Find the balance point': left total equals right total — totals again.",
+      "Anything with 'cumulative' or repeated range questions on numbers that do not change.",
     ],
     example: {
       title: "Subarray Sum Equals K",
-      prompt: "Count how many contiguous stretches sum to exactly k. A genuine interview favorite, and two patterns in one.",
+      prompt:
+        "How many chunks of the list add up to exactly k? Chunks can be anywhere.",
       steps: [
-        "Walk left to right keeping a running total.",
-        "A stretch ending here sums to k exactly when some earlier running total equals current total minus k.",
-        "So keep a map of every running total seen and how many times. At each step, add how many times (total minus k) has appeared.",
-        "Seed the map with 0 seen once, so stretches starting at index 0 count too. That seed is the classic forgotten detail.",
+        "Walk once, keeping the running total.",
+        "At each step ask the dict: how many times have I seen (total minus k)? Add that many to the count.",
+        "Then file today's total in the dict. Keep walking.",
       ],
       code: `def subarray_sum(nums, k):
     count = 0
@@ -883,7 +904,8 @@ def find_kth_largest(nums, k):
         count += seen.get(running - k, 0)
         seen[running] = seen.get(running, 0) + 1
     return count`,
-      complexity: "O(n) time, O(n) space. One pass, one map.",
+      complexity:
+        "One walk, instant dict checks: O(n) time. The dict of seen totals: O(n) space.",
     },
     problems: [
       { slug: "running-sum-of-1d-array", num: 1480, title: "Running Sum of 1d Array", diff: "Easy", why: "Literally build the odometer" },
@@ -896,34 +918,36 @@ def find_kth_largest(nums, k):
     id: "dp",
     phase: "p4",
     title: "Dynamic programming",
-    tagline: "Recursion plus sticky notes",
+    tagline: "Remember instead of re-doing",
     eli5: [
-      "A kid counting ways to climb 10 stairs (one or two steps at a time) keeps re-answering the same smaller question: how many ways up 4 stairs? DP is the moment the kid grabs sticky notes: solve each small question once, write it down, and just read the note every time it comes up again.",
-      "That is the entire idea. DP is recursion plus sticky notes (memoization), or the same thing flipped: fill a table starting from the trivial cases and build up (tabulation). Same answers, different direction.",
-      "Without the notes, the recursion tree for stairs explodes to O(2 to the n) because it recomputes the same subproblems astronomically many times. With notes, each subproblem is solved once: O(n). The speedup is not clever, it is just not repeating yourself.",
-      "DP has a scary reputation because people start with hard problems. Start with Climbing Stairs and House Robber and it is genuinely just 'the answer here is built from one or two earlier answers'.",
+      "Climb a staircase, one or two steps at a time. Ways to reach step 10? Well: you arrived from step 9 or step 8. So it is (ways to 9) plus (ways to 8). Every step answers the same way. That is dynamic programming.",
+      "The whole idea in one sentence: big answers are built from smaller answers you ALREADY computed — so write the small ones down and never compute anything twice.",
+      "Without the writing-down, the naive version recomputes the same little answers millions of times — that is the exploding fib tree. With it, each little answer is computed exactly once. Exponential becomes linear. Same problem.",
+      "How to find the recipe: ask 'what is the LAST choice that got me here?' Stairs: last hop was 1 or 2. Coins: last coin was one of the coins. The answer is built from the answers just before those choices.",
+      "Often you do not even need the whole notebook. Stairs only ever looks back two steps — so keep two variables and slide them along.",
     ],
     spotIt: [
-      "Count the ways to reach, minimum cost to reach, maximum value achievable: DP.",
-      "Your recursive solution calls itself on the same inputs repeatedly: add sticky notes, it is DP now.",
-      "The choice at each step is take it or skip it (House Robber, knapsack shapes): DP.",
-      "The recipe: define what dp[i] means in one sentence, find how dp[i] is built from earlier entries (the recurrence), nail the base cases, then loop.",
+      "'How many ways', 'minimum cost to reach', 'longest chain', 'can you make this amount': DP smells.",
+      "Choices where taking one thing blocks its neighbor (house robber): take-it or skip-it, remember both.",
+      "Start by saying the slow recursive version OUT LOUD, then add the notebook. Interviewers love watching that upgrade.",
+      "If today only depends on a couple of yesterdays, shrink the notebook to a couple of variables.",
     ],
     example: {
       title: "Climbing Stairs",
-      prompt: "You climb 1 or 2 steps at a time. How many distinct ways to reach step n? This is DP with the training wheels visible.",
+      prompt:
+        "A staircase of n steps. Hop 1 or 2 at a time. How many different ways up?",
       steps: [
-        "Define it: dp[i] is the number of ways to stand on step i.",
-        "The recurrence: your last move was from i minus 1 or i minus 2, so dp[i] = dp[i-1] + dp[i-2]. (This is secretly Fibonacci.)",
-        "Base cases: one way to be on step 1, two ways to be on step 2.",
-        "You only ever look two entries back, so two variables replace the whole table. Saying that space optimization out loud is a strong finish.",
+        "Ways to reach a step = ways to the step below + ways to two below.",
+        "Start tiny: one way to stand at the bottom, one way to reach step one.",
+        "Slide two variables up the stairs, adding as you go. The last one is the answer.",
       ],
       code: `def climb_stairs(n):
     a, b = 1, 1                       # ways to stand on steps 0 and 1
     for _ in range(n - 1):
         a, b = b, a + b               # slide the window up one step
     return b`,
-      complexity: "O(n) time, O(1) space after the two-variable trick. The memoized recursion is O(n) time, O(n) space.",
+      complexity:
+        "One pass up the stairs: O(n) time. Two sliding variables: O(1) space. The famous exponential problem, tamed.",
     },
     problems: [
       { slug: "climbing-stairs", num: 70, title: "Climbing Stairs", diff: "Easy", why: "The front door of DP, straight from the example" },
@@ -938,26 +962,27 @@ def find_kth_largest(nums, k):
     id: "greedy",
     phase: "p4",
     title: "Greedy",
-    tagline: "Biggest coin first",
+    tagline: "Take the best bite now",
     eli5: [
-      "Making change with US coins: grab the biggest coin that fits, repeat. Never reconsider. That is greedy: take the best local move at every step and trust it adds up to the best global answer.",
-      "Here is the danger. With coin values 1, 3 and 4, making 6 greedily gives 4 + 1 + 1, three coins. But 3 + 3 wins with two. Greedy is beautiful when it works and quietly wrong when it does not.",
-      "So the interview skill is not just writing greedy code, it is arguing why greedy is safe here. The move: propose the greedy rule, then genuinely try to break it with a counterexample before trusting it. Interviewers score that skepticism highly.",
-      "When greedy works it is usually the shortest, fastest solution in the room: one pass, a variable or two.",
+      "Greedy means: at every step, take the choice that looks best RIGHT NOW, and never look back. No undo. No exploring branches. Just confident bites.",
+      "Sometimes that is genuinely correct, and when it is, greedy is the fastest, shortest answer in the room. The jump game is a perfect example: just keep track of the farthest square you could possibly reach.",
+      "But greedy is only right when a problem has a special shape — when the locally best bite can never ruin the global meal. Coins prove the danger: with coins 1, 3, 4, making 6 greedily gives 4+1+1. Three coins. The real answer is 3+3. Two. Greedy lied.",
+      "So the interview move is honesty: 'I think greedy works here, because...' and give the reason. If you cannot give the reason, it is probably a DP problem wearing a disguise.",
     ],
     spotIt: [
-      "Maximize or minimize where each choice does not poison future choices: greedy candidate.",
-      "Intervals and scheduling, jump and reach problems, fuel and resource sweeps: greedy heartland.",
-      "If your greedy rule fails a counterexample, the problem is usually DP in disguise. That pivot, said out loud, is a great interview moment.",
+      "'Can you reach the end', 'minimum number of jumps/arrows/rooms': track one running best, greedily.",
+      "Interval scheduling: sort by END time, keep everything that fits. Provably right.",
+      "Gas station loops: if you run dry at station i, no start before i works either. Jump ahead.",
+      "The tell for NOT-greedy: your bite now changes what future bites cost. That is DP territory.",
     ],
     example: {
       title: "Jump Game",
-      prompt: "Each array value is your max jump length from that spot. Can you reach the last index?",
+      prompt:
+        "Squares show how far you can hop. Starting at square 0, can you reach the last square?",
       steps: [
-        "Track one number: the furthest index reachable so far.",
-        "Walk left to right. If you are standing past the furthest reachable point, you were stranded: false.",
-        "Otherwise extend the reach: furthest = max(furthest, here plus jump length).",
-        "Why greedy is safe here: keeping the reach as large as possible can never hurt you later. That one-sentence argument is the actual answer.",
+        "Carry one number: the farthest square reachable so far.",
+        "At each square: standing past your farthest? You were stranded. No.",
+        "Otherwise stretch the farthest: this square plus its hop. Reach the end? Yes.",
       ],
       code: `def can_jump(nums):
     reach = 0                         # farthest index we can touch
@@ -966,7 +991,8 @@ def find_kth_largest(nums, k):
             return False              # stranded before this square
         reach = max(reach, i + jump)
     return True`,
-      complexity: "O(n) time, O(1) space. One pass, one variable.",
+      complexity:
+        "One walk, one running number: O(n) time, O(1) space. When greedy is right, it is beautifully cheap.",
     },
     problems: [
       { slug: "maximum-subarray", num: 53, title: "Maximum Subarray", diff: "Medium", why: "Kadane: keep the running sum unless it goes negative" },
@@ -978,25 +1004,27 @@ def find_kth_largest(nums, k):
     id: "intervals",
     phase: "p4",
     title: "Intervals",
-    tagline: "Calendar Tetris",
+    tagline: "Meetings on a calendar",
     eli5: [
-      "Interval problems are calendar problems. Meetings that overlap merge into one busy block. Meetings that collide need a room each. It is scheduling, and you already have intuition for it.",
-      "Step one is almost always the same: sort by start time. Once meetings are in start order, you only ever compare each one against the current busy block, a single left-to-right sweep.",
-      "The overlap test to memorize: two ranges overlap when each one starts before the other ends. Sorted by start, that collapses to: does the next meeting start before the current block ends?",
+      "An interval is a start and an end: a meeting from 2 to 4. Interval problems are calendar problems: do meetings clash, can they merge, how many rooms do we need.",
+      "The one move that unlocks nearly all of them: SORT by start time first. Once sorted, chaos becomes a single left-to-right sweep.",
+      "The overlap check, in plain words: two meetings clash if one starts before the other ends. After sorting, you only ever compare each meeting with the LAST one you kept. Neighbors only.",
+      "Merging is then just: does this meeting start before my last one ends? Yes: stretch the last one's end. No: this one starts fresh.",
     ],
     spotIt: [
-      "The input is pairs of start and end: this pattern.",
-      "Merge, insert, remove overlaps, count rooms, burst balloons with arrows: all the same sweep after sorting.",
-      "If you feel lost, draw the ranges as horizontal bars on paper. The algorithm becomes visible almost immediately.",
+      "'Merge', 'overlap', 'conflict', 'rooms needed', 'insert a meeting': sort by start, sweep once.",
+      "Minimum arrows / remove fewest to de-overlap: the sibling trick — sort by END time instead.",
+      "Say the sort cost out loud. The sort IS the price of admission.",
+      "Draw two bars on the whiteboard. Ten seconds of drawing saves ten minutes of confusion.",
     ],
     example: {
       title: "Merge Intervals",
-      prompt: "Merge all overlapping intervals into consolidated blocks. The category-defining problem.",
+      prompt:
+        "A messy pile of meetings. Merge every overlapping pair until the calendar is clean.",
       steps: [
-        "Sort by start time.",
-        "Start a result list with the first interval as the current block.",
-        "For each next interval: if it starts at or before the current block ends, they overlap, so extend the block end to the max of the two ends.",
-        "Otherwise there is a gap: push it as a fresh block. The sweep never looks backward.",
+        "Sort all meetings by start time.",
+        "Walk them. Does this one start before the last kept one ends? Stretch the last one's end.",
+        "No overlap? This meeting starts a new block. Keep walking.",
       ],
       code: `def merge(intervals):
     intervals.sort(key=lambda it: it[0])
@@ -1007,7 +1035,8 @@ def find_kth_largest(nums, k):
         else:
             merged.append([start, end])
     return merged`,
-      complexity: "O(n log n) time for the sort, then an O(n) sweep. O(n) space for the output.",
+      complexity:
+        "The sort costs O(n log n). The sweep after it is O(n). Total: O(n log n) time, and the answer list is the space.",
     },
     problems: [
       { slug: "merge-intervals", num: 56, title: "Merge Intervals", diff: "Medium", why: "The category-defining problem, straight from the example" },
