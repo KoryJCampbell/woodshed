@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v14: the Plan becomes the Algorythm bootcamp companion, 12 cohort weeks.
+// v15: Amazon loop — LP track, loop rep set, story-to-LP mapping.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1276,6 +1276,24 @@ const ORDERED_CONCEPTS = PHASES.flatMap((ph) => CONCEPTS.filter((c) => c.phase =
 const ORDERED_PROBLEMS = ORDERED_CONCEPTS.flatMap((c) =>
   c.problems.map((p) => ({ ...p, conceptId: c.id, conceptTitle: c.title }))
 );
+const AMZN_LOOP = {
+  build: "Map your five stories to Leadership Principles in Field notes — every story should cover two or three LPs (the mapping card in the Amazon LPs track has the key). Then run that track until every card is green, twice.",
+  solve: [
+    { s: "number-of-islands", tag: "revisit" },
+    { s: "rotting-oranges", tag: "revisit" },
+    { s: "k-closest-points-to-origin", tag: "revisit" },
+    { s: "top-k-frequent-elements", tag: "revisit" },
+    { s: "merge-intervals", tag: "revisit" },
+    { s: "insert-interval" },
+    { s: "search-in-rotated-sorted-array", tag: "revisit" },
+    { s: "longest-substring-without-repeating-characters", tag: "revisit" },
+    { s: "course-schedule", tag: "revisit" },
+    { s: "word-search", tag: "stretch" },
+    { s: "find-median-from-data-stream", tag: "stretch" },
+  ],
+  note: "The loop is four or five rounds: coding plus LP questions woven into every single one, and a bar raiser hiding among them. Set your loop date below the moment you have it — the countdown on Today will taper your final week automatically. If they schedule a system design round, tell Claude; that module is a day's work away.",
+};
+
 const PROB_BY_SLUG = Object.fromEntries(ORDERED_PROBLEMS.map((p) => [p.slug, p]));
 
 const BOOTCAMP = [
@@ -1950,6 +1968,37 @@ const QA_TRACKS = [
       { id: "ai33", q: "Can you trust AI with production code?", a: "I trust it to draft, never to decide. It writes the first pass and the tests; the review, the security eye, and the merge button stay human. In practice the quality is genuinely good on well-specified tasks and shaky on vague ones — which is the same thing I'd say about a new hire.", probe: "Draft-versus-decide, delivered without fear or hype." },
       { id: "ai34", q: "What AI tools do you actually use day to day?", a: "Claude is my main one — design discussions, scaffolding components, drafting tests, and rubber-ducking tricky bugs. On my current program, only what's approved for that environment touches work material, full stop. The workflow is consistent everywhere: generate fast, review like it came from a stranger, own what merges.", probe: "A real workflow with the data-boundary reflex built in." },
       { id: "ai35", q: "Where is this going for frontend engineers?", a: "The typing is getting cheap; the judgment is getting valuable. Component boilerplate and test scaffolding are already largely generated, so the differentiators shift to architecture, product sense, review quality, and knowing how to direct these tools well. I'd rather be the engineer who orchestrates them than the one competing with them.", probe: "A grounded thesis, not fear and not hype." },
+    ],
+  },
+  {
+    id: "amzn",
+    name: "Amazon LPs",
+    blurb: "Half of every Amazon round is Leadership Principles — behavioral questions with the pattern hidden in plain sight. These cards are the questions as they are actually asked, what each one measures, and which of your stories answers it.",
+    questions: [
+      { id: "amzn1", q: "How do Amazon behavioral rounds actually work?", a: "Every interviewer is assigned two or three Leadership Principles and asks 'tell me about a time' questions to test them. This happens in every round, including coding rounds — usually the first fifteen minutes. They want specific past events with your name on the decisions, not philosophies. Six to eight strong stories cover the whole loop.", probe: "That you know LPs are half the loop, not a warm-up." },
+      { id: "amzn2", q: "What is STAR and how strict is Amazon about it?", a: "Situation, Task, Action, Result — and Amazon is stricter than anywhere. Thirty seconds of setup, then spend your time on Action and Result, in first person singular. 'We' answers get interrupted with 'what did YOU do?' Numbers matter: they will ask for the metric, so know it before you walk in.", probe: "I, not we. Results with numbers." },
+      { id: "amzn3", q: "What is the bar raiser?", a: "One interviewer from outside the team, trained to hold the company-wide bar and armed with a veto. You will not know which one it is. Their questions go deeper and the follow-ups keep coming. The play is boring: same honest, specific, data-backed answers for everyone. Trying to detect and impress them is a losing game.", probe: "That you will not perform differently for them." },
+      { id: "amzn4", q: "Tell me about a time you went above and beyond for a customer.", a: "Customer Obsession — their number one. Your users are federal agents filing disclosures; frame it that way, not as 'stakeholders.' A strong beat: a time you pushed back on a technically easier path because it made the filer's experience worse, or chased down a usability issue nobody assigned you. End with what the user got.", probe: "Customer Obsession. The user must be a person, not a ticket." },
+      { id: "amzn5", q: "Tell me about a time you took on something outside your job description.", a: "Ownership. You have this cold: carrying tech-lead scope without the title — owning architecture, standards, and cross-team coordination because the program needed it. The trap is sounding resentful. The winning tone: nobody asked, the gap was there, I closed it, here is what shipped because I did.", probe: "Ownership. Scope you took, not scope you were given." },
+      { id: "amzn6", q: "Tell me about a time you dug into details to find a root cause.", a: "Dive Deep. Your production debugging stories are built for this: tracing a CORS failure to an origin mismatch across environments, or a schema validation failure back to a bootstrap script. Walk the actual investigation — what you checked, what ruled things out, the moment it clicked. Detail IS the answer here.", probe: "Dive Deep. They want the investigation, not the summary." },
+      { id: "amzn7", q: "Tell me about a time you delivered against a tight deadline or real obstacles.", a: "Deliver Results. Pick a delivery where something broke late and you still landed it — scope cut you chose, the call you made, what shipped and when. The senior version includes what you deliberately dropped: delivering results at Amazon means knowing what not to do. Have the date and the number.", probe: "Deliver Results. The trade-off you made is the senior signal." },
+      { id: "amzn8", q: "Tell me about a time you received hard feedback or had to earn back trust.", a: "Earn Trust. The failure mode is a humble-brag. Give them real feedback you actually received, what you changed visibly, and how you know it stuck. Vulnerability plus a behavior change plus evidence. Your 'failure' story slot likely carries this one with a different emphasis.", probe: "Earn Trust. Real feedback, visible change, proof." },
+      { id: "amzn9", q: "Tell me about a time you disagreed with your team or your manager.", a: "Have Backbone; Disagree and Commit — your 'conflict' story slot, straight up. The full arc matters: you pushed with data, you were heard, a decision was made, and then — this is the part they are testing — you committed fully even if it went the other way. Undermining the decision afterward is the instant fail.", probe: "The commit half. Disagreement is easy; commitment is the LP." },
+      { id: "amzn10", q: "Tell me about a time you acted with incomplete information.", a: "Bias for Action. Your 'ambiguity' story slot. Name what you did not know, why waiting cost more than moving, the reversible step you took, and how you course-corrected. Amazon language worth using naturally: most decisions are two-way doors — you can walk back through them.", probe: "Bias for Action. Reversible speed, not recklessness." },
+      { id: "amzn11", q: "Tell me about a time you simplified something.", a: "Invent and Simplify. Deleting is more impressive than adding: a process you cut steps from, a design you collapsed, a clever plan you replaced with a boring one that shipped. Strong shape: here is the complexity that existed, here is what I removed, here is what got faster or stopped breaking.", probe: "Invent and Simplify. Subtraction as the flex." },
+      { id: "amzn12", q: "Tell me about a judgment call you made without consensus.", a: "Are Right, A Lot. They are testing decision quality under uncertainty, not luck. Walk your inputs — data you pulled, people you consulted, what you weighted and why — then the call and the outcome. If you were partly wrong, even better: say what you updated. Good judgment includes updating.", probe: "Are Right, A Lot. The process behind the call." },
+      { id: "amzn13", q: "Tell me about something you learned recently, on your own.", a: "Learn and Be Curious — and you are living the answer: picking up Python from zero, on purpose, through a structured bootcamp, while holding a full-time lead role. Tell it with the mechanics: why Python, how you structured the learning, what you can do now that you could not a month ago.", probe: "Learn and Be Curious. You are literally doing it right now." },
+      { id: "amzn14", q: "Tell me about a time good enough was not good enough for you.", a: "Insist on the Highest Standards. A code review where you held the line, a test gap you refused to ship past, an accessibility or security bar you would not lower. The trap is sounding like a blocker: pair the standard with how you helped meet it, not just enforced it.", probe: "Highest Standards. The bar plus the help, not the bar alone." },
+      { id: "amzn15", q: "Tell me about a time you proposed something bigger than the ask.", a: "Think Big. The moment you turned a ticket into a capability: asked to fix one screen, you proposed the pattern that fixed the class of problem. Scale the telling honestly — think big at your scope means architecture and reuse, not moonshots. End with who benefited beyond the original requester.", probe: "Think Big. A capability where a patch was requested." },
+      { id: "amzn16", q: "Tell me about a time you did more with less.", a: "Frugality. Constraints as fuel: shipping without the extra headcount, the approved-tools-only environment, the deadline with half the runway. Amazon culturally loves this one. Frame the constraint, the resourceful move, and what it saved — time, money, or dependency risk.", probe: "Frugality. Constraint, move, savings." },
+      { id: "amzn17", q: "Tell me about developing or mentoring someone.", a: "Hire and Develop the Best. Your mentorship is real material: engineers you have coached into the field, code reviews written to teach rather than gatekeep. Structure: where they started, what you specifically did, where they are now. Their outcome is your result — let their win be the number.", probe: "Hire and Develop. Their growth is your metric." },
+      { id: "amzn18", q: "Tell me about your biggest failure.", a: "The heavyweight — usually testing Ownership plus Learn and Be Curious. Pick a real one with your fingerprints on it, no disguised wins and no bus-throwing. The structure that lands: what happened, my part in it plainly stated, what it cost, what I changed, and proof the change held. Then stop talking.", probe: "Real failure, owned cleanly, with a changed behavior as the ending." },
+      { id: "amzn19", q: "What follow-ups should I expect after every story?", a: "The gauntlet: What would you do differently? What was the metric? What did the other person think? Why did you not do X instead? These are not traps — they are checking the story is real, because real stories survive drilling. Prepare each story one level deeper than you plan to tell it.", probe: "One level deeper than the telling. That is the prep bar." },
+      { id: "amzn20", q: "In your conflict story — what if they had still disagreed?", a: "The escalation probe. The answer they want is a functioning decision process, not victory: I would make sure the decision owner had the full picture, ask for a clear call, and commit to it completely. Escalation framed as getting to a decision — never as going over someone's head to win.", probe: "Process over victory. Commit lands the answer." },
+      { id: "amzn21", q: "Why Amazon?", a: "Have a real answer with your fingerprints: the scale of problems, the ownership culture you already work like, builders you respect. Connect it to evidence — you carry lead scope without the title, which IS Ownership; you obsess over your federal users, which IS Customer Obsession. Generic admiration reads as no answer.", probe: "Your history mapped onto their principles, not flattery." },
+      { id: "amzn22", q: "What questions should I ask them?", a: "Ask like a future owner: What does the team own end to end? What is the on-call reality? How do decisions get made when data is thin? What separates good from great here in year one? Skip questions the job posting answers. Two or three genuine ones beat a memorized list.", probe: "Owner questions, asked because you want the answers." },
+      { id: "amzn23", q: "How do my five story slots map to the LPs?", a: "Conflict covers Backbone and Earn Trust. Failure covers Ownership and Learn and Be Curious. Leadership covers Hire and Develop plus Ownership again. Ambiguity covers Bias for Action, Dive Deep, Are Right A Lot. Impact covers Deliver Results, Customer Obsession, Think Big. Five stories, told with different emphasis, cover fourteen principles.", probe: "The whole strategy on one card: emphasis, not new stories." },
+      { id: "amzn24", q: "What do Amazon coding rounds actually look like?", a: "One or two LeetCode-mediums in 30-40 minutes after the LP opener. Their favorites are exactly your bootcamp spine: grid BFS and DFS, top-K with heaps, intervals, hashmaps, sliding window. Talk the whole time, state complexity unprompted, test with a walked example. The Amazon loop list on your Bootcamp tab is the rep set.", probe: "Patterns plus process. The thinking out loud is graded." },
     ],
   },
 ];
@@ -3660,7 +3709,9 @@ function PlanTodayCard({ progress, onToggleTask, onOpenConcept, onSolve }) {
       ) : (
         <p className="text-sm mt-4" style={{ color: T.muted }}>
           {buildDone
-            ? "Week " + week.week + " is squared away. Freestyle rep below, or read ahead."
+            ? week.week === 12
+              ? "Week 12 squared away. The Amazon loop at the bottom of the Bootcamp tab is your final boss."
+              : "Week " + week.week + " is squared away. Freestyle rep below, or read ahead."
             : "Reps done — the build task is what's left this week."}
         </p>
       )}
@@ -3920,7 +3971,7 @@ function TodayView({
   );
 }
 
-function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSetWeek, onSolve }) {
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSetWeek, onSolve, onSetDate }) {
   const cohortWeek = Math.min(Math.max(progress.bootcampWeek || 1, 1), 12);
   const [openWeek, setOpenWeek] = useState(cohortWeek);
 
@@ -4102,6 +4153,84 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSet
           );
         })}
       </div>
+
+      <Card style={{ borderLeft: "3px solid " + T.gold }}>
+        <Eyebrow color={T.gold}>After the cohort</Eyebrow>
+        <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
+          The Amazon loop
+        </h2>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          {AMZN_LOOP.note}
+        </p>
+
+        <button onClick={() => onToggleTask("amzn-build")} className="mt-4 flex items-start gap-2.5 text-left">
+          <span
+            className="mt-0.5 w-4 h-4 rounded shrink-0 inline-flex items-center justify-center"
+            style={{
+              border: "1.5px solid " + (progress.tasks["amzn-build"] ? T.gold : T.edge),
+              backgroundColor: progress.tasks["amzn-build"] ? T.gold : "transparent",
+            }}
+          >
+            {progress.tasks["amzn-build"] && <Check size={11} color={T.onBrass} strokeWidth={3} />}
+          </span>
+          <span className="text-sm leading-relaxed" style={{ color: progress.tasks["amzn-build"] ? T.faint : T.ivory }}>
+            <span className="font-medium">Build it: </span>
+            {AMZN_LOOP.build}
+          </span>
+        </button>
+
+        <div className="space-y-2 mt-4">
+          {AMZN_LOOP.solve.map((x) => {
+            const p = PROB_BY_SLUG[x.s];
+            const solvedIt = !!progress.solved[x.s];
+            return (
+              <div key={"amzn" + x.s} className="flex items-center gap-2.5">
+                <span className="text-xs w-9 shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                  {p.num}
+                </span>
+                <span className="text-sm flex-1 min-w-0 truncate" style={{ color: solvedIt ? T.faint : T.ivory }}>
+                  {p.title}
+                </span>
+                {x.tag && (
+                  <span className="text-xs shrink-0" style={{ color: x.tag === "stretch" ? T.gold : T.faint, fontFamily: MONO }}>
+                    {x.tag}
+                  </span>
+                )}
+                <DiffBadge diff={p.diff} />
+                <a href={lc(x.s)} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1">
+                  <ExternalLink size={13} color={T.faint} />
+                </a>
+                {solvedIt ? (
+                  <button onClick={() => onToggleSolved(x.s)} className="text-xs shrink-0" style={{ color: T.faint }}>
+                    undo
+                  </button>
+                ) : (
+                  <span className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => onSolve(x.s, "clean")}
+                      className="text-xs px-2 py-1 rounded-lg"
+                      style={{ backgroundColor: T.surfaceUp, color: T.muted }}
+                    >
+                      clean
+                    </button>
+                    <button
+                      onClick={() => onSolve(x.s, "assisted")}
+                      className="text-xs px-2 py-1 rounded-lg"
+                      style={{ backgroundColor: T.surfaceUp, color: T.faint }}
+                    >
+                      assisted
+                    </button>
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-5">
+          <InterviewDateControl progress={progress} onSetDate={onSetDate} />
+        </div>
+      </Card>
     </div>
   );
 }
