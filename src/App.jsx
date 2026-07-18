@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v13: Python from zero (Phase 00), Plan-vs-Roadmap orientation.
+// v14: the Plan becomes the Algorythm bootcamp companion, 12 cohort weeks.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -7,8 +7,7 @@ import {
   ExternalLink, CheckCircle2, Circle, ArrowLeft, Shuffle, BookOpen,
   ChevronRight, ChevronDown, RotateCcw, Clock, Target, ArrowLeftRight,
   CalendarDays, Play, Pause, TimerReset, Library, X, ChevronLeft, Upload, Trash2,
-  Brain, Trophy, Pencil, Download, MessageSquare
-} from "lucide-react";
+  Brain, Trophy, Pencil, Download, MessageSquare, Check } from "lucide-react";
 
 // ---------------------------------------------------------------- theme
 
@@ -1277,6 +1276,87 @@ const ORDERED_CONCEPTS = PHASES.flatMap((ph) => CONCEPTS.filter((c) => c.phase =
 const ORDERED_PROBLEMS = ORDERED_CONCEPTS.flatMap((c) =>
   c.problems.map((p) => ({ ...p, conceptId: c.id, conceptTitle: c.title }))
 );
+const PROB_BY_SLUG = Object.fromEntries(ORDERED_PROBLEMS.map((p) => [p.slug, p]));
+
+const BOOTCAMP = [
+  {
+    week: 1, title: "Big O notation", dates: "Jul 22 - 27", layer: "Foundations",
+    build: "No structure yet. Instead: run the Big-O drill until you can classify ten snippets in a row, saying each answer out loud before you flip.",
+    read: ["py-reading", "py-variables", "py-lists", "py-dicts-sets", "big-o"],
+    solve: [{ s: "concatenation-of-array" }, { s: "running-sum-of-1d-array" }, { s: "contains-duplicate" }, { s: "valid-anagram" }],
+    note: "The only week Algorythm has published in detail, and it matches Woodshed's opening chapter. Python chapters are folded in because the cohort is language-agnostic and you are choosing Python.",
+  },
+  {
+    week: 2, title: "Linked lists", dates: "Jul 29 - Aug 3", layer: "Fundamentals, from scratch",
+    build: "Implement a singly linked list from scratch in Python: a Node class, append, prepend, delete, find, and reverse. No peeking at the concept solution until yours works.",
+    read: ["py-flow", "py-idioms", "linked-lists"],
+    solve: [{ s: "middle-of-the-linked-list" }, { s: "reverse-linked-list" }, { s: "linked-list-cycle" }, { s: "merge-two-sorted-lists" }, { s: "remove-nth-node-from-end-of-list", tag: "stretch" }],
+  },
+  {
+    week: 3, title: "Stacks and queues", dates: "Aug 5 - 10", layer: "Fundamentals, from scratch",
+    build: "Implement a stack, then a queue two ways: once on collections.deque, once as the classic two-stacks queue. Explain to the wall why the second one amortizes.",
+    read: ["stacks-queues"],
+    solve: [{ s: "valid-parentheses" }, { s: "min-stack" }, { s: "implement-queue-using-stacks" }, { s: "evaluate-reverse-polish-notation" }, { s: "daily-temperatures", tag: "stretch" }],
+  },
+  {
+    week: 4, title: "Sets and hashmaps", dates: "Aug 12 - 17", layer: "Fundamentals, from scratch",
+    build: "Implement a hashmap from scratch: a hash function, buckets as lists, put, get, delete with collision chaining, and a resize when load passes 0.7.",
+    read: ["hash-maps", "prefix-sums"],
+    solve: [{ s: "two-sum" }, { s: "group-anagrams" }, { s: "top-k-frequent-elements" }, { s: "subarray-sum-equals-k" }],
+  },
+  {
+    week: 5, title: "Trees and BSTs", dates: "Aug 19 - 24", layer: "Fundamentals into advanced",
+    build: "Implement a binary search tree from scratch: insert, search, height, and an in-order traversal — which must come out sorted, or something is wrong.",
+    read: ["trees"],
+    solve: [{ s: "maximum-depth-of-binary-tree" }, { s: "invert-binary-tree" }, { s: "same-tree" }, { s: "diameter-of-binary-tree" }, { s: "binary-tree-level-order-traversal" }, { s: "validate-binary-search-tree", tag: "stretch" }],
+  },
+  {
+    week: 6, title: "Graphs, BFS and DFS", dates: "Aug 26 - 31", layer: "Fundamentals into algorithms",
+    build: "Build a graph from an edge list as an adjacency dict, then write BFS and DFS over it from memory: BFS with a deque, DFS both recursive and with an explicit stack.",
+    read: ["graphs"],
+    solve: [{ s: "flood-fill" }, { s: "number-of-islands" }, { s: "max-area-of-island" }, { s: "rotting-oranges" }, { s: "course-schedule", tag: "stretch" }],
+  },
+  {
+    week: 7, title: "Heaps, tries and LRU", dates: "Sep 2 - 7", layer: "Advanced structures",
+    build: "Implement a min-heap from scratch on a plain list: bubble-up, sift-down, push, pop. Then switch to heapq for the problems. Stretch: an LRU cache from a dict plus a doubly linked list.",
+    read: ["heaps"],
+    solve: [{ s: "last-stone-weight" }, { s: "kth-largest-element-in-an-array" }, { s: "k-closest-points-to-origin" }, { s: "find-median-from-data-stream", tag: "stretch" }],
+    note: "Tries and the LRU cache are cohort-taught; Woodshed's heap chapter covers the third leg. Take notes in class and drop them into Field notes here.",
+  },
+  {
+    week: 8, title: "Binary search and Quick Select", dates: "Sep 9 - 14", layer: "Algorithms",
+    build: "Write binary search cold, from memory, five days in a row — under three minutes, floor-division midpoint every time. Stretch: walk the Quick Select partition on paper once.",
+    read: ["binary-search"],
+    solve: [{ s: "binary-search" }, { s: "search-insert-position" }, { s: "first-bad-version" }, { s: "koko-eating-bananas" }, { s: "search-in-rotated-sorted-array", tag: "stretch" }],
+    note: "Dijkstra is cohort-taught this stretch of the program; its two ingredients are last week's heap and week six's graph, so you already hold the parts.",
+  },
+  {
+    week: 9, title: "Sorts, cold", dates: "Sep 16 - 21", layer: "Algorithms",
+    build: "Implement merge sort and quick sort from scratch, from memory, twice this week on different days. Counting sort once. Then explain course-schedule back to yourself as a topological sort.",
+    read: ["big-o"],
+    solve: [{ s: "squares-of-a-sorted-array", tag: "revisit" }, { s: "merge-two-sorted-lists", tag: "revisit" }, { s: "kth-largest-element-in-an-array", tag: "revisit" }, { s: "course-schedule", tag: "revisit" }],
+    note: "Woodshed has no sorts chapter on purpose — the reps live in your build task this week. The revisits are the same problems wearing a new lens: the merge step, the partition, the topo order.",
+  },
+  {
+    week: 10, title: "Two pointers and sliding window", dates: "Sep 23 - 28", layer: "Patterns",
+    build: "No structure this week. Pattern drill instead: twenty rounds daily, and before each solve say out loud which pointer or window move applies and why.",
+    read: ["two-pointers", "sliding-window"],
+    solve: [{ s: "valid-palindrome" }, { s: "two-sum-ii-input-array-is-sorted" }, { s: "container-with-most-water" }, { s: "longest-substring-without-repeating-characters" }, { s: "longest-repeating-character-replacement" }, { s: "minimum-window-substring", tag: "stretch" }],
+  },
+  {
+    week: 11, title: "Recursion, backtracking, divide and conquer", dates: "Sep 30 - Oct 5", layer: "Patterns",
+    build: "Write the choose-explore-undo template from memory until it is muscle: subsets first, then permutations, without looking at either solution.",
+    read: ["backtracking"],
+    solve: [{ s: "subsets" }, { s: "permutations" }, { s: "combination-sum" }, { s: "letter-combinations-of-a-phone-number" }, { s: "word-search", tag: "stretch" }],
+  },
+  {
+    week: 12, title: "Dynamic programming and greedy", dates: "Oct 7 - 12", layer: "Patterns, capstone",
+    build: "Capstone: one full timed mock in the app, then re-solve your five weakest problems from the weak-spots list without hints.",
+    read: ["dp", "greedy", "intervals"],
+    solve: [{ s: "climbing-stairs" }, { s: "house-robber" }, { s: "maximum-subarray" }, { s: "jump-game" }, { s: "coin-change", tag: "stretch" }],
+  },
+];
+
 
 const conceptById = (id) => CONCEPTS.find((c) => c.id === id);
 const problemBySlug = (slug) => ORDERED_PROBLEMS.find((p) => p.slug === slug);
@@ -1383,6 +1463,7 @@ const FRESH = {
   reviewed: {},
   tasks: {},
   planStart: null,
+  bootcampWeek: 1,
   solveQuality: {},
   notes: {},
   mocks: [],
@@ -3514,66 +3595,88 @@ function StartPlanCard({ onStartPlan }) {
   );
 }
 
-function PlanTodayCard({ progress, onToggleSolved, onToggleTask, onOpenConcept, library, onOpenBook, onSolve, onSaveNote }) {
-  const n = currentPlanDay(progress);
-  const behind = PLAN.filter((d) => d.day < Math.min(n, 31) && !dayStats(d, progress).complete).length;
+function PlanTodayCard({ progress, onToggleTask, onOpenConcept, onSolve }) {
+  const wk = Math.min(Math.max(progress.bootcampWeek || 1, 1), 12);
+  const week = BOOTCAMP[wk - 1];
+  const buildId = "bc" + week.week + "-build";
+  const buildDone = !!progress.tasks[buildId];
+  const nextProb = week.solve.find((x) => !progress.solved[x.s]);
+  const nextRead = week.read.find((cid) => !progress.read[cid]);
+  const p = nextProb ? PROB_BY_SLUG[nextProb.s] : null;
+  const strip = "px-3 py-1.5 rounded-xl text-xs font-medium";
 
-  if (n > 30) {
-    const allDone = PLAN.every((d) => dayStats(d, progress).complete);
-    return (
-      <Card style={{ borderLeft: "3px solid " + T.accent }}>
-        <Eyebrow>{"Day " + n + " — past the finish line"}</Eyebrow>
-        <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
-          {allDone ? "The month is done. You did the thing." : "The month is over, the work is not."}
-        </h2>
-        <p className="text-sm mt-2 leading-relaxed" style={{ color: T.muted }}>
-          {allDone
-            ? "From here: keep the review queue empty, do timed mocks weekly, and book the real loops. You are more ready than you feel."
-            : "Open the Plan tab and close out the remaining days. Then it is mocks, review, and booking the real thing."}
-        </p>
-      </Card>
-    );
-  }
-
-  const day = PLAN[n - 1];
-  const stats = dayStats(day, progress);
   return (
     <Card style={{ borderLeft: "3px solid " + T.accent }}>
       <div className="flex items-center justify-between gap-3">
-        <Eyebrow>{"Day " + n + " of 30 — " + day.focus}</Eyebrow>
-        <span className="text-xs shrink-0" style={{ color: stats.complete ? T.accent : T.faint, fontFamily: MONO }}>
-          {stats.done}/{stats.total}
+        <Eyebrow color={T.accent}>Algorythm bootcamp</Eyebrow>
+        <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+          {week.dates}
         </span>
       </div>
-      {behind > 0 && (
-        <p className="text-xs mt-2" style={{ color: T.gold }}>
-          {behind === 1 ? "One earlier day is still open" : behind + " earlier days are still open"} — the
-          Plan tab shows what is left. No drama, just reps.
+      <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
+        {"Week " + week.week + ": " + week.title}
+      </h2>
+
+      <button onClick={() => onToggleTask(buildId)} className="mt-3 flex items-start gap-2.5 text-left">
+        <span
+          className="mt-0.5 w-4 h-4 rounded shrink-0 inline-flex items-center justify-center"
+          style={{
+            border: "1.5px solid " + (buildDone ? T.accent : T.edge),
+            backgroundColor: buildDone ? T.accent : "transparent",
+          }}
+        >
+          {buildDone && <Check size={11} color={T.onAccent} strokeWidth={3} />}
+        </span>
+        <span className="text-sm leading-relaxed" style={{ color: buildDone ? T.faint : T.muted }}>
+          {week.build}
+        </span>
+      </button>
+
+      {p ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+            next rep
+          </span>
+          <span className="text-sm font-medium" style={{ color: T.ivory }}>
+            {p.title}
+          </span>
+          <DiffBadge diff={p.diff} />
+          <a
+            href={lc(nextProb.s)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+            style={{ backgroundColor: T.accent, color: T.onAccent }}
+          >
+            Open <ExternalLink size={12} />
+          </a>
+          <button onClick={() => onSolve(nextProb.s, "clean")} className={strip} style={{ backgroundColor: T.surfaceUp, color: T.muted }}>
+            Solved clean
+          </button>
+          <button onClick={() => onSolve(nextProb.s, "assisted")} className={strip} style={{ backgroundColor: T.surfaceUp, color: T.faint }}>
+            Used solution
+          </button>
+        </div>
+      ) : (
+        <p className="text-sm mt-4" style={{ color: T.muted }}>
+          {buildDone
+            ? "Week " + week.week + " is squared away. Freestyle rep below, or read ahead."
+            : "Reps done — the build task is what's left this week."}
         </p>
       )}
-      <div className="mt-2">
-        <DayTasks
-          day={day}
-          progress={progress}
-          onToggleSolved={onToggleSolved}
-          onToggleTask={onToggleTask}
-          onOpenConcept={onOpenConcept}
-          library={library}
-          onOpenBook={onOpenBook}
-          onSolve={onSolve}
-          onSaveNote={onSaveNote}
-        />
-      </div>
-      {stats.complete && (
-        <p className="text-sm mt-3" style={{ color: T.accent }}>
-          Day {n} wrapped. Rest, or raid the review queue.
-        </p>
+
+      {nextRead && (
+        <button
+          onClick={() => onOpenConcept(nextRead)}
+          className="mt-3 inline-flex items-center gap-1 text-xs font-medium"
+          style={{ color: T.accent }}
+        >
+          {"Read: " + conceptById(nextRead).title} <ChevronRight size={13} />
+        </button>
       )}
     </Card>
   );
 }
-
-// ---------------------------------------------------------------- today
 
 function TodayView({
   progress, nextUp, onShuffle, onToggleSolved, onOpenConcept,
@@ -3588,9 +3691,11 @@ function TodayView({
   const streak = streakAlive ? progress.streak.count : 0;
   const doneToday = progress.streak.last === today;
   const firstUnread = ORDERED_CONCEPTS.find((c) => !progress.read[c.id]);
-  const brandNew = solvedCount === 0 && Object.keys(progress.read).length === 0 && !progress.planStart;
-  const planActive = !!progress.planStart;
-  const dayNum = planActive ? daysBetween(progress.planStart, today) + 1 : null;
+  const brandNew = solvedCount === 0 && Object.keys(progress.read).length === 0;
+  const wk = Math.min(Math.max(progress.bootcampWeek || 1, 1), 12);
+  const bweek = BOOTCAMP[wk - 1];
+  const weekDone =
+    bweek.solve.every((x) => progress.solved[x.s]) && !!progress.tasks["bc" + bweek.week + "-build"];
   const weak = weakSpots(progress);
   const noteCount = Object.keys(progress.notes || {}).length;
   const drillPct =
@@ -3618,11 +3723,9 @@ function TodayView({
               {streak} {streak === 1 ? "day" : "days"}
             </span>
           </span>
-          {planActive && dayNum && (
-            <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
-              day {Math.min(dayNum, 30)} of 30
-            </span>
-          )}
+          <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+            wk {wk} of 12
+          </span>
           <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
             {solvedCount}/{total} solved
           </span>
@@ -3636,31 +3739,23 @@ function TodayView({
         {brandNew && (
           <Card>
             <p className="text-sm leading-relaxed" style={{ color: T.ivory }}>
-              The Roadmap teaches the patterns, the Plan turns them into one scheduled
-              month, and Questions rehearses the conversation. Start below; day one is
-              twenty minutes.
+              The Roadmap teaches the patterns, the Bootcamp tab walks your Algorythm
+              cohort week by week, and Questions rehearses the conversation. Start below;
+              day one is twenty minutes.
             </p>
           </Card>
         )}
 
         <InterviewCountdown progress={progress} onToggleTask={onToggleTask} />
 
-        {planActive ? (
-          <PlanTodayCard
-            progress={progress}
-            onToggleSolved={onToggleSolved}
-            onToggleTask={onToggleTask}
-            onOpenConcept={onOpenConcept}
-            library={library}
-            onOpenBook={onOpenBook}
-            onSolve={onSolve}
-            onSaveNote={onSaveNote}
-          />
-        ) : (
-          <StartPlanCard onStartPlan={onStartPlan} />
-        )}
+        <PlanTodayCard
+          progress={progress}
+          onToggleTask={onToggleTask}
+          onOpenConcept={onOpenConcept}
+          onSolve={onSolve}
+        />
 
-        {!planActive && nextUp && (
+        {weekDone && nextUp && (
           <Card>
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
@@ -3785,11 +3880,9 @@ function TodayView({
                 day streak
               </span>
             </div>
-            {planActive && dayNum && (
-              <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
-                day {Math.min(dayNum, 30)} / 30
-              </span>
-            )}
+            <span className="text-xs" style={{ color: T.muted, fontFamily: MONO }}>
+              wk {wk} / 12
+            </span>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <div className="flex-1">
@@ -3827,172 +3920,198 @@ function TodayView({
   );
 }
 
-function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onStartPlan, onRestartPlan, restartArmed, library, onAttachBook, onRemoveBook, onOpenBook, onSolve, onSaveNote, onSetDate }) {
-  const n = currentPlanDay(progress);
-  const [openDay, setOpenDay] = useState(n && n <= 30 ? n : null);
-  const doneDays = PLAN.filter((d) => dayStats(d, progress).complete).length;
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSetWeek, onSolve }) {
+  const cohortWeek = Math.min(Math.max(progress.bootcampWeek || 1, 1), 12);
+  const [openWeek, setOpenWeek] = useState(cohortWeek);
+
+  const weekStats = (w) => {
+    const solved = w.solve.filter((x) => progress.solved[x.s]).length;
+    const build = progress.tasks["bc" + w.week + "-build"] ? 1 : 0;
+    return { done: solved + build, total: w.solve.length + 1 };
+  };
 
   return (
     <div className="space-y-5 max-w-3xl">
       <div>
         <h1 className="ws-display text-4xl font-semibold" style={{ color: T.ivory }}>
-          The 30-day plan
+          The bootcamp
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-          This is the tab you follow — the Roadmap is the library it draws from. Every problem in Woodshed, scheduled into one month aimed at big-tech coding
-          rounds: new patterns most days, review days and timed mocks built in, the two
-          hard problems saved as stretch goals at the end. Honest framing: a month from a
-          cold start is a sprint. It gets you fluent on mediums, which is the actual bar.
-          Book real loops for the very end of the month or just after, and burn a
-          warm-up interview somewhere lower-stakes first if you can.
+          Algorythm's twelve weeks, with Woodshed riding shotgun: each week pairs the
+          cohort topic with its chapter here, a build-it-from-scratch task, and a small
+          rep set. This is the tab you follow — set the week your cohort is on and the
+          rest of the app falls in line. Only week one's syllabus is public, so this
+          order mirrors the program's published layers; if your cohort zigzags, just
+          move the dial.
         </p>
       </div>
 
-      <div>
-        <SectionHead >Your bookshelf, and how it fits</SectionHead>
-        <div className="grid gap-3 lg:grid-cols-3">
-          {Object.entries(BOOKS).map(([id, b]) => (
-            <Card key={id}>
-              <div className="text-sm font-semibold" style={{ color: T.ivory }}>{b.short}</div>
-              <div className="ws-display text-base font-semibold mt-1.5" style={{ color: T.ivory }}>
-                {b.title}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: T.faint }}>
-                {b.author}
-              </div>
-              <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-                {b.role}
-              </p>
-              <LibraryControls
-                bookId={id}
-                attached={!!library[id]}
-                onAttach={onAttachBook}
-                onRemove={onRemoveBook}
-              />
-            </Card>
-          ))}
-        </div>
-        <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
-          Attach each PDF once per device with the buttons above. The files are stored
-          inside this browser only and are never uploaded anywhere, so they stay entirely
-          off the public site. Once attached, every chapter assignment below and every
-          concept page reference gains an Open button that jumps straight to the exact
-          page. Assignments are 15 to 25 minutes each and never block a day.
-        </p>
-      </div>
-
-      <InterviewDateControl progress={progress} onSetDate={onSetDate} />
-
-      {!progress.planStart ? (
-        <StartPlanCard onStartPlan={onStartPlan} />
-      ) : (
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-sm" style={{ color: T.muted }}>
-            Started {progress.planStart} · {n <= 30 ? "Day " + n : "Day 30 passed"} ·{" "}
-            <span style={{ color: T.accent, fontFamily: MONO }}>{doneDays}/30 days closed</span>
-          </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-xs mr-1" style={{ color: T.faint }}>
+          My cohort is on
+        </span>
+        {BOOTCAMP.map((w) => (
           <button
-            onClick={onRestartPlan}
-            className="shrink-0 text-xs px-3 py-1.5 rounded-full"
-            style={{ border: "1px solid " + T.edge, color: restartArmed ? T.rust : T.faint }}
+            key={w.week}
+            onClick={() => {
+              onSetWeek(w.week);
+              setOpenWeek(w.week);
+            }}
+            className="w-8 h-8 rounded-lg text-xs font-medium"
+            style={{
+              backgroundColor: w.week === cohortWeek ? T.accent : T.surfaceUp,
+              color: w.week === cohortWeek ? T.onAccent : T.muted,
+              fontFamily: MONO,
+            }}
           >
-            {restartArmed ? "Tap again: today becomes day 1" : "Restart the clock"}
+            {w.week}
           </button>
-        </div>
-      )}
+        ))}
+      </div>
 
-      {WEEKS.map((w) => (
-        <div key={w.name}>
-          <div className="flex items-baseline gap-3 mb-3">
-            <div
-              className="text-xs font-semibold uppercase"
-              style={{ letterSpacing: "0.14em", color: T.ivory }}
-            >
-              {w.name}
-            </div>
-            <div className="text-xs" style={{ color: T.faint }}>
-              {w.sub}
-            </div>
-          </div>
-          <div className="space-y-2">
-            {PLAN.filter((d) => d.day >= w.days[0] && d.day <= w.days[1]).map((d) => {
-              const stats = dayStats(d, progress);
-              const isToday = n === d.day;
-              const open = openDay === d.day;
-              return (
-                <div
-                  key={d.day}
-                  className="rounded-2xl"
-                  style={{
-                    backgroundColor: T.surface,
-                    border: "1px solid " + (isToday ? T.accent : T.edge),
-                  }}
-                >
-                  <button
-                    onClick={() => setOpenDay(open ? null : d.day)}
-                    className="w-full flex items-center gap-3 p-4 text-left"
-                  >
-                    <span
-                      className="text-xs w-8 shrink-0"
-                      style={{ color: isToday ? T.accent : T.faint, fontFamily: MONO }}
-                    >
-                      {String(d.day).padStart(2, "0")}
-                    </span>
-                    <span className="text-sm font-medium min-w-0 flex-1" style={{ color: T.ivory }}>
-                      {d.focus}
-                      {isToday && (
-                        <span className="ml-2 text-xs" style={{ color: T.accent, fontFamily: MONO }}>
-                          today
-                        </span>
-                      )}
-                    </span>
-                    {stats.complete ? (
-                      <CheckCircle2 size={17} color={T.accent} className="shrink-0" />
-                    ) : (
-                      <span className="text-xs shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
-                        {stats.done}/{stats.total}
-                      </span>
-                    )}
-                    <ChevronDown
-                      size={16}
-                      color={T.faint}
-                      className="shrink-0"
-                      style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 150ms" }}
-                    />
-                  </button>
-                  {open && (
-                    <div className="px-4 pb-4">
-                      <DayTasks
-                        day={d}
-                        progress={progress}
-                        onToggleSolved={onToggleSolved}
-                        onToggleTask={onToggleTask}
-                        onOpenConcept={onOpenConcept}
-                        library={library}
-                        onOpenBook={onOpenBook}
-                        onSolve={onSolve}
-                        onSaveNote={onSaveNote}
-                      />
+      <div className="space-y-3">
+        {BOOTCAMP.map((w) => {
+          const open = openWeek === w.week;
+          const st = weekStats(w);
+          const isCohort = w.week === cohortWeek;
+          return (
+            <Card key={w.week} className="p-0 overflow-hidden" style={isCohort ? { borderLeft: "3px solid " + T.accent } : {}}>
+              <button onClick={() => setOpenWeek(open ? null : w.week)} className="w-full text-left p-5">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs shrink-0" style={{ color: isCohort ? T.accent : T.faint, fontFamily: MONO }}>
+                    {"w" + String(w.week).padStart(2, "0")}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold" style={{ color: T.ivory }}>
+                      {w.title}
                     </div>
+                    <div className="text-xs mt-0.5" style={{ color: T.faint, fontFamily: MONO }}>
+                      {w.dates}
+                      {isCohort ? "  ·  your cohort is here" : ""}
+                    </div>
+                  </div>
+                  <span className="text-xs shrink-0" style={{ color: st.done === st.total ? T.accent : T.faint, fontFamily: MONO }}>
+                    {st.done}/{st.total}
+                  </span>
+                  <ChevronRight
+                    size={15}
+                    color={T.faint}
+                    style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}
+                  />
+                </div>
+              </button>
+              {open && (
+                <div className="px-5 pb-5 space-y-4">
+                  <p className="text-xs" style={{ color: T.faint, fontFamily: MONO }}>
+                    {w.layer}
+                  </p>
+
+                  <button onClick={() => onToggleTask("bc" + w.week + "-build")} className="flex items-start gap-2.5 text-left">
+                    <span
+                      className="mt-0.5 w-4 h-4 rounded shrink-0 inline-flex items-center justify-center"
+                      style={{
+                        border: "1.5px solid " + (progress.tasks["bc" + w.week + "-build"] ? T.accent : T.edge),
+                        backgroundColor: progress.tasks["bc" + w.week + "-build"] ? T.accent : "transparent",
+                      }}
+                    >
+                      {progress.tasks["bc" + w.week + "-build"] && <Check size={11} color={T.onAccent} strokeWidth={3} />}
+                    </span>
+                    <span
+                      className="text-sm leading-relaxed"
+                      style={{ color: progress.tasks["bc" + w.week + "-build"] ? T.faint : T.ivory }}
+                    >
+                      <span className="font-medium">Build it: </span>
+                      {w.build}
+                    </span>
+                  </button>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {w.read.map((cid) => {
+                      const c = conceptById(cid);
+                      const readDone = !!progress.read[cid];
+                      return (
+                        <button
+                          key={cid}
+                          onClick={() => onOpenConcept(cid)}
+                          className="px-2.5 py-1 rounded-lg text-xs"
+                          style={{ backgroundColor: T.surfaceUp, color: readDone ? T.faint : T.muted }}
+                        >
+                          {readDone ? "✓ " : ""}
+                          {c.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-2">
+                    {w.solve.map((x) => {
+                      const p = PROB_BY_SLUG[x.s];
+                      const solvedIt = !!progress.solved[x.s];
+                      return (
+                        <div key={x.s + w.week} className="flex items-center gap-2.5">
+                          <span className="text-xs w-9 shrink-0" style={{ color: T.faint, fontFamily: MONO }}>
+                            {p.num}
+                          </span>
+                          <span className="text-sm flex-1 min-w-0 truncate" style={{ color: solvedIt ? T.faint : T.ivory }}>
+                            {p.title}
+                          </span>
+                          {x.tag && (
+                            <span className="text-xs shrink-0" style={{ color: x.tag === "stretch" ? T.gold : T.faint, fontFamily: MONO }}>
+                              {x.tag}
+                            </span>
+                          )}
+                          <DiffBadge diff={p.diff} />
+                          <a href={lc(x.s)} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1">
+                            <ExternalLink size={13} color={T.faint} />
+                          </a>
+                          {solvedIt ? (
+                            <button onClick={() => onToggleSolved(x.s)} className="text-xs shrink-0" style={{ color: T.faint }}>
+                              undo
+                            </button>
+                          ) : (
+                            <span className="flex gap-1 shrink-0">
+                              <button
+                                onClick={() => onSolve(x.s, "clean")}
+                                className="text-xs px-2 py-1 rounded-lg"
+                                style={{ backgroundColor: T.surfaceUp, color: T.muted }}
+                              >
+                                clean
+                              </button>
+                              <button
+                                onClick={() => onSolve(x.s, "assisted")}
+                                className="text-xs px-2 py-1 rounded-lg"
+                                style={{ backgroundColor: T.surfaceUp, color: T.faint }}
+                              >
+                                assisted
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {w.note && (
+                    <p className="text-xs leading-relaxed" style={{ color: T.faint }}>
+                      {w.note}
+                    </p>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+              )}
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
-
-// ---------------------------------------------------------------- roadmap
 
 function RoadmapView({ progress, onOpenConcept }) {
   return (
     <div className="space-y-7">
       <p className="text-sm leading-relaxed max-w-3xl" style={{ color: T.muted }}>
         This is the library: every pattern in playing order. You do not follow this tab day
-        to day — the Plan does the scheduling and pulls its reading and reps from these
+        to day — the Bootcamp tab does the scheduling and pulls its reading and reps from these
         shelves. Come here to read ahead, circle back, or shore up a weak spot. New to
         Python? Phase 00 takes you from zero, and every solution in the app uses only
         what is taught there.
@@ -5095,7 +5214,7 @@ function JobFitView({ progress, onSaveFit, onOpenTrack }) {
 
 const TABS = [
   { id: "today", label: "Today", icon: Sun },
-  { id: "plan", label: "Plan", icon: CalendarDays },
+  { id: "plan", label: "Bootcamp", icon: CalendarDays },
   { id: "roadmap", label: "Roadmap", icon: Map },
   { id: "questions", label: "Questions", icon: MessageSquare },
   { id: "fit", label: "Job fit", icon: Target },
@@ -5338,6 +5457,10 @@ export default function WoodshedApp() {
     });
   }
 
+  function setBootcampWeek(n) {
+    setProgress((prev) => ({ ...prev, bootcampWeek: n }));
+  }
+
   function toggleTask(id) {
     setProgress((prev) => {
       const tasks = { ...prev.tasks };
@@ -5561,6 +5684,7 @@ export default function WoodshedApp() {
                 onToggleTask={toggleTask}
                 onOpenConcept={openConcept}
                 onStartPlan={startPlan}
+                onSetWeek={setBootcampWeek}
                 onRestartPlan={restartPlan}
                 restartArmed={restartArmed}
                 library={library}
