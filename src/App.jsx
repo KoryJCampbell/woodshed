@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v12.1: the whole DSA lane speaks Python — concepts, drills, Big-O.
+// v13: Python from zero (Phase 00), Plan-vs-Roadmap orientation.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -45,6 +45,7 @@ const lc = (slug) => "https://leetcode.com/problems/" + slug + "/";
 // ---------------------------------------------------------------- content
 
 const PHASES = [
+  { id: "p0", name: "Python, from zero", sub: "Tune the instrument" },
   { id: "p1", name: "Foundations", sub: "Learn the scales" },
   { id: "p2", name: "Core patterns", sub: "Find the groove" },
   { id: "p3", name: "Trees, graphs and heaps", sub: "Hear the changes" },
@@ -52,6 +53,254 @@ const PHASES = [
 ];
 
 const CONCEPTS = [
+  {
+    id: "py-reading",
+    phase: "p0",
+    title: "Reading Python",
+    tagline: "The rules of the notation",
+    eli5: [
+      "Python has no braces and no semicolons. Indentation is the structure: everything indented under a line belongs to it, the way an outline works. Your eyes already read code this way — Python just makes it official.",
+      "A colon opens a block. def, if, for, while all end their line with one, and the body lives indented underneath. Four spaces is the convention everywhere.",
+      "Names use snake_case: two_sum, max_profit, left. True, False and None are capitalized. Comments start with a hash mark.",
+      "The payoff: Python reads almost exactly like the pseudocode interviewers scribble on whiteboards. Less punctuation between your idea and the screen.",
+    ],
+    spotIt: [
+      "Every solution in this app. If a snippet looks strange right now, come back after this chapter and it will not.",
+      "The error you will meet first is IndentationError. It is never mysterious: some line is not lined up with its block.",
+    ],
+    example: {
+      title: "One function, every rule at once",
+      prompt: "A tiny function using def, if, a loop and return. This is the whole grammar you need to start.",
+      steps: [
+        "def opens the function, the colon opens the block, the body indents.",
+        "The if and the for indent one more level each time they nest.",
+        "No braces close anything. Un-indenting is the closing brace.",
+      ],
+      code: `def first_even(nums):          # def, name, args, colon
+    for x in nums:             # for-each, no index needed
+        if x % 2 == 0:         # nested block, one more indent
+            return x           # found it, hand it back
+    return None                # Python's null`,
+      complexity:
+        "No complexity lesson here — just notation. Once your eyes accept indentation-as-structure, everything else in this app is readable.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-variables",
+    phase: "p0",
+    title: "Variables, numbers, strings",
+    tagline: "Dynamic types and honest math",
+    eli5: [
+      "No type declarations. x = 5 just works; a name points at a value, and it can point at something else later. The interpreter keeps track so you do not have to.",
+      "Two divisions, and the difference matters: / always gives a decimal, 7 / 2 is 3.5. Double slash floors it: 7 // 2 is 3. That double slash is the one you want for a binary search midpoint.",
+      "Strings work with either quote style and are immutable — every 'edit' builds a new one. f-strings put values inside text: f'count is {n}'. That is your debugging voice.",
+      "Slicing is the superpower: s[1:4] takes characters one through three, s[-1] is the last one, s[::-1] is the whole thing reversed. It works identically on lists, and it never crashes on out-of-range bounds — it just gives you what exists.",
+    ],
+    spotIt: [
+      "The // shows up in every binary search in this app: mid = (lo + hi) // 2.",
+      "s[::-1] is the one-line reverse — a legitimate party trick for palindrome warm-ups.",
+      "nums[:] copies a list, which is exactly the snapshot move the backtracking solutions use.",
+    ],
+    example: {
+      title: "Division, slices, f-strings",
+      prompt: "The handful of expressions you will type hundreds of times.",
+      steps: [
+        "Floor division for midpoints, so the index stays a whole number.",
+        "Negative indexes count from the end; no length arithmetic needed.",
+        "Slices copy — the original is untouched.",
+      ],
+      code: `mid = (0 + 9) // 2        # 4, floor division
+word = "woodshed"
+last = word[-1]           # "d"
+piece = word[0:4]         # "wood"
+flipped = word[::-1]      # "dehsdoow"
+n = 3
+line = f"day {n} of 30"   # f-string: values inside text`,
+      complexity:
+        "One honest cost: a slice copies, so s[1:4] is O(k) for the piece you take. Saying that out loud earns a nod.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-lists",
+    phase: "p0",
+    title: "Lists",
+    tagline: "Your array, but friendlier",
+    eli5: [
+      "The list is Python's array, and it grows on its own: nums = [1, 2, 3], nums.append(4), nums.pop(). Append and pop at the end are O(1) — which means a plain list is already a stack.",
+      "len(nums) is the length. Checking 'x in nums' works but walks the whole list — O(n). Remember that feeling; the dicts-and-sets chapter is the cure.",
+      "Two sorts, and the difference is the same lesson every language teaches: nums.sort() changes the list in place, sorted(nums) hands back a new one and leaves the original alone.",
+      "A list comprehension builds a list in one readable line: [x * 2 for x in nums]. You will read them constantly; write them when they stay simple, and use a normal loop the moment logic gets thick.",
+      "enumerate(nums) gives you index and value together — for i, x in enumerate(nums) — so you never write the index-counter ceremony by hand.",
+    ],
+    spotIt: [
+      "Everywhere. Almost every problem in this app holds its data in a list.",
+      "The trap the Big-O drill teaches: insert(0, x) and pop(0) shift every element — O(n) each. Front-of-list work wants a deque, which the idioms chapter covers.",
+      "path[:] in the subsets solution is the copy-a-snapshot move from the slicing chapter, earning its keep.",
+    ],
+    example: {
+      title: "The list in one breath",
+      prompt: "Build, walk, transform, copy — the four motions you repeat forever.",
+      steps: [
+        "append and pop make the stack motions.",
+        "enumerate kills index bookkeeping.",
+        "The comprehension is a loop that fits in your eye.",
+      ],
+      code: `nums = [3, 1, 4]
+nums.append(1)             # [3, 1, 4, 1]
+top = nums.pop()           # 1, list is [3, 1, 4]
+
+for i, x in enumerate(nums):
+    pass                   # i is the index, x the value
+
+doubled = [x * 2 for x in nums]   # [6, 2, 8]
+copy = nums[:]             # new list, same values
+nums.sort()                # in place: [1, 3, 4]`,
+      complexity:
+        "append and pop from the end: O(1). insert(0) or pop(0): O(n). 'in' on a list: O(n). Three facts that answer half of all follow-up questions.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-dicts-sets",
+    phase: "p0",
+    title: "Dicts and sets",
+    tagline: "The O(1) power tools",
+    eli5: [
+      "The dict is Python's hash map, and it is the single most important structure in interviews. seen = {}, seen[key] = value stores, seen[key] reads, 'key in seen' answers instantly. All O(1) on average.",
+      "Reading a missing key with brackets crashes. seen.get(key, 0) does not — it hands back your default. That one method is the difference between clean code and try-except noise.",
+      "The counting pattern you will write fifty times: counts[x] = counts.get(x, 0) + 1. Tallying in one line.",
+      "A set is a dict that only keeps the keys: unique members, instant lookup. seen = set(), seen.add(x), 'x in seen'. And set(nums) deduplicates an entire list in one move.",
+      "Here is the number one interview move in existence, now in your hands: any time you catch yourself searching inside a loop, a dict or set lookup probably turns O(n squared) into O(n).",
+    ],
+    spotIt: [
+      "two_sum in the hash map chapter is a pure dict play — the seen dictionary is this chapter applied.",
+      "The Big-O drill has the exact pair: 'in' on a list inside a loop is quadratic, the same check against a set is linear. Feel the difference once and you own it.",
+    ],
+    example: {
+      title: "Trade the loop for a lookup",
+      prompt: "First repeated number in a list — the smallest possible demo of the biggest possible idea.",
+      steps: [
+        "The set remembers everything seen so far, at O(1) a glance.",
+        "One pass, no inner search. That is the whole trade.",
+        "The counting variant with .get is the same muscle.",
+      ],
+      code: `def first_repeat(nums):
+    seen = set()
+    for x in nums:
+        if x in seen:          # O(1) ask
+            return x
+        seen.add(x)
+    return None
+
+def tally(words):
+    counts = {}
+    for w in words:
+        counts[w] = counts.get(w, 0) + 1
+    return counts`,
+      complexity:
+        "Average O(1) insert and lookup for both dict and set. The word 'average' shows you know hashing has rare bad days — cheap credibility.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-flow",
+    phase: "p0",
+    title: "Loops and functions",
+    tagline: "for-in, while, def, unpack",
+    eli5: [
+      "for x in nums walks the values directly — no counter, no length check. When you truly need positions, range(n) counts 0 up to n-1, and range(2, n) starts at 2. It always stops one before the end number; internalize that and a whole species of off-by-one dies.",
+      "while is for loops whose length you cannot know up front — binary search shrinking its window, a linked list walking to its end.",
+      "def name(args): plus return. A function can return two things at once — return lo, hi — and the caller unpacks them: low, high = f(). Same trick swaps variables with no temp: a, b = b, a.",
+      "Functions nest. A def inside a def sees the outer function's variables — Python closures, the same idea you know from JavaScript. It is how the num_islands solution keeps its sink helper private and clean.",
+    ],
+    spotIt: [
+      "The nested sink function inside num_islands is this chapter's closure point, live.",
+      "a, b = b, a is the reverse-a-linked-list feel in one line of variable work.",
+      "range stopping early is behind most beginner off-by-ones — when a loop misses the last item, look there first.",
+    ],
+    example: {
+      title: "Small moves, whole vocabulary",
+      prompt: "One function returning two values, one nested helper, one swap.",
+      steps: [
+        "Track two things, return both, unpack at the call site.",
+        "The helper reads its parent's variables without being handed them.",
+      ],
+      code: `def min_and_max(nums):
+    lo = hi = nums[0]
+    for x in nums[1:]:
+        if x < lo:
+            lo = x
+        if x > hi:
+            hi = x
+    return lo, hi              # two values out
+
+low, high = min_and_max([5, 2, 9])
+
+def outer(nums):
+    total = 0
+    def add(x):                # nested helper
+        nonlocal total         # allowed to update outer's variable
+        total += x
+    for n in nums:
+        add(n)
+    return total
+
+a, b = 1, 2
+a, b = b, a                    # the no-temp swap`,
+      complexity:
+        "Nothing scary: range(n) is O(n), the unpacking and swap are free. These are style points that make your code read like you live here.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-idioms",
+    phase: "p0",
+    title: "The interview idioms",
+    tagline: "Six moves that finish solutions",
+    eli5: [
+      "float('inf') is bigger than everything — the honest starting value when hunting a minimum. Its negative starts a maximum hunt.",
+      "min, max and sort all accept key=, a function deciding what to compare by. lambda is just a tiny unnamed function: intervals.sort(key=lambda it: it[0]) sorts by first element. That one line opens the merge-intervals pattern.",
+      "''.join(parts) glues a list of strings into one, fast. Paired with the strings chapter: collect pieces in a list, join once at the end.",
+      "collections.deque is the real queue: append at the back, popleft from the front, both O(1) — exactly what a plain list cannot do cheaply. Every BFS you ever write starts with it.",
+      "heapq turns a plain list into a min-heap: heappush and heappop, both O(log n). Need the biggest instead? Push negatives and flip the sign on the way out — say that trick out loud in an interview and it reads as fluency.",
+    ],
+    spotIt: [
+      "merge intervals uses the key=lambda sort. find_kth_largest is heapq working a size-k heap. The BFS problems ahead all open with deque.",
+      "When a follow-up asks 'can you do the front removal faster?', deque is the answer being fished for.",
+    ],
+    example: {
+      title: "The idioms, back to back",
+      prompt: "Every move on one card — this is the reference you will reopen the night before.",
+      steps: [
+        "inf for a running best, key= for custom order.",
+        "join for strings, deque for queues, heapq for priority.",
+      ],
+      code: `from collections import deque
+import heapq
+
+best = float("inf")            # running minimum starts impossible
+
+pairs = [[3, 9], [1, 4]]
+pairs.sort(key=lambda p: p[0]) # order by first element
+
+parts = ["wood", "shed"]
+word = "".join(parts)          # "woodshed"
+
+q = deque([1, 2, 3])
+q.append(4)                    # back
+front = q.popleft()            # 1, O(1) from the front
+
+heap = []
+heapq.heappush(heap, 5)
+heapq.heappush(heap, 2)
+smallest = heapq.heappop(heap) # 2`,
+      complexity:
+        "deque popleft is O(1) where list pop(0) is O(n); heap push and pop are O(log n). Those two sentences answer most follow-ups this side of graphs.",
+    },
+    problems: [],
+  },
   {
     id: "big-o",
     phase: "p1",
@@ -76,7 +325,7 @@ const CONCEPTS = [
         "Does this array contain a duplicate? Here is the exact trade you will make over and over in interviews: spend memory to buy speed.",
       steps: [
         "Brute force: compare every pair. Correct, easy to write, O(n squared). Always worth naming out loud as your starting point.",
-        "Better: remember what you have seen. A Set answers 'have I seen this?' instantly, so one pass does it.",
+        "Better: remember what you have seen. A set answers 'have I seen this?' instantly, so one pass does it.",
         "That is the whole game. Most interview improvements are exactly this move: replace an inner search loop with a hash lookup.",
       ],
       code: `# O(n^2) time, O(1) space: check every pair
@@ -105,7 +354,7 @@ def has_duplicate(nums):
     spotIt: [
       "Arrays are the default container. Almost every problem starts as one, and the question is which pattern you layer on top.",
       "The costs to know cold: index read O(1), push and pop at the end O(1), shift and unshift at the front O(n), search unsorted O(n), slice O(n).",
-      "If your solution calls indexOf or includes inside a loop, alarm bells: that is a hidden O(n squared). A Set or Map usually fixes it.",
+      "If your solution checks 'in' on a list inside a loop, alarm bells: that is a hidden O(n squared). A set or dict usually fixes it.",
     ],
     example: {
       title: "Best Time to Buy and Sell Stock",
@@ -142,7 +391,7 @@ def has_duplicate(nums):
     tagline: "The coat check",
     eli5: [
       "A hash map is a coat check. Hand over your coat, get ticket 47. Later you hand back ticket 47 and get your exact coat instantly. Nobody walks the racks searching. Lookup, insert and delete are all O(1) on average.",
-      "You already use these every day: plain objects and Map are hash maps, Set is a hash map that only keeps the tickets.",
+      "In Python the dict is exactly this coat check, and a set is a hash map that only keeps the tickets — membership without the coats.",
       "The number one interview move in existence: can I trade a loop for a lookup? Any time you catch yourself searching inside a loop, a hash map probably turns O(n squared) into O(n).",
       "Counting things is the other superpower. A frequency map is a tally sheet: one pass to count, then answer questions from the tally.",
     ],
@@ -3590,7 +3839,7 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSta
           The 30-day plan
         </h1>
         <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
-          Every problem in Woodshed, scheduled into one month aimed at big-tech coding
+          This is the tab you follow — the Roadmap is the library it draws from. Every problem in Woodshed, scheduled into one month aimed at big-tech coding
           rounds: new patterns most days, review days and timed mocks built in, the two
           hard problems saved as stretch goals at the end. Honest framing: a month from a
           cold start is a sprint. It gets you fluent on mediums, which is the actual bar.
@@ -3742,8 +3991,11 @@ function RoadmapView({ progress, onOpenConcept }) {
   return (
     <div className="space-y-7">
       <p className="text-sm leading-relaxed max-w-3xl" style={{ color: T.muted }}>
-        Work top to bottom. Read a concept, then do its problems in order. Patterns first,
-        grinding second: that is the difference between practicing and flailing.
+        This is the library: every pattern in playing order. You do not follow this tab day
+        to day — the Plan does the scheduling and pulls its reading and reps from these
+        shelves. Come here to read ahead, circle back, or shore up a weak spot. New to
+        Python? Phase 00 takes you from zero, and every solution in the app uses only
+        what is taught there.
       </p>
       {PHASES.map((ph, phIdx) => {
         const concepts = CONCEPTS.filter((c) => c.phase === ph.id);
@@ -3751,7 +4003,7 @@ function RoadmapView({ progress, onOpenConcept }) {
           <div key={ph.id}>
             <div className="flex items-baseline gap-3 mb-3">
               <span className="text-xs" style={{ color: T.accent, fontFamily: MONO }}>
-                {"0" + (phIdx + 1)}
+                {"0" + phIdx}
               </span>
               <div>
                 <div
