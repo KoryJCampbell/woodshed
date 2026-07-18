@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v16: week one mirrored from Algorythm's real activity list; drill learns their nuances.
+// v17: the whole teaching lane rewritten ELI5. Picture first, name second.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -1331,10 +1331,10 @@ const PROB_BY_SLUG = Object.fromEntries(ORDERED_PROBLEMS.map((p) => [p.slug, p])
 const BOOTCAMP = [
   {
     week: 1, title: "Big O notation", dates: "Jul 22 - 27", layer: "Foundations",
-    build: "Their week one goes past the label: work the Big-O drill until the nuances are instinct — a nested loop that only advances a shared pointer is O(n), loops over two different inputs are O(n times m), and BFS pays its memory bill in queue. Say every answer out loud before flipping.",
+    build: "Live in the Big-O drill this week. Get the sneaky ones right — a nested loop that only advances a shared pointer is O(n), loops over two different inputs are O(n times m), and BFS pays its memory bill in queue. Say every answer out loud before flipping.",
     read: ["py-reading", "py-variables", "py-lists", "py-dicts-sets", "big-o"],
     solve: [{ s: "binary-search" }, { s: "contains-duplicate" }, { s: "running-sum-of-1d-array", tag: "extra" }, { s: "valid-anagram", tag: "extra" }],
-    note: "Mirrored from your cohort's actual 26-activity list. Binary search appears here as their O(log n) exhibit — a first exposure, not the mastery pass; it comes back in week eight for depth. Contains Duplicate is their quadratic-versus-linear demo, the exact trade the drill teaches. Python chapters are folded in because the cohort is language-agnostic and you chose Python.",
+    note: "Mirrored from your cohort's actual 26-activity list. Binary search appears here as their O(log n) exhibit — a first exposure, not the mastery pass; it comes back in week eight for depth. Contains Duplicate is their slow-way-versus-fast-way demo, the exact trade the drill teaches. Python chapters are folded in because the cohort is not tied to one language, and you chose Python.",
   },
   {
     week: 2, title: "Linked lists", dates: "Jul 29 - Aug 3", layer: "Fundamentals, from scratch",
@@ -1344,13 +1344,13 @@ const BOOTCAMP = [
   },
   {
     week: 3, title: "Stacks and queues", dates: "Aug 5 - 10", layer: "Fundamentals, from scratch",
-    build: "Implement a stack, then a queue two ways: once on collections.deque, once as the classic two-stacks queue. Explain to the wall why the second one amortizes.",
+    build: "Implement a stack, then a queue two ways: once on collections.deque, once as the classic two-stacks queue. Explain to the wall why the two-stack one is still fast on average.",
     read: ["stacks-queues"],
     solve: [{ s: "valid-parentheses" }, { s: "min-stack" }, { s: "implement-queue-using-stacks" }, { s: "evaluate-reverse-polish-notation" }, { s: "daily-temperatures", tag: "stretch" }],
   },
   {
     week: 4, title: "Sets and hashmaps", dates: "Aug 12 - 17", layer: "Fundamentals, from scratch",
-    build: "Implement a hashmap from scratch: a hash function, buckets as lists, put, get, delete with collision chaining, and a resize when load passes 0.7.",
+    build: "Implement a hashmap from scratch: a hash function, buckets as lists, put, get, delete with collision chaining, and make it grow when it gets about seventy percent full.",
     read: ["hash-maps", "prefix-sums"],
     solve: [{ s: "two-sum" }, { s: "group-anagrams" }, { s: "top-k-frequent-elements" }, { s: "subarray-sum-equals-k" }],
   },
@@ -1375,14 +1375,14 @@ const BOOTCAMP = [
   },
   {
     week: 8, title: "Binary search and Quick Select", dates: "Sep 9 - 14", layer: "Algorithms",
-    build: "Write binary search cold, from memory, five days in a row — under three minutes, floor-division midpoint every time. Stretch: walk the Quick Select partition on paper once.",
+    build: "Write binary search cold, from memory, five days in a row — under three minutes, two-slash middle every time. Stretch: walk the Quick Select partition on paper once.",
     read: ["binary-search"],
     solve: [{ s: "binary-search" }, { s: "search-insert-position" }, { s: "first-bad-version" }, { s: "koko-eating-bananas" }, { s: "search-in-rotated-sorted-array", tag: "stretch" }],
     note: "Dijkstra is cohort-taught this stretch of the program; its two ingredients are last week's heap and week six's graph, so you already hold the parts.",
   },
   {
     week: 9, title: "Sorts, cold", dates: "Sep 16 - 21", layer: "Algorithms",
-    build: "Implement merge sort and quick sort from scratch, from memory, twice this week on different days. Counting sort once. Then explain course-schedule back to yourself as a topological sort.",
+    build: "Implement merge sort and quick sort from scratch, from memory, twice this week on different days. Counting sort once. Then explain course-schedule back to yourself as a topological sort \u2014 the fancy name for doing tasks in dependency order.",
     read: ["big-o"],
     solve: [{ s: "squares-of-a-sorted-array", tag: "revisit" }, { s: "merge-two-sorted-lists", tag: "revisit" }, { s: "kth-largest-element-in-an-array", tag: "revisit" }, { s: "course-schedule", tag: "revisit" }],
     note: "Woodshed has no sorts chapter on purpose — the reps live in your build task this week. The revisits are the same problems wearing a new lens: the merge step, the partition, the topo order.",
@@ -2120,22 +2120,22 @@ const BIGO_OPTIONS = [
 ];
 
 const BIGO_BANK = [
-  { a: "c1", why: "Index math, no loops. Same cost at any size.", code: "def last(nums):\n    return nums[-1]" },
-  { a: "c1", why: "A dict lookup is constant time on average, no matter how big the menu.", code: "def price(menu, item):\n    return menu.get(item, 0)" },
-  { a: "n", why: "One pass, constant work per element.", code: "def total(nums):\n    s = 0\n    for x in nums:\n        s += x\n    return s" },
-  { a: "n", why: "Two separate passes is still O(n): constants drop.", code: "def spread(nums):\n    hi = max(nums)\n    lo = min(nums)\n    return hi - lo" },
-  { a: "n", why: "Same pair problem, but the in check on a set is O(1): the classic trade.", code: "def has_pair(nums, k):\n    seen = set()\n    for a in nums:\n        if k - a in seen:\n            return True\n        seen.add(a)\n    return False" },
-  { a: "n2", why: "A loop inside a loop over the same input: the handshake shape.", code: "def has_dup(nums):\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] == nums[j]:\n                return True\n    return False" },
-  { a: "n2", why: "The in check on a list is a hidden linear scan, inside a linear loop.", code: "def has_pair(nums, k):\n    for a in nums:\n        if k - a in nums:\n            return True\n    return False" },
-  { a: "n2", why: "insert at index 0 shifts every element over: a hidden linear cost each time.", code: "def reverse_copy(nums):\n    out = []\n    for x in nums:\n        out.insert(0, x)\n    return out" },
-  { a: "logn", why: "The problem halves every iteration.", code: "def steps(n):\n    count = 0\n    while n > 1:\n        n = n // 2\n        count += 1\n    return count" },
-  { a: "logn", why: "Binary search: every comparison throws away half the remaining space.", code: "def search(nums, target):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1" },
-  { a: "nlogn", why: "The sort dominates; the single pass after it is cheaper.", code: "def spread(nums):\n    nums.sort()\n    return nums[-1] - nums[0]" },
-  { a: "nlogn", why: "Sort first, then one linear pass: n log n plus n is still n log n.", code: "def closest_gap(nums):\n    nums.sort()\n    best = nums[1] - nums[0]\n    for i in range(2, len(nums)):\n        best = min(best, nums[i] - nums[i - 1])\n    return best" },
-  { a: "exp", why: "Each call spawns two more: the tree doubles every level.", code: "def fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)" },
-  { a: "exp", why: "Every element branches into keep-it or skip-it: two choices, n times.", code: "def count_subsets(nums, i=0):\n    if i == len(nums):\n        return 1\n    keep = count_subsets(nums, i + 1)\n    skip = count_subsets(nums, i + 1)\n    return keep + skip" },
-  { a: "nm", why: "Two different inputs nested: n times m, not n squared \u2014 their sizes are independent.", code: "def matches(words, tags):\n    found = []\n    for w in words:\n        for t in tags:\n            if w == t:\n                found.append(w)\n    return found" },
-  { a: "n", why: "Looks nested, but left only ever moves forward \u2014 at most n total steps across the whole run. Amortized O(n): the two-pointer shape.", code: "def longest_close_run(nums):\n    left = 0\n    best = 0\n    for right in range(len(nums)):\n        while nums[right] - nums[left] > 1:\n            left += 1\n        best = max(best, right - left + 1)\n    return best" }
+  { a: "c1", why: "Grab by position: instant, no matter the size.", code: "def last(nums):\n    return nums[-1]" },
+  { a: "c1", why: "Cubby lookup: instant on average, menu of 10 or 10,000.", code: "def price(menu, item):\n    return menu.get(item, 0)" },
+  { a: "n", why: "One trip down the list, small work each step.", code: "def total(nums):\n    s = 0\n    for x in nums:\n        s += x\n    return s" },
+  { a: "n", why: "Two separate trips is still just trips. O(n).", code: "def spread(nums):\n    hi = max(nums)\n    lo = min(nums)\n    return hi - lo" },
+  { a: "n", why: "Same pair hunt, but the set check is instant. The classic trade.", code: "def has_pair(nums, k):\n    seen = set()\n    for a in nums:\n        if k - a in seen:\n            return True\n        seen.add(a)\n    return False" },
+  { a: "n2", why: "A loop inside a loop over the same pile: the handshake shape.", code: "def has_dup(nums):\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] == nums[j]:\n                return True\n    return False" },
+  { a: "n2", why: "'in' on a LIST secretly walks the whole list. Inside a loop, that is slow inside slow.", code: "def has_pair(nums, k):\n    for a in nums:\n        if k - a in nums:\n            return True\n    return False" },
+  { a: "n2", why: "Putting things at the FRONT makes everything scoot over. Every single time.", code: "def reverse_copy(nums):\n    out = []\n    for x in nums:\n        out.insert(0, x)\n    return out" },
+  { a: "logn", why: "The pile halves every step. Halving is log.", code: "def steps(n):\n    count = 0\n    while n > 1:\n        n = n // 2\n        count += 1\n    return count" },
+  { a: "logn", why: "Every look throws half away. Twenty looks kills a million.", code: "def search(nums, target):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1" },
+  { a: "nlogn", why: "The sort is the expensive part. The pass after it is cheap.", code: "def spread(nums):\n    nums.sort()\n    return nums[-1] - nums[0]" },
+  { a: "nlogn", why: "Sort once, then one cheap trip. The sort sets the price.", code: "def closest_gap(nums):\n    nums.sort()\n    best = nums[1] - nums[0]\n    for i in range(2, len(nums)):\n        best = min(best, nums[i] - nums[i - 1])\n    return best" },
+  { a: "exp", why: "Every call makes two more. Doubles every level. Boom.", code: "def fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)" },
+  { a: "exp", why: "Keep it or skip it: two choices, n times over. That is 2 to the n.", code: "def count_subsets(nums, i=0):\n    if i == len(nums):\n        return 1\n    keep = count_subsets(nums, i + 1)\n    skip = count_subsets(nums, i + 1)\n    return keep + skip" },
+  { a: "nm", why: "Two DIFFERENT piles nested: n times m \u2014 one letter per pile.", code: "def matches(words, tags):\n    found = []\n    for w in words:\n        for t in tags:\n            if w == t:\n                found.append(w)\n    return found" },
+  { a: "n", why: "Looks nested, but left only ever moves forward \u2014 one trip total, spread out. Still O(n).", code: "def longest_close_run(nums):\n    left = 0\n    best = 0\n    for right in range(len(nums)):\n        while nums[right] - nums[left] > 1:\n            left += 1\n        best = max(best, right - left + 1)\n    return best" }
 ];
 
 function weakSpots(progress) {
