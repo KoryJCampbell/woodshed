@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v15: Amazon loop — LP track, loop rep set, story-to-LP mapping.
+// v16: week one mirrored from Algorythm's real activity list; drill learns their nuances.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -317,6 +317,9 @@ smallest = heapq.heappop(heap) # 2`,
       "The hierarchy to memorize, fastest to slowest: O(1), O(log n), O(n), O(n log n), O(n squared), O(2 to the n).",
       "Rules of thumb: one pass is n. Nested loops over the same input is n squared. Halving each step is log n. Sorting is n log n. A fixed number of steps is 1.",
       "Space complexity is the same idea for memory. A hash map holding all n items is O(n) space; a couple of counter variables is O(1) space.",
+      "Nested does not automatically mean n squared. An inner loop that only ever advances a shared pointer forward is amortized O(n) — the two-pointer shape. And nesting over two different inputs is O(n times m), not n squared.",
+      "O(log n) is also the height of a balanced tree — the same halving, standing upright. And the factorial wall is real: generating every ordering of n items is O(n!), which is why brute-forcing permutations dies around ten.",
+      "Two memory bills people forget: BFS pays in queue, which can hold an entire level at once — O(n) worst case. Recursion pays in call stack, one frame per open call.",
     ],
     example: {
       title: "Same problem, two shapes",
@@ -1299,10 +1302,10 @@ const PROB_BY_SLUG = Object.fromEntries(ORDERED_PROBLEMS.map((p) => [p.slug, p])
 const BOOTCAMP = [
   {
     week: 1, title: "Big O notation", dates: "Jul 22 - 27", layer: "Foundations",
-    build: "No structure yet. Instead: run the Big-O drill until you can classify ten snippets in a row, saying each answer out loud before you flip.",
+    build: "Their week one goes past the label: work the Big-O drill until the nuances are instinct — a nested loop that only advances a shared pointer is O(n), loops over two different inputs are O(n times m), and BFS pays its memory bill in queue. Say every answer out loud before flipping.",
     read: ["py-reading", "py-variables", "py-lists", "py-dicts-sets", "big-o"],
-    solve: [{ s: "concatenation-of-array" }, { s: "running-sum-of-1d-array" }, { s: "contains-duplicate" }, { s: "valid-anagram" }],
-    note: "The only week Algorythm has published in detail, and it matches Woodshed's opening chapter. Python chapters are folded in because the cohort is language-agnostic and you are choosing Python.",
+    solve: [{ s: "binary-search" }, { s: "contains-duplicate" }, { s: "running-sum-of-1d-array", tag: "extra" }, { s: "valid-anagram", tag: "extra" }],
+    note: "Mirrored from your cohort's actual 26-activity list. Binary search appears here as their O(log n) exhibit — a first exposure, not the mastery pass; it comes back in week eight for depth. Contains Duplicate is their quadratic-versus-linear demo, the exact trade the drill teaches. Python chapters are folded in because the cohort is language-agnostic and you chose Python.",
   },
   {
     week: 2, title: "Linked lists", dates: "Jul 29 - Aug 3", layer: "Fundamentals, from scratch",
@@ -2084,6 +2087,7 @@ const BIGO_OPTIONS = [
   { id: "nlogn", label: "O(n log n)" },
   { id: "n2", label: "O(n^2)" },
   { id: "exp", label: "O(2^n)" },
+  { id: "nm", label: "O(n × m)" },
 ];
 
 const BIGO_BANK = [
@@ -2100,7 +2104,9 @@ const BIGO_BANK = [
   { a: "nlogn", why: "The sort dominates; the single pass after it is cheaper.", code: "def spread(nums):\n    nums.sort()\n    return nums[-1] - nums[0]" },
   { a: "nlogn", why: "Sort first, then one linear pass: n log n plus n is still n log n.", code: "def closest_gap(nums):\n    nums.sort()\n    best = nums[1] - nums[0]\n    for i in range(2, len(nums)):\n        best = min(best, nums[i] - nums[i - 1])\n    return best" },
   { a: "exp", why: "Each call spawns two more: the tree doubles every level.", code: "def fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)" },
-  { a: "exp", why: "Every element branches into keep-it or skip-it: two choices, n times.", code: "def count_subsets(nums, i=0):\n    if i == len(nums):\n        return 1\n    keep = count_subsets(nums, i + 1)\n    skip = count_subsets(nums, i + 1)\n    return keep + skip" }
+  { a: "exp", why: "Every element branches into keep-it or skip-it: two choices, n times.", code: "def count_subsets(nums, i=0):\n    if i == len(nums):\n        return 1\n    keep = count_subsets(nums, i + 1)\n    skip = count_subsets(nums, i + 1)\n    return keep + skip" },
+  { a: "nm", why: "Two different inputs nested: n times m, not n squared \u2014 their sizes are independent.", code: "def matches(words, tags):\n    found = []\n    for w in words:\n        for t in tags:\n            if w == t:\n                found.append(w)\n    return found" },
+  { a: "n", why: "Looks nested, but left only ever moves forward \u2014 at most n total steps across the whole run. Amortized O(n): the two-pointer shape.", code: "def longest_close_run(nums):\n    left = 0\n    best = 0\n    for right in range(len(nums)):\n        while nums[right] - nums[left] > 1:\n            left += 1\n        best = max(best, right - left + 1)\n    return best" }
 ];
 
 function weakSpots(progress) {
@@ -3991,9 +3997,10 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSet
           Algorythm's twelve weeks, with Woodshed riding shotgun: each week pairs the
           cohort topic with its chapter here, a build-it-from-scratch task, and a small
           rep set. This is the tab you follow — set the week your cohort is on and the
-          rest of the app falls in line. Only week one's syllabus is public, so this
-          order mirrors the program's published layers; if your cohort zigzags, just
-          move the dial.
+          rest of the app falls in line. Algorythm unlocks chapters as the cohort reaches them — week one here mirrors
+          the real activity list, and later weeks follow the program's published layers
+          until each chapter drops. When a new week unlocks, paste it to Claude and this
+          tab snaps to match. If your cohort zigzags meanwhile, move the dial.
         </p>
       </div>
 
