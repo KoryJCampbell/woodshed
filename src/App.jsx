@@ -997,7 +997,7 @@ const PLAN = [
     { id: "d21-mock", label: "Rotting Oranges as a mock: 40-minute timer, out loud" },
     { id: "d21-review", label: "Re-solve 3 problems from the review queue" },
   ] },
-  { day: 22, focus: "Graphs, then heaps", reading: [{ id: "rd22", p: 102, b: "imposter", what: "Heap, 6.4, p. 102 — Python never gave you one; here is what you were missing" }], read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
+  { day: 22, focus: "Graphs, then heaps", reading: [{ id: "rd22", p: 102, b: "imposter", what: "Heap, 6.4, p. 102 — then meet heapq, the real one Python hands you" }], read: ["heaps"], solve: ["course-schedule", "last-stone-weight", "kth-largest-element-in-an-array"] },
   { day: 23, focus: "Heaps, then backtracking", read: ["backtracking"], solve: ["k-closest-points-to-origin", "subsets"] },
   { day: 24, focus: "Backtracking", solve: ["permutations", "combination-sum"] },
   { day: 25, focus: "Backtracking, then DP", reading: [{ id: "rd25", p: 130, b: "ctci", what: "Chapter 8, Recursion and Dynamic Programming, p. 130" }], read: ["dp"], solve: ["letter-combinations-of-a-phone-number", "word-search"] },
