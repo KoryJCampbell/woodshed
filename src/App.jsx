@@ -1,5 +1,5 @@
 // WOODSHED — daily reps for technical interviews
-// v17: the whole teaching lane rewritten ELI5. Picture first, name second.
+// v18: Python Crash Course on the shelf. Classes chapter, book refs, bookshelf restored.
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -304,6 +304,51 @@ heapq.heappush(heap, 2)
 smallest = heapq.heappop(heap) # 2`,
       complexity:
         "deque leaves from the front instantly; a plain list cannot. The heap's add and grab cost log n each. Those two sentences answer most follow-ups.",
+    },
+    problems: [],
+  },
+  {
+    id: "py-classes",
+    phase: "p0",
+    title: "Classes",
+    tagline: "Cookie cutters for data",
+    eli5: [
+      "A class is a cookie cutter. It is not a cookie. It is the SHAPE that stamps out cookies. Each stamped cookie is called an object.",
+      "class Node: makes a cutter named Node. The special __init__ function runs every time you stamp a new one. It is the setup step. Whatever you attach to self in there belongs to that one cookie.",
+      "self means: this particular cookie. Every function inside a class takes self first, so it knows WHICH cookie it is working on.",
+      "Why you care right now: the bootcamp makes you build structures from scratch. A linked list is Node cookies holding hands. A tree is Node cookies with two hands. One tiny class unlocks all of week two.",
+    ],
+    spotIt: [
+      "Any implement-it-from-scratch task starts with class Something:.",
+      "n = Node(5) stamps one. n.value reads its stuff. n.next is its clue to the next one.",
+      "Forgot self in the function line? Python yells about arguments. Number one beginner class bug.",
+    ],
+    example: {
+      title: "A Node, and a tiny chain",
+      prompt:
+        "Build the LEGO brick of linked lists: a Node class. Then click three together and walk them.",
+      steps: [
+        "__init__ runs at stamping time: store the value, point next at nothing.",
+        "Stamp three cookies. Point each one at the following one.",
+        "Walk the chain: start at the front, follow next until you hit None.",
+      ],
+      code: `class Node:
+    def __init__(self, value):
+        self.value = value     # this cookie's own number
+        self.next = None       # clue to the next cookie
+
+a = Node(1)
+b = Node(2)
+c = Node(3)
+a.next = b                     # click them together
+b.next = c
+
+walker = a
+while walker:
+    print(walker.value)        # 1, then 2, then 3
+    walker = walker.next`,
+      complexity:
+        "No speed math here. Just the blueprint idea. Stamping a cookie is instant. Walking the chain is one trip: O(n).",
     },
     problems: [],
   },
@@ -1162,6 +1207,13 @@ const ROUTINE = [
 // ---------------------------------------------------------------- bookshelf
 
 const BOOKS = {
+  pcc: {
+    short: "Crash Course",
+    title: "Python Crash Course",
+    author: "Eric Matthes, 1st edition",
+    offset: 33,
+    role: "Your Python textbook. Chapters 1 through 9 are your lane: they teach exactly what Phase 00 teaches, at book depth, with exercises. Read a chapter alongside each primer card. Skip the game and Django projects for now — they are later fun, not loop prep.",
+  },
   ctci: {
     short: "CTCI",
     title: "Cracking the Coding Interview",
@@ -1186,6 +1238,26 @@ const BOOKS = {
 };
 
 const BOOK_REFS = {
+  "py-reading": [
+    { p: 3, b: "pcc", where: "Chapter 1, Getting Started, p. 3 — install, run, first tiny program" },
+  ],
+  "py-variables": [
+    { p: 19, b: "pcc", where: "Chapter 2, Variables and Simple Data Types, p. 19 — this card at book length" },
+  ],
+  "py-lists": [
+    { p: 37, b: "pcc", where: "Chapters 3 and 4, everything lists, p. 37 — both are short, read both" },
+  ],
+  "py-dicts-sets": [
+    { p: 95, b: "pcc", where: "Chapter 6, Dictionaries, p. 95 — the cubbies, with exercises" },
+  ],
+  "py-flow": [
+    { p: 75, b: "pcc", where: "Chapter 5, if Statements, p. 75" },
+    { p: 117, b: "pcc", where: "Chapter 7, while Loops, p. 117" },
+    { p: 133, b: "pcc", where: "Chapter 8, Functions, p. 133 — the little machines" },
+  ],
+  "py-classes": [
+    { p: 161, b: "pcc", where: "Chapter 9, Classes, p. 161 — read this before the week two build" },
+  ],
   "big-o": [
     { p: 38, b: "ctci", where: "Big O, section VI, p. 38 — the canonical treatment" },
     { p: 21, b: "imposter", where: "Chapter 2, Big-O, p. 21, and Chapter 1, Complexity Theory, p. 1 when curious" },
@@ -1334,19 +1406,21 @@ const BOOTCAMP = [
     build: "Live in the Big-O drill this week. Get the sneaky ones right — a nested loop that only advances a shared pointer is O(n), loops over two different inputs are O(n times m), and BFS pays its memory bill in queue. Say every answer out loud before flipping.",
     read: ["py-reading", "py-variables", "py-lists", "py-dicts-sets", "big-o"],
     solve: [{ s: "binary-search" }, { s: "contains-duplicate" }, { s: "running-sum-of-1d-array", tag: "extra" }, { s: "valid-anagram", tag: "extra" }],
-    note: "Mirrored from your cohort's actual 26-activity list. Binary search appears here as their O(log n) exhibit — a first exposure, not the mastery pass; it comes back in week eight for depth. Contains Duplicate is their slow-way-versus-fast-way demo, the exact trade the drill teaches. Python chapters are folded in because the cohort is not tied to one language, and you chose Python.",
+    note: "Mirrored from your cohort's actual 26-activity list. Binary search appears here as their O(log n) exhibit — a first exposure, not the mastery pass; it comes back in week eight for depth. Contains Duplicate is their slow-way-versus-fast-way demo, the exact trade the drill teaches. Python chapters are folded in because the cohort is not tied to one language, and you chose Python. Book: Python Crash Course chapters 1 to 4 ride along this week. Attach the PDF on the bookshelf below.",
   },
   {
     week: 2, title: "Linked lists", dates: "Jul 29 - Aug 3", layer: "Fundamentals, from scratch",
     build: "Implement a singly linked list from scratch in Python: a Node class, append, prepend, delete, find, and reverse. No peeking at the concept solution until yours works.",
-    read: ["py-flow", "py-idioms", "linked-lists"],
+    read: ["py-flow", "py-idioms", "py-classes", "linked-lists"],
     solve: [{ s: "middle-of-the-linked-list" }, { s: "reverse-linked-list" }, { s: "linked-list-cycle" }, { s: "merge-two-sorted-lists" }, { s: "remove-nth-node-from-end-of-list", tag: "stretch" }],
+    note: "Book: Crash Course chapters 8 and 9, functions and classes. Chapter 9 is the one that unlocks the week two Node build.",
   },
   {
     week: 3, title: "Stacks and queues", dates: "Aug 5 - 10", layer: "Fundamentals, from scratch",
     build: "Implement a stack, then a queue two ways: once on collections.deque, once as the classic two-stacks queue. Explain to the wall why the two-stack one is still fast on average.",
     read: ["stacks-queues"],
     solve: [{ s: "valid-parentheses" }, { s: "min-stack" }, { s: "implement-queue-using-stacks" }, { s: "evaluate-reverse-polish-notation" }, { s: "daily-temperatures", tag: "stretch" }],
+    note: "Book: Crash Course chapters 5 and 7, if statements and while loops, round out the basics this week.",
   },
   {
     week: 4, title: "Sets and hashmaps", dates: "Aug 12 - 17", layer: "Fundamentals, from scratch",
@@ -2726,7 +2800,7 @@ function ReaderOverlay({ bookId, printedPage, onClose }) {
         const pdfjs = await loadPdfJs();
         const blob = await libGet(bookId);
         if (!blob) {
-          setErr("This book is not attached on this device. Attach it in the Plan tab.");
+          setErr("This book is not attached on this device. Attach it in the Bootcamp tab.");
           return;
         }
         const buf = await blob.arrayBuffer();
@@ -4006,7 +4080,7 @@ function TodayView({
   );
 }
 
-function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSetWeek, onSolve, onSetDate }) {
+function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSetWeek, onSolve, onSetDate, library, onAttachBook, onRemoveBook }) {
   const cohortWeek = Math.min(Math.max(progress.bootcampWeek || 1, 1), 12);
   const [openWeek, setOpenWeek] = useState(cohortWeek);
 
@@ -4190,6 +4264,33 @@ function PlanView({ progress, onToggleSolved, onToggleTask, onOpenConcept, onSet
         })}
       </div>
 
+      <Card>
+        <Eyebrow>The bookshelf</Eyebrow>
+        <p className="text-sm leading-relaxed mt-2" style={{ color: T.muted }}>
+          Attach your PDFs once and every book pointer in the app becomes a one-tap page
+          jump. Books live on this device only.
+        </p>
+        <div className="mt-4 space-y-4">
+          {Object.entries(BOOKS).map(([id, bk]) => (
+            <div key={id}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <span className="text-sm font-medium" style={{ color: T.ivory }}>
+                    {bk.title}
+                  </span>
+                  <span className="text-xs ml-2" style={{ color: T.faint }}>
+                    {bk.author}
+                  </span>
+                </div>
+                <LibraryControls bookId={id} attached={!!library[id]} onAttach={onAttachBook} onRemove={onRemoveBook} />
+              </div>
+              <p className="text-xs leading-relaxed mt-1" style={{ color: T.faint }}>
+                {bk.role}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Card>
       <Card style={{ borderLeft: "3px solid " + T.gold }}>
         <Eyebrow color={T.gold}>After the cohort</Eyebrow>
         <h2 className="ws-display text-xl font-semibold mt-2" style={{ color: T.ivory }}>
@@ -4390,7 +4491,7 @@ function BookRefsCard({ conceptId, library, onOpenBook }) {
         </p>
       )}
       <p className="text-xs mt-3 leading-relaxed" style={{ color: T.faint }}>
-        Attach your PDFs in the Plan tab and these become one-tap page jumps. Page numbers
+        Attach your PDFs on the Bootcamp tab bookshelf and these become one-tap page jumps. Page numbers
         are the printed ones inside each book.
       </p>
     </Card>
